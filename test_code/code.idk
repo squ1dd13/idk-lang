@@ -1,0 +1,9 @@
+string x = "Hello, world!";
+
+string basicFunction(string arg) {
+    string cool = "me a func";
+}
+
+string basicFunction(string arg) {
+    string cool = "me a func";
+}

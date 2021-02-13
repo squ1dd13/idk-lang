@@ -1,0 +1,45 @@
+int myInteger = 0;
+
+@int reference -> myInteger;
+
+// Set myInteger to 2.
+reference = 2;
+
+// Print myInteger.
+print(reference);
+
+int myOtherInteger = 5;
+
+// Redirect reference to myOtherInteger.
+reference -> myOtherInteger;
+
+// Set myOtherInteger to 2. myInteger is left alone.
+reference = 2;
+
+// Error: Cannot direct reference to value of constant expression.
+reference -> 2;
+
+// Reference to constant. We can read the value, but not write to it.
+// The reference itself is *not* constant: we can redirect it if we want.
+// However, the referenced type is a constant one (const int), and
+//  since the reference follows the rules of the referenced value, we
+//  can't change myOtherInteger through refToConst.
+@(const int) refToConst -> myOtherInteger;
+
+// Error: Cannot assign to constant. (Same error as trying to assign
+//  directly to a 'const int'.)
+refToConst = 10;
+
+// Allowed, since we're just redirecting to a different value.
+refToConst -> myInteger;
+
+// Constant reference to a constant. Follows the same rules as the
+//  reference to a constant value above, but the reference itself *is*
+//  constant. In other words, we can't redirect this one.
+const @(const int) constRefToConst -> myOtherInteger;
+
+// Error: Cannot assign to constant.
+constRefToConst = 10;
+
+// Error: Cannot redirect constant reference.
+constRefToConst -> myInteger;
