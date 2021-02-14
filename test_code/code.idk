@@ -4,6 +4,8 @@ int y = 10;
 int a = 15;
 int b = 20;
 
+a = 5;
+
 print("printing a...");
 print(a);
 print("printing b...");

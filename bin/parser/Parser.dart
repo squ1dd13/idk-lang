@@ -1,8 +1,8 @@
 import '../Lexer.dart';
-import '../runtime/Concepts.dart';
 import '../runtime/Concrete.dart';
 import '../runtime/Expression.dart';
 import '../runtime/Store.dart';
+import 'Assignment.dart';
 import 'Call.dart';
 import 'Function.dart';
 import 'Util.dart';
@@ -19,7 +19,8 @@ class Parse {
       stream.consumeSemicolon(5);
 
       return statement;
-    }
+    },
+    (stream) => Assignment(stream).createStatement(),
   };
 
   static final _expressionPasses = <Expression Function(TokenStream)>{
@@ -28,7 +29,6 @@ class Parse {
 
   static List<ElementType> _parseRepeated<ElementType>(
       List<Token> tokens, Set<ElementType Function(TokenStream)> generators) {
-
     var stream = TokenStream(tokens, 0);
     var created = <ElementType>[];
 

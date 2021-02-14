@@ -77,6 +77,10 @@ class TokenStream {
     return InvalidSyntaxException(
         message, stage, current().line, current().column);
   }
+
+  List<Token> toList() {
+    return _collection.sublist(_index);
+  }
 }
 
 class TokenPattern {

@@ -6,7 +6,9 @@ import 'Util.dart';
 class IntegerValue extends TypedValue implements Value {
   int value;
 
-  IntegerValue(String string) : value = int.parse(string);
+  IntegerValue(String string) : value = int.parse(string) {
+    type = PrimitiveType(Primitive.Int);
+  }
 
   @override
   String toString() => value.toString();
@@ -18,7 +20,9 @@ class IntegerValue extends TypedValue implements Value {
 class StringValue extends TypedValue implements Value {
   String value;
 
-  StringValue(this.value);
+  StringValue(this.value) {
+    type = PrimitiveType(Primitive.String);
+  }
 
   @override
   String toString() => value;
