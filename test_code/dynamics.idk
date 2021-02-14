@@ -1,0 +1,34 @@
+// Dynamics are expressions that are evaluated every
+//  time they are referenced. They act as references
+//  in that assigning to them (with '=') passes the
+//  assignment through to the underlying expression.
+// Dynamics cannot be redefined, so the initial expression
+//  is permanent.
+
+// evalInt itself has no value; it simply evaluates to
+//  the same as the '2' integer literal it is defined as.
+// '2' is a constant, so evalInt must be treated as a constant.
+int evalInt: 2;
+
+// half == 1. Same as 2 / 1.
+int half = evalInt / 2;
+
+// Error: Cannot assign to constant.
+evalInt = 5;
+
+// Error: Cannot assign to constant.
+evalInt += 2;
+
+// backing will provide the actual value for our next dynamic.
+int backing = 10;
+
+int anotherEval: backing;
+
+// Fine. Same as backing = 3.
+anotherEval = 3;
+
+// Fine. Same as backing += 5.
+anotherEval += 5;
+
+int something = 20;
+int again: something / 2;

@@ -41,6 +41,14 @@ class GroupToken extends Token {
     return children;
   }
 
+  List<Token> middle() {
+    return children.sublist(1, children.length - 1);
+  }
+
+  TokenStream contents() {
+    return TokenStream(middle(), 0);
+  }
+
   bool delimitedBy(TokenPattern open, TokenPattern close) {
     return children.length >= 2 &&
         open.hasMatch(children.first) &&
@@ -61,14 +69,26 @@ class Lexer {
   Lexer(this._text) {
     // Generate a bunch of separate tokens.
     while (_moveNext()) {
+      var startPos = _position;
+
       // Try generating a string literal.
       if (_generateStringLiteral()) {
         continue;
       }
 
+      _position = startPos;
+
       if (_generateName()) {
         continue;
       }
+
+      _position = startPos;
+
+      if (_generateIntLiteral()) {
+        continue;
+      }
+
+      _position = startPos;
 
       var character = _getCharacter();
 
@@ -84,21 +104,21 @@ class Lexer {
 
     _createGroups();
   }
-  
+
   void _addToken(Token token) {
     var lineColumn = _lineAndColumn();
     token.line = lineColumn[0];
     token.column = lineColumn[1];
-    
+
     generatedTokens.add(token);
   }
 
-  bool _moveNext() => _position++ < _text.length;
+  bool _moveNext() => ++_position < _text.length;
 
   List<int> _lineAndColumn() {
     var line = 1, column = 1;
     var smaller = min(_text.length, _position);
-    
+
     for (var i = 0; i < smaller; ++i) {
       if (_text[i] == '\n') {
         ++line;
@@ -107,7 +127,7 @@ class Lexer {
         ++column;
       }
     }
-    
+
     return [line, column];
   }
 
@@ -151,6 +171,33 @@ class Lexer {
 
     _addToken(TextToken(TokenType.Name, name));
 
+    return true;
+  }
+
+  bool _generateIntLiteral() {
+    bool isDigit(String char) => (char.codeUnitAt(0) ^ 0x30) <= 9;
+
+    var buffer = StringBuffer();
+    var foundEnd = false;
+
+    while (isDigit(_getCharacter())) {
+      buffer.write(_getCharacter());
+
+      if (!_moveNext()) {
+        foundEnd = true;
+        break;
+      }
+    }
+
+    if (!foundEnd) {
+      --_position;
+    }
+
+    if (buffer.isEmpty) {
+      return false;
+    }
+
+    _addToken(TextToken(TokenType.Number, buffer.toString()));
     return true;
   }
 

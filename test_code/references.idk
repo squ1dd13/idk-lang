@@ -1,5 +1,7 @@
 int myInteger = 0;
 
+// '->' syntax is '=' but for references. It directs the reference on 
+//  the left to the value on the right.
 @int reference -> myInteger;
 
 // Set myInteger to 2.

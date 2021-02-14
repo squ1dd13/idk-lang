@@ -1,5 +1,6 @@
 import 'Concepts.dart';
 import 'Expression.dart';
+import 'Store.dart';
 import 'Util.dart';
 
 class IntegerValue extends Value {
@@ -32,7 +33,9 @@ class SideEffects {
 /// producing a value when finished.
 class Statement {
   /// Doesn't return a value.
-  Expression _fullExpression;
+  final Expression _fullExpression;
+
+  Statement(this._fullExpression);
 
   SideEffects execute() {
     _fullExpression.evaluate();
@@ -41,11 +44,13 @@ class Statement {
 }
 
 class ReferenceType extends ValueType {
-  ValueType _referencedType;
+  final ValueType _referencedType;
+
+  ReferenceType.of(this._referencedType);
 
   @override
-  bool canTakeFrom(ValueType other) {
-    return _referencedType.canTakeFrom(other);
+  bool canConvertTo(ValueType other) {
+    return _referencedType.canConvertTo(other);
   }
 }
 
@@ -54,6 +59,13 @@ class ReferenceType extends ValueType {
 /// like one (with normal syntax).
 class Reference extends Variable {
   Variable _referenced;
+
+  Reference(TypedValue value)
+      : super(ReferenceType.of(value.type), value.get()) {
+    // TODO: Implement
+    throw UnimplementedError();
+    // _referenced =
+  }
 
   @override
   Value get() {
@@ -67,17 +79,150 @@ class Reference extends Variable {
   }
 
   void redirect(TypedValue source) {
-    if (!type.canTakeFrom(source.type)) {
-      throw LogicException('Cannot redirect reference of type $type to value of type ${source.type}!');
+    if (!source.type.canConvertTo(type)) {
+      throw LogicException(
+          'Cannot redirect reference of type $type to value of type ${source.type}!');
     }
 
     _referenced = source;
   }
 }
 
-class FunctionValue extends Value {
+enum Primitive {
+  Int,
+  String,
+}
+
+class PrimitiveType extends ValueType {
+  final Primitive _type;
+
+  PrimitiveType(this._type);
+
+  @override
+  bool canConvertTo(ValueType other) {
+    return this == other;
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PrimitiveType &&
+          runtimeType == other.runtimeType &&
+          _type == other._type;
+
+  @override
+  int get hashCode => _type.hashCode;
+}
+
+class FunctionType extends ValueType {
+  ValueType returnType;
+  var parameterTypes = <ValueType>[];
+
+  FunctionType.forFunction(FunctionValue function) {
+    returnType = function.returnType;
+    parameterTypes = function.parameters.values.toList();
+  }
+
+  /// Can be used to match call signatures but also function objects.
+  @override
+  bool canConvertTo(ValueType other) {
+    if (!(other is FunctionType)) {
+      return false;
+    }
+
+    var otherFunction = other as FunctionType;
+
+    // Return types must be compatible.
+    if (!otherFunction.returnType.canConvertTo(returnType)) {
+      return false;
+    }
+
+    // Can't match types if the number of parameters is different.
+    if (otherFunction.parameterTypes.length != parameterTypes.length) {
+      return false;
+    }
+
+    // Check if all the parameters match.
+    for (var i = 0; i < parameterTypes.length; ++i) {
+      if (!otherFunction.parameterTypes[i].canConvertTo(parameterTypes[i])) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+}
+
+class AnyType extends ValueType {
+  @override
+  bool canConvertTo(ValueType other) {
+    return true;
+  }
+}
+
+class NoType extends ValueType {
+  @override
+  bool canConvertTo(ValueType other) {
+    return false;
+  }
+}
+
+class FunctionValue extends TypedValue implements Value {
   final String name;
+  final ValueType returnType;
+  final Map<String, ValueType> parameters;
   final List<Statement> _statements;
 
-  FunctionValue(this.name, this._statements);
+  FunctionValue(this.name, this.returnType, this._statements)
+      : parameters = <String, ValueType>{};
+
+  void addParameter(String name, ValueType type) {
+    parameters[name] = type;
+  }
+
+  /// Sets the function's type. Should be done after all changes
+  /// have been made.
+  void applyType() {
+    type = FunctionType.forFunction(this);
+  }
+
+  @override
+  Value get() {
+    return this;
+  }
+
+  TypedValue call(Map<String, Value> arguments) {
+    TypedValue returnedValue;
+
+    // Open a new scope for the function body to run inside.
+    Store.current().branch((store) {
+      // Bring the argument values into scope.
+      for (var name in arguments.keys) {
+        store.add(name, arguments[name]);
+
+        // Set the type from our parameters types.
+        store.getAs<TypedValue>(name).type = parameters[name];
+      }
+
+      // Execute the statements.
+      for (var statement in _statements) {
+        var sideEffects = statement.execute();
+
+        // Check the side effects for stuff we need to handle.
+        if (sideEffects != null) {
+          if (sideEffects.returns) {
+            returnedValue = sideEffects.returnedValue;
+
+            // Stop executing the statements - we're returning.
+            break;
+          }
+        }
+      }
+
+      // Cleanup is automatic, because the locals are lost when
+      //  the scope is closed.
+    });
+
+    return returnedValue;
+  }
 }

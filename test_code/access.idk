@@ -1,0 +1,51 @@
+// This file demonstrates the various options we have for importing
+//  entities from packages.
+
+/*********************************************************************/
+
+// Imports stuff from core:io, but we still need to qualify access.
+import core:io;
+
+// space core, space io, (function) print
+core:io:print("Hello, world!");
+
+/*********************************************************************/
+
+// Imports stuff from core:io, but we can now use that stuff
+//  without qualification.
+with core:io;
+
+print("Hello, world!");
+
+/*********************************************************************/
+
+// Imports all of core:io, but only 'print' can be used unqualified.
+with print from core:io;
+
+print("Hello, world!");
+
+string someInput = core:io:readLine();
+
+/*********************************************************************/
+
+// Imports all of core:io, but allows unqualified access to
+//  only 'print' and 'readLine'.
+with (print, readLine) from core:io;
+
+print("Hello, world!");
+
+string someInput = readLine();
+
+/*********************************************************************/
+
+// Imports all of core:io, and allows unqualified access to everything
+//  apart from 'File' (and its contents).
+with core:io except File;
+
+print("Hello, world!");
+
+string someInput = readLine();
+
+core:io:File file = core:io:File:open("/path/to/file.txt");
+
+/*********************************************************************/

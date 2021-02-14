@@ -1,8 +1,10 @@
 string x = "Hello, world!";
+int y = 10;
 
-string basicFunction(string arg) {
-    string cool = "me a func";
-}
+int a = 15;
+int b = 20;
+
+int c = b - a;
 
 string basicFunction(string arg) {
     string cool = "me a func";

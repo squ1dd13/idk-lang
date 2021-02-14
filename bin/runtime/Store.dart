@@ -2,12 +2,15 @@ import 'Concepts.dart';
 
 class Store {
   final _contents = <String, Evaluable>{};
+  final Store _parent;
 
-  static var stack = <Store>[Store()];
+  static var stack = <Store>[Store(null)];
+
+  Store(this._parent);
   static Store current() => stack.last;
 
   void add(String name, Evaluable item) {
-    if (has(name)) {
+    if (hasLocal(name)) {
       throw Exception('$name already exists in this scope.');
     }
 
@@ -16,6 +19,10 @@ class Store {
 
   Evaluable get(String name) {
     if (!has(name)) {
+      if (_parent != null) {
+        return _parent.get(name);
+      }
+
       throw Exception('Undeclared identifier $name.');
     }
 
@@ -33,7 +40,13 @@ class Store {
   }
 
   void set(String name, TypedValue value) {
-    if (!has(name)) {
+    if (!hasLocal(name)) {
+      // Try the parent (if there is one).
+      if (_parent != null) {
+        _parent.set(name, value);
+        return;
+      }
+
       throw Exception('Undeclared identifier $name.');
     }
 
@@ -47,5 +60,23 @@ class Store {
 
   bool has(String name) {
     return _contents.containsKey(name);
+  }
+
+  bool hasLocal(String name) {
+    return _contents.containsKey(name);
+  }
+
+  /// Branches the current store off into another, and runs a block
+  /// of code in the context of the new store. Nothing can be added to
+  /// or removed from the parent store (although values may change).
+  void branch(void Function(Store) toRun) {
+    var child = Store(this);
+
+    // Make current() return the child.
+    stack.add(child);
+    toRun(child);
+
+    // We're leaving the scope, so remove the child.
+    stack.removeLast();
   }
 }

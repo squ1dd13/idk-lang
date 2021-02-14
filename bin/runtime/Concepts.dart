@@ -15,7 +15,8 @@ abstract class Evaluable implements Concept {
 }
 
 abstract class ValueType extends Value {
-  bool canTakeFrom(ValueType other);
+  // bool canTakeFrom(ValueType other);
+  bool canConvertTo(ValueType other);
 }
 
 /// A class type. Equality is determined by name.
@@ -35,7 +36,7 @@ class ClassType extends ValueType {
   int get hashCode => name.hashCode;
 
   @override
-  bool canTakeFrom(ValueType other) {
+  bool canConvertTo(ValueType other) {
     return this == other;
   }
 }
@@ -47,6 +48,11 @@ abstract class TypedValue implements Evaluable {
 }
 
 class Variable extends TypedValue implements Evaluable {
+  Variable(ValueType theType, Value theValue) {
+    _value = theValue;
+    type = theType;
+  }
+
   @override
   Value get() {
     return _value;
@@ -54,7 +60,7 @@ class Variable extends TypedValue implements Evaluable {
 
   void set(TypedValue source) {
     // Ensure the types are compatible.
-    if (!type.canTakeFrom(source.type)) {
+    if (!source.type.canConvertTo(type)) {
       throw LogicException(
           'Cannot assign value of type ${source.type} to variable of type $type!');
     }
