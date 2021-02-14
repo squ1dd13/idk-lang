@@ -1,6 +1,7 @@
 import '../Lexer.dart';
 import '../runtime/Concrete.dart';
 import '../runtime/Expression.dart';
+import '../runtime/Functions.dart';
 import '../runtime/Store.dart';
 import 'Parser.dart';
 import 'TypeName.dart';

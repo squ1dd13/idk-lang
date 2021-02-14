@@ -4,6 +4,7 @@ import '../runtime/Expression.dart';
 import '../runtime/Store.dart';
 import 'Assignment.dart';
 import 'Call.dart';
+import 'Direction.dart';
 import 'Function.dart';
 import 'Util.dart';
 import 'Declaration.dart';
@@ -11,6 +12,7 @@ import 'Declaration.dart';
 class Parse {
   static final _statementPasses = <Statement Function(TokenStream)>{
     (stream) => VariableDeclaration(stream).createStatement(),
+    (stream) => FirstDirection(stream).createStatement(),
     (stream) => FunctionDeclaration(stream).createStatement(),
     (stream) {
       var statement = Statement(FunctionCall(stream).createExpression());

@@ -61,7 +61,7 @@ class Variable extends TypedValue implements Evaluable {
   void set(TypedValue source) {
     // Ensure the types are compatible.
     if (!source.type.canConvertTo(type)) {
-      throw LogicException(
+      throw Exception(
           'Cannot assign value of type ${source.type} to variable of type $type!');
     }
 

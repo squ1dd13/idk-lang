@@ -4,7 +4,17 @@ int y = 10;
 int a = 15;
 int b = 20;
 
+@(int) myRef -> a;
+
+print("myRef is");
+print(myRef);
+
 a = 5;
+
+print("myRef is");
+print(myRef);
+
+myRef = 10;
 
 print("printing a...");
 print(a);

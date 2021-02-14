@@ -2,6 +2,7 @@ library standard;
 
 import '../Concrete.dart';
 import '../Expression.dart';
+import '../Functions.dart';
 import '../Store.dart';
 
 void registerIO() {

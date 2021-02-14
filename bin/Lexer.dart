@@ -38,7 +38,7 @@ class GroupToken extends Token {
 
   @override
   List<Token> allTokens() {
-    return children;
+    return middle();
   }
 
   List<Token> middle() {
@@ -79,6 +79,12 @@ class Lexer {
       _position = startPos;
 
       if (_generateName()) {
+        continue;
+      }
+
+      _position = startPos;
+
+      if (_generateOperator()) {
         continue;
       }
 
@@ -129,6 +135,44 @@ class Lexer {
     }
 
     return [line, column];
+  }
+
+  bool _generateOperator() {
+    const operators = <String>{'==', '->'};
+    const operatorChars = '=->';
+
+    var buffer = StringBuffer();
+    var startLineColumn = _lineAndColumn();
+
+    while (operatorChars.contains(_getCharacter())) {
+      buffer.write(_getCharacter(moveAfter: true));
+    }
+
+    if (buffer.isEmpty) {
+      return false;
+    }
+
+    var operatorString = buffer.toString();
+
+    if (!operators.contains(operatorString)) {
+      // Split into multiple tokens.
+      for (var i = 0; i < operatorString.length; ++i) {
+        var character = String.fromCharCode(operatorString.codeUnitAt(i));
+
+        var token = TextToken(TokenType.Symbol, character);
+        token.line = startLineColumn[0];
+
+        // We only need to add to the column because we know the line won't
+        //  have changed: you can't have a newline character in an operator.
+        token.column = startLineColumn[1] + i;
+
+        generatedTokens.add(token);
+      }
+    } else {
+      _addToken(TextToken(TokenType.Symbol, operatorString));
+    }
+
+    return true;
   }
 
   /// Attempt to read an identifier.

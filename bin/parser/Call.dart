@@ -2,6 +2,7 @@ import '../Lexer.dart';
 import '../runtime/Concepts.dart';
 import '../runtime/Concrete.dart';
 import '../runtime/Expression.dart';
+import '../runtime/Functions.dart';
 import '../runtime/Store.dart';
 import 'Parser.dart';
 import 'Util.dart';

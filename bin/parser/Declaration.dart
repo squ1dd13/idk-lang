@@ -13,8 +13,8 @@ class VariableDeclaration {
   Expression _valueExpression;
 
   VariableDeclaration(TokenStream tokens) {
-    tokens.requireNext('Declaration must begin with a type name.', 1,
-        TokenPattern.type(TokenType.Name));
+    // tokens.requireNext('Declaration must begin with a type name.', 1,
+    //     TokenPattern.type(TokenType.Name));
 
     _typeName = TypeName(tokens);
 
