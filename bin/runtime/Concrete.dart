@@ -3,29 +3,35 @@ import 'Expression.dart';
 import 'Store.dart';
 import 'Util.dart';
 
-class IntegerValue extends Value {
+class IntegerValue extends TypedValue implements Value {
   int value;
 
   IntegerValue(String string) : value = int.parse(string);
 
   @override
   String toString() => value.toString();
+
+  @override
+  Value get() => this;
 }
 
-class StringValue extends Value {
+class StringValue extends TypedValue implements Value {
   String value;
 
   StringValue(this.value);
 
   @override
   String toString() => value;
+
+  @override
+  Value get() => this;
 }
 
 class SideEffects {
   // TODO: "break n"
-  bool breaks;
-  bool continues;
-  bool returns;
+  bool breaks = false;
+  bool continues = false;
+  bool returns = false;
   TypedValue returnedValue;
 }
 
@@ -117,6 +123,8 @@ class PrimitiveType extends ValueType {
 class FunctionType extends ValueType {
   ValueType returnType;
   var parameterTypes = <ValueType>[];
+
+  FunctionType();
 
   FunctionType.forFunction(FunctionValue function) {
     returnType = function.returnType;

@@ -4,8 +4,13 @@ int y = 10;
 int a = 15;
 int b = 20;
 
-int c = b - a;
+print("printing a...");
+print(a);
+print("printing b...");
+print(b);
 
 string basicFunction(string arg) {
-    string cool = "me a func";
+    print(arg);
 }
+
+basicFunction("hi");

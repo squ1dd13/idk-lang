@@ -29,6 +29,7 @@ class Store {
     return _contents[name];
   }
 
+  // TODO: Throw on failed cast?
   T getAs<T>(String name) {
     var evaluable = get(name);
 
