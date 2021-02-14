@@ -12,7 +12,16 @@ print("printing b...");
 print(b);
 
 string basicFunction(string arg) {
+    arg = "haha";
     print(arg);
 }
 
-basicFunction("hi");
+proc printWrapper(string something) {
+    print(something);
+}
+
+printWrapper("print this through the wrapper");
+
+string myVar = "this is a string variable";
+basicFunction(myVar);
+print(myVar);

@@ -203,20 +203,23 @@ class FunctionValue extends TypedValue implements Value {
     return this;
   }
 
-  TypedValue call(Map<String, Value> arguments) {
+  TypedValue call(Map<String, Evaluable> arguments) {
     TypedValue returnedValue;
 
     // Open a new scope for the function body to run inside.
     Store.current().branch((store) {
-      // Bring the argument values into scope.
+      // Bring the argument values into scope but as new variables.
+      // If we don't create variables here (just directly add the
+      //  values instead), reading the argument values will work,
+      //  but assigning to them could produce errors because there
+      //  would be no guarantee that they could be assigned to.
+      // If they could be assigned to, everything would be
+      //  pass-by-reference, which is not what we want as a default.
       for (var name in arguments.keys) {
-        store.add(name, arguments[name]);
-
-        // Set the type from our parameters types.
-        store.getAs<TypedValue>(name).type = parameters[name];
+        store.add(name, Variable(parameters[name], arguments[name].get()));
       }
 
-      // Execute the statements.
+      // Execute the body.
       for (var statement in _statements) {
         var sideEffects = statement.execute();
 

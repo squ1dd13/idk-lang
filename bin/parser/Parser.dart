@@ -6,7 +6,7 @@ import 'Assignment.dart';
 import 'Call.dart';
 import 'Function.dart';
 import 'Util.dart';
-import 'VariableDeclaration.dart';
+import 'Declaration.dart';
 
 class Parse {
   static final _statementPasses = <Statement Function(TokenStream)>{

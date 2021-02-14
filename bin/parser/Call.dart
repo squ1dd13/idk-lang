@@ -55,11 +55,11 @@ class FunctionCall {
       }
 
       // Map the arguments to their names.
-      var mappedArguments = <String, Value>{};
+      var mappedArguments = <String, Evaluable>{};
       var parameterNames = parameters.keys.toList();
 
       for (var i = 0; i < _arguments.length; ++i) {
-        mappedArguments[parameterNames[i]] = _arguments[i].evaluate().get();
+        mappedArguments[parameterNames[i]] = _arguments[i].evaluate();
       }
 
       return resolvedValue.call(mappedArguments);
