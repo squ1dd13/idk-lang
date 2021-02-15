@@ -119,6 +119,7 @@ class Lexer {
     generatedTokens.add(token);
   }
 
+  bool _hasNext() => _position < _text.length;
   bool _moveNext() => ++_position < _text.length;
 
   List<int> _lineAndColumn() {
@@ -146,7 +147,7 @@ class Lexer {
     var buffer = StringBuffer();
     var startLineColumn = _lineAndColumn();
 
-    while (operatorChars.contains(_getCharacter())) {
+    while (_hasNext() && operatorChars.contains(_getCharacter())) {
       buffer.write(_getCharacter(moveAfter: true));
     }
 
@@ -171,6 +172,12 @@ class Lexer {
         generatedTokens.add(token);
       }
     } else {
+      if (_hasNext()) {
+        // Go back so we can process the last character on the next lexing
+        //  pass.
+        --_position;
+      }
+
       _addToken(TextToken(TokenType.Symbol, operatorString));
     }
 
