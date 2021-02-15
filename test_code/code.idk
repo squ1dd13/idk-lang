@@ -49,3 +49,22 @@ giveMeFive(-> myNumber);
 
 print("after GMF:");
 print(myNumber);
+
+@int someRef -> myNumber;
+
+print("someref = ");
+print(someRef);
+
+myNumber = 10;
+print("(after n = 10) someref = ");
+print(someRef);
+
+someRef = 5;
+print("(after r = 5) someref = ");
+print(someRef);
+
+int somethingElse = 100;
+someRef -> somethingElse;
+
+print("(after redirect) someref = ");
+print(someRef);

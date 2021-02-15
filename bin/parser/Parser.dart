@@ -4,16 +4,16 @@ import '../runtime/Expression.dart';
 import '../runtime/Store.dart';
 import 'Assignment.dart';
 import 'Call.dart';
-import 'Direction.dart';
-import 'Function.dart';
-import 'InlineReference.dart';
-import 'Util.dart';
 import 'Declaration.dart';
+import 'Function.dart';
+import 'References.dart';
+import 'Util.dart';
 
 class Parse {
   static final _statementPasses = <Statement Function(TokenStream)>{
     (stream) => VariableDeclaration(stream).createStatement(),
-    (stream) => FirstDirection(stream).createStatement(),
+    (stream) => Direction(stream).createStatement(),
+    (stream) => Direction.redirection(stream).createStatement(),
     (stream) => FunctionDeclaration(stream).createStatement(),
     (stream) => FunctionCall.statement(stream).createStatement(),
     (stream) => Assignment(stream).createStatement(),
@@ -21,7 +21,7 @@ class Parse {
 
   static final _expressionPasses = <Expression Function(TokenStream)>{
     (stream) => FunctionCall(stream).createExpression(),
-    (stream) => InlineReference(stream).createExpression()
+    (stream) => InlineDirection(stream).createExpression()
   };
 
   static List<ElementType> _parseRepeated<ElementType>(

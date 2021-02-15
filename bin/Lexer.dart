@@ -120,6 +120,7 @@ class Lexer {
   }
 
   bool _hasNext() => _position < _text.length;
+
   bool _moveNext() => ++_position < _text.length;
 
   List<int> _lineAndColumn() {

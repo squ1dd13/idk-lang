@@ -50,8 +50,7 @@ class TokenStream {
 
   void requireNext(String message, int stage, TokenPattern pattern) {
     if (!hasCurrent() || pattern.notMatch(current())) {
-      throw createException(
-          message, stage);
+      throw createException(message, stage);
     }
   }
 

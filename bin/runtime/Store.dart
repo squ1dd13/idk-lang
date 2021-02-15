@@ -8,6 +8,7 @@ class Store {
   static var stack = <Store>[Store(null)];
 
   Store(this._parent);
+
   static Store current() => stack.last;
 
   void add(String name, Evaluable item) {
