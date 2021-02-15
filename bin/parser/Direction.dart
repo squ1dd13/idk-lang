@@ -11,7 +11,7 @@ import 'Util.dart';
 /// ```
 /// @int myReference -> someVariable;
 /// ```
-class FirstDirection {
+class FirstDirection implements Statable {
   TypeName _typeName;
   String _name;
   Expression _targetExpression;
@@ -40,6 +40,7 @@ class FirstDirection {
     tokens.consumeSemicolon(4);
   }
 
+  @override
   Statement createStatement() {
     return Statement(InlineExpression(() {
       // Evaluate the expression and then create a variable with the type.

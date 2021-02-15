@@ -12,9 +12,6 @@ class _Parameter {
   String name;
 
   _Parameter(TokenStream tokens) {
-    tokens.requireNext('Function parameters must declare a type.', 1,
-        TokenPattern.type(TokenType.Name));
-
     type = TypeName(tokens);
 
     tokens.requireNext('Function parameters cannot be anonymous.', 2,
@@ -24,7 +21,7 @@ class _Parameter {
   }
 }
 
-class FunctionDeclaration {
+class FunctionDeclaration implements Statable {
   // Stays as a TypeName until the declaration is evaluated - this lazy
   //  loading of types allows the type to be declared after it's first used.
   TypeName _returnType;
@@ -70,6 +67,7 @@ class FunctionDeclaration {
     _body.addAll(Parse.statements(bodyTokens.middle()));
   }
 
+  @override
   Statement createStatement() {
     // When the function declaration 'executes', it just means we need to
     //  add the variable to the current store.

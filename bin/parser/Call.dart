@@ -11,9 +11,20 @@ import 'Util.dart';
 /// handled as an operator (the '()' operator, like in C++). This class
 /// exists only until we have an adequate enough operator system to
 /// be able to do that.
-class FunctionCall {
+class FunctionCall implements Statable, Expressible {
   String _calledName;
   final _arguments = <Expression>[];
+
+  /// Constructs a [FunctionCall] but expects a semicolon at the end.
+  /// This must be a separate constructor because the semicolon must
+  /// be handled at parse-time and not evaluation-time.
+  factory FunctionCall.statement(TokenStream tokens) {
+    var created = FunctionCall(tokens);
+
+    // Statement, so we need a semicolon.
+    tokens.consumeSemicolon(5);
+    return created;
+  }
 
   FunctionCall(TokenStream tokens) {
     tokens.requireNext(
@@ -65,5 +76,10 @@ class FunctionCall {
 
       return resolvedValue.call(mappedArguments);
     });
+  }
+
+  @override
+  Statement createStatement() {
+    return Statement(createExpression());
   }
 }

@@ -5,6 +5,8 @@ import 'Util.dart';
 class IntegerValue extends TypedValue implements Value {
   int value;
 
+  IntegerValue.raw(this.value);
+
   IntegerValue(String string) : value = int.parse(string) {
     type = PrimitiveType(Primitive.Int);
   }
@@ -14,6 +16,11 @@ class IntegerValue extends TypedValue implements Value {
 
   @override
   Value get() => this;
+
+  @override
+  Evaluable copy() {
+    return IntegerValue.raw(value);
+  }
 }
 
 class StringValue extends TypedValue implements Value {
@@ -28,6 +35,11 @@ class StringValue extends TypedValue implements Value {
 
   @override
   Value get() => this;
+
+  @override
+  Evaluable copy() {
+    return StringValue(value);
+  }
 }
 
 class SideEffects {
@@ -53,13 +65,18 @@ class Statement {
 }
 
 class ReferenceType extends ValueType {
-  final ValueType _referencedType;
+  final ValueType referencedType;
 
-  ReferenceType.forReferenceTo(this._referencedType);
+  ReferenceType.forReferenceTo(this.referencedType);
 
   @override
   bool canConvertTo(ValueType other) {
-    return _referencedType.canConvertTo(other);
+    return referencedType.canConvertTo(other);
+  }
+
+  @override
+  Evaluable copy() {
+    return ReferenceType.forReferenceTo(referencedType);
   }
 }
 
@@ -102,6 +119,11 @@ class Reference implements Variable {
 
     _referenced = source;
   }
+
+  @override
+  Evaluable copy() {
+    return Reference(_referenced);
+  }
 }
 
 enum Primitive {
@@ -128,6 +150,11 @@ class PrimitiveType extends ValueType {
 
   @override
   int get hashCode => _type.hashCode;
+
+  @override
+  Evaluable copy() {
+    return PrimitiveType(_type);
+  }
 }
 
 class AnyType extends ValueType {
@@ -135,11 +162,21 @@ class AnyType extends ValueType {
   bool canConvertTo(ValueType other) {
     return true;
   }
+
+  @override
+  Evaluable copy() {
+    return AnyType();
+  }
 }
 
 class NoType extends ValueType {
   @override
   bool canConvertTo(ValueType other) {
     return false;
+  }
+
+  @override
+  Evaluable copy() {
+    return NoType();
   }
 }

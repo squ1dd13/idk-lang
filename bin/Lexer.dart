@@ -138,6 +138,8 @@ class Lexer {
   }
 
   bool _generateOperator() {
+    // TODO: Improve operator lexing (make it work properly).
+
     const operators = <String>{'==', '->'};
     const operatorChars = '=->';
 

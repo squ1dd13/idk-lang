@@ -41,6 +41,12 @@ class FunctionType extends ValueType {
 
     return true;
   }
+
+  @override
+  Evaluable copy() {
+    // TODO: implement copy
+    throw UnimplementedError();
+  }
 }
 
 class FunctionValue extends TypedValue implements Value {
@@ -80,7 +86,7 @@ class FunctionValue extends TypedValue implements Value {
       // If they could be assigned to, everything would be
       //  pass-by-reference, which is not what we want as a default.
       for (var name in arguments.keys) {
-        store.add(name, Variable(parameters[name], arguments[name].get()));
+        store.add(name, arguments[name].copy());
       }
 
       // Execute the body.
@@ -103,5 +109,11 @@ class FunctionValue extends TypedValue implements Value {
     });
 
     return returnedValue;
+  }
+
+  @override
+  Evaluable copy() {
+    // TODO: implement copy
+    throw UnimplementedError();
   }
 }

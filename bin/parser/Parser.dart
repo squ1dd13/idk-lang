@@ -6,6 +6,7 @@ import 'Assignment.dart';
 import 'Call.dart';
 import 'Direction.dart';
 import 'Function.dart';
+import 'InlineReference.dart';
 import 'Util.dart';
 import 'Declaration.dart';
 
@@ -14,19 +15,13 @@ class Parse {
     (stream) => VariableDeclaration(stream).createStatement(),
     (stream) => FirstDirection(stream).createStatement(),
     (stream) => FunctionDeclaration(stream).createStatement(),
-    (stream) {
-      var statement = Statement(FunctionCall(stream).createExpression());
-
-      // If it's a statement, there needs to be a semicolon after.
-      stream.consumeSemicolon(5);
-
-      return statement;
-    },
+    (stream) => FunctionCall.statement(stream).createStatement(),
     (stream) => Assignment(stream).createStatement(),
   };
 
   static final _expressionPasses = <Expression Function(TokenStream)>{
-    (stream) => FunctionCall(stream).createExpression()
+    (stream) => FunctionCall(stream).createExpression(),
+    (stream) => InlineReference(stream).createExpression()
   };
 
   static List<ElementType> _parseRepeated<ElementType>(

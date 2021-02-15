@@ -5,7 +5,7 @@ import '../runtime/Expression.dart';
 import 'Parser.dart';
 import 'Util.dart';
 
-class Assignment {
+class Assignment implements Statable {
   Expression _destination;
   Expression _source;
 
@@ -32,6 +32,7 @@ class Assignment {
             'assignments may not be expressions.');
   }
 
+  @override
   Statement createStatement() {
     return Statement(InlineExpression(() {
       var target = _destination.evaluate();

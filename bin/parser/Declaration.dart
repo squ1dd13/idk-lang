@@ -7,15 +7,12 @@ import 'Parser.dart';
 import 'TypeName.dart';
 import 'Util.dart';
 
-class VariableDeclaration {
+class VariableDeclaration implements Statable {
   TypeName _typeName;
   String _name;
   Expression _valueExpression;
 
   VariableDeclaration(TokenStream tokens) {
-    // tokens.requireNext('Declaration must begin with a type name.', 1,
-    //     TokenPattern.type(TokenType.Name));
-
     _typeName = TypeName(tokens);
 
     tokens.requireNext('Expected name after type in declaration.', 2,
@@ -41,6 +38,7 @@ class VariableDeclaration {
     tokens.consumeSemicolon(5);
   }
 
+  @override
   Statement createStatement() {
     return Statement(InlineExpression(() {
       // Evaluate the expression and then create a variable with the type.

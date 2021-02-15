@@ -1,4 +1,15 @@
 import '../Lexer.dart';
+import '../runtime/Concrete.dart';
+import '../runtime/Expression.dart';
+
+/// Something that can be converted to a statement.
+abstract class Statable {
+  Statement createStatement();
+}
+
+abstract class Expressible {
+  Expression createExpression();
+}
 
 class InvalidSyntaxException extends FormatException {
   /// How far through the parsing the error was found.

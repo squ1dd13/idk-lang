@@ -1,3 +1,4 @@
+import 'Concrete.dart';
 import 'Util.dart';
 
 /// Some component of the language.
@@ -12,6 +13,8 @@ abstract class Value implements Concept, Evaluable {
 /// Something which can resolve to a value.
 abstract class Evaluable implements Concept {
   Value get();
+
+  Evaluable copy();
 }
 
 abstract class ValueType extends Value {
@@ -39,6 +42,11 @@ class ClassType extends ValueType {
   bool canConvertTo(ValueType other) {
     return this == other;
   }
+
+  @override
+  Evaluable copy() {
+    return ClassType(name);
+  }
 }
 
 /// Something with a type.
@@ -49,6 +57,10 @@ abstract class TypedValue implements Evaluable {
 
 class Variable extends TypedValue implements Evaluable {
   Variable(ValueType theType, Value theValue) {
+    if (theType is ReferenceType) {
+      throw Exception('Variables may not be of reference type!');
+    }
+
     _value = theValue;
     type = theType;
   }
@@ -67,9 +79,20 @@ class Variable extends TypedValue implements Evaluable {
 
     _value = source.get();
   }
+
+  @override
+  Evaluable copy() {
+    return Variable(type, _value);
+  }
 }
 
 class Constant extends TypedValue {
   @override
   Value get() => _value;
+
+  @override
+  Evaluable copy() {
+    // TODO: implement copy
+    throw UnimplementedError();
+  }
 }

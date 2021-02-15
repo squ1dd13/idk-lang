@@ -4,7 +4,7 @@ int y = 10;
 int a = 15;
 int b = 20;
 
-@(int) myRef -> a;
+@int myRef -> a;
 
 print("myRef is");
 print(myRef);
@@ -35,3 +35,17 @@ printWrapper("print this through the wrapper");
 string myVar = "this is a string variable";
 basicFunction(myVar);
 print(myVar);
+
+proc giveMeFive(@int result) {
+    result = 5;
+}
+
+int myNumber = 0;
+
+print("before GMF:");
+print(myNumber);
+
+giveMeFive(-> myNumber);
+
+print("after GMF:");
+print(myNumber);
