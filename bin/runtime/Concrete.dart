@@ -1,5 +1,5 @@
 import 'Concepts.dart';
-import 'Exeptions.dart';
+import 'Exceptions.dart';
 import 'Expression.dart';
 
 class IntegerValue extends TypedValue implements Value {

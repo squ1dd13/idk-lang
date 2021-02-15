@@ -1,5 +1,5 @@
 import 'Concrete.dart';
-import 'Exeptions.dart';
+import 'Exceptions.dart';
 
 /// Some component of the language.
 abstract class Concept {}
