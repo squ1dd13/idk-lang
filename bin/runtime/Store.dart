@@ -1,4 +1,5 @@
 import 'Concepts.dart';
+import 'Exeptions.dart';
 
 class Store {
   final _contents = <String, Evaluable>{};
@@ -11,7 +12,7 @@ class Store {
 
   void add(String name, Evaluable item) {
     if (hasLocal(name)) {
-      throw Exception('$name already exists in this scope.');
+      throw RuntimeError('$name already exists in this scope.');
     }
 
     _contents[name] = item;
@@ -23,7 +24,7 @@ class Store {
         return _parent.get(name);
       }
 
-      throw Exception('Undeclared identifier $name.');
+      throw RuntimeError('Undeclared identifier $name.');
     }
 
     return _contents[name];
@@ -48,12 +49,12 @@ class Store {
         return;
       }
 
-      throw Exception('Undeclared identifier $name.');
+      throw RuntimeError('Undeclared identifier $name.');
     }
 
     var variable = getAs<Variable>(name);
     if (variable == null) {
-      throw Exception('Cannot set value of constant $name.');
+      throw RuntimeError('Cannot set value of constant $name.');
     }
 
     variable.set(value);

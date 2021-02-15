@@ -45,7 +45,7 @@ int myNumber = 0;
 print("before GMF:");
 print(myNumber);
 
-giveMeFive(->myNumber);
+giveMeFive(-> myNumber);
 
 print("after GMF:");
 print(myNumber);

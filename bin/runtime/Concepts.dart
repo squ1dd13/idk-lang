@@ -1,5 +1,5 @@
 import 'Concrete.dart';
-import 'Util.dart';
+import 'Exeptions.dart';
 
 /// Some component of the language.
 abstract class Concept {}
@@ -58,7 +58,7 @@ abstract class TypedValue implements Evaluable {
 class Variable extends TypedValue implements Evaluable {
   Variable(ValueType theType, Value theValue) {
     if (theType is ReferenceType) {
-      throw Exception('Variables may not be of reference type!');
+      throw RuntimeError('Variables may not be of reference type!');
     }
 
     _value = theValue;
@@ -73,7 +73,7 @@ class Variable extends TypedValue implements Evaluable {
   void set(TypedValue source) {
     // Ensure the types are compatible.
     if (!source.type.canConvertTo(type)) {
-      throw Exception(
+      throw RuntimeError(
           'Cannot assign value of type ${source.type} to variable of type $type!');
     }
 

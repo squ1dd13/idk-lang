@@ -1,6 +1,6 @@
 import 'Concepts.dart';
+import 'Exeptions.dart';
 import 'Expression.dart';
-import 'Util.dart';
 
 class IntegerValue extends TypedValue implements Value {
   int value;
@@ -106,14 +106,14 @@ class Reference implements Variable {
       // Let _referenced handle the type checking.
       (_referenced as Variable).set(source);
     } else {
-      throw LogicException(
+      throw RuntimeError(
           'Cannot set value through reference to non-variable value.');
     }
   }
 
   void redirect(TypedValue source) {
     if (!source.type.canConvertTo(type)) {
-      throw LogicException(
+      throw RuntimeError(
           'Cannot redirect reference of type $type to value of type ${source.type}!');
     }
 
