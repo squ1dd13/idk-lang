@@ -47,16 +47,8 @@ class Variable extends Value {
   }
 
   void set(Value source) {
-    var conversion = source.type.conversionTo(type);
-
-    // Any conversions should have taken place before setting the value,
-    //  so by now, newValue's type should be the same as _value's.
-    if (conversion != TypeConversion.NoConversion) {
-      throw RuntimeError('Attempted to replace value of type "${type}" with'
-          ' one of type "${source.type}"!');
-    }
-
-    _value = source.get();
+    // Keep things type-safe by ensuring that the value is of the correct type.
+    _value = source.mustConvertTo(type);
   }
 
   @override

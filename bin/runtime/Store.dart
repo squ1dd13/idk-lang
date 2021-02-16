@@ -12,7 +12,7 @@ class Store {
   static Store current() => stack.last;
 
   void add(String name, Evaluable item) {
-    if (hasLocal(name)) {
+    if (has(name)) {
       throw RuntimeError('$name already exists in this scope.');
     }
 
@@ -43,18 +43,11 @@ class Store {
   }
 
   void set(String name, Value value) {
-    if (!hasLocal(name)) {
-      // Try the parent (if there is one).
-      if (_parent != null) {
-        _parent.set(name, value);
-        return;
-      }
-
-      throw RuntimeError('Undeclared identifier $name.');
-    }
-
     var variable = getAs<Variable>(name);
+
     if (variable == null) {
+      // getAs returns null when the cast fails, so variable isn't actually
+      //  of the Variable type.
       throw RuntimeError('Cannot set value of constant $name.');
     }
 
@@ -62,10 +55,6 @@ class Store {
   }
 
   bool has(String name) {
-    return _contents.containsKey(name);
-  }
-
-  bool hasLocal(String name) {
     return _contents.containsKey(name);
   }
 

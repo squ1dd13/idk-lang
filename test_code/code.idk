@@ -69,7 +69,7 @@ someRef = 5;
 print("(after r = 5) someref = ");
 print(someRef);
 
-int somethingElse = 100;
+int somethingElse = 90;
 
 print("(after assignment) myNumber = ");
 print(myNumber);
@@ -87,9 +87,10 @@ takesAny(someRef);
 takesAny(-> myNumber);
 takesAny(-> myVar);
 
-proc interestingProcedure() {
+proc interestingProcedure(any yah) {
+    print(yah);
     print("yeah i'm a cool thing");
 }
 
 @any theProcedure -> interestingProcedure;
-theProcedure();
+theProcedure("wat");
