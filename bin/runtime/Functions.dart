@@ -51,6 +51,10 @@ class FunctionType extends ValueType {
 
   @override
   TypeConversion conversionTo(ValueType to) {
+    if (to is AnyType) {
+      return TypeConversion.NoConversion;
+    }
+
     if (!(to is FunctionType)) {
       return TypeConversion.None;
     }
@@ -82,6 +86,16 @@ class FunctionType extends ValueType {
   TypedValue convertObjectTo(TypedValue object, ValueType endType) {
     // TODO: implement convertObjectTo
     throw UnimplementedError();
+  }
+
+  @override
+  String toString() {
+    var buffer = StringBuffer(returnType.toString());
+    buffer.write('(');
+    buffer.writeAll(parameterTypes, ', ');
+    buffer.write(')');
+
+    return buffer.toString();
   }
 }
 

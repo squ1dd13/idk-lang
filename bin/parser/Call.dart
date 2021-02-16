@@ -51,14 +51,14 @@ class FunctionCall implements Statable, Expressible {
   Expression createExpression() {
     return InlineExpression(() {
       // Find something to call, then call it.
-      var resolvedValue = Store.current().getAs<FunctionValue>(_calledName);
+      var resolvedValue = Store.current().get(_calledName).get();
 
-      // resolvedValue == null when the value wasn't a function.
-      if (resolvedValue == null) {
+      if (!(resolvedValue is FunctionValue)) {
         throw Exception('Cannot call non-function $_calledName!');
       }
 
-      var parameters = resolvedValue.parameters;
+      var functionValue = resolvedValue as FunctionValue;
+      var parameters = functionValue.parameters;
 
       if (_arguments.length != parameters.length) {
         throw Exception(
@@ -74,7 +74,7 @@ class FunctionCall implements Statable, Expressible {
         mappedArguments[parameterNames[i]] = _arguments[i].evaluate();
       }
 
-      return resolvedValue.call(mappedArguments);
+      return functionValue.call(mappedArguments);
     });
   }
 

@@ -1,6 +1,5 @@
 import 'Concepts.dart';
 import 'Exceptions.dart';
-import 'Types.dart';
 
 class Store {
   final _contents = <String, Evaluable>{};

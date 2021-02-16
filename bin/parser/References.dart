@@ -78,9 +78,8 @@ class Direction implements Statable {
 
       if (storedReference.type.conversionTo(requiredType) !=
           TypeConversion.NoConversion) {
-        throw RuntimeError('Reference "$_name" '
-            'should be of type "${requiredType}", but '
-            'direction gives type "${storedReference.type}".');
+        var targetType = (storedReference.type as ReferenceType).referencedType;
+        throw RuntimeError('Cannot direct "$requiredType" to "$targetType".');
       }
 
       storedReference.type = requiredType;

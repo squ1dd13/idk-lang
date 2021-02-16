@@ -140,6 +140,11 @@ class NoType extends ValueType {
     assertConvertibleTo(endType);
     return object;
   }
+
+  @override
+  String toString() {
+    return 'proc';
+  }
 }
 
 class PrimitiveType extends ValueType {

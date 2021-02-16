@@ -86,3 +86,10 @@ takesAny(-> somethingElse);
 takesAny(someRef);
 takesAny(-> myNumber);
 takesAny(-> myVar);
+
+proc interestingProcedure() {
+    print("yeah i'm a cool thing");
+}
+
+@any theProcedure -> interestingProcedure;
+theProcedure();

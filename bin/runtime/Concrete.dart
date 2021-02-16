@@ -111,8 +111,4 @@ class Reference implements Variable {
   }
 }
 
-enum Primitive {
-  Int,
-  String
-}
-
+enum Primitive { Int, String }

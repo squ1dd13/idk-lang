@@ -1,4 +1,3 @@
-import 'Concrete.dart';
 import 'Exceptions.dart';
 import 'Types.dart';
 
@@ -45,9 +44,8 @@ class Variable extends TypedValue implements Evaluable {
     // Any conversions should have taken place before setting the value,
     //  so by now, newValue's type should be the same as _value's.
     if (conversion != TypeConversion.NoConversion) {
-      throw RuntimeError(
-          'Attempted to replace value of type "${type}" with'
-              ' one of type "${source.type}"!');
+      throw RuntimeError('Attempted to replace value of type "${type}" with'
+          ' one of type "${source.type}"!');
     }
 
     // Ensure the types are compatible.
