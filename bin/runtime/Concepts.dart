@@ -1,11 +1,8 @@
 import 'Exceptions.dart';
 import 'Types.dart';
 
-/// Some component of the language.
-abstract class Concept {}
-
 /// Something which can resolve to a value.
-abstract class Evaluable implements Concept {
+abstract class Evaluable {
   Value get();
 
   Evaluable copy();
@@ -43,12 +40,6 @@ class Variable implements Value, Evaluable {
       throw RuntimeError('Attempted to replace value of type "${type}" with'
           ' one of type "${source.type}"!');
     }
-
-    // Ensure the types are compatible.
-    // if (!source.type.canConvertTo(type)) {
-    //   throw RuntimeError(
-    //       'Cannot assign value of type ${source.type} to variable of type $type!');
-    // }
 
     _value = source.get();
   }

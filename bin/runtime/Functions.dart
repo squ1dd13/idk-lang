@@ -14,35 +14,6 @@ class FunctionType extends ValueType {
     parameterTypes = function.parameters.values.toList();
   }
 
-  /// Can be used to match call signatures but also function objects.
-  @override
-  bool canConvertTo(ValueType other) {
-    if (!(other is FunctionType)) {
-      return false;
-    }
-
-    var otherFunction = other as FunctionType;
-
-    // Return types must be compatible.
-    if (!otherFunction.returnType.canConvertTo(returnType)) {
-      return false;
-    }
-
-    // Can't match types if the number of parameters is different.
-    if (otherFunction.parameterTypes.length != parameterTypes.length) {
-      return false;
-    }
-
-    // Check if all the parameters match.
-    for (var i = 0; i < parameterTypes.length; ++i) {
-      if (!otherFunction.parameterTypes[i].canConvertTo(parameterTypes[i])) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
   @override
   Evaluable copy() {
     // TODO: implement copy
@@ -62,7 +33,8 @@ class FunctionType extends ValueType {
     var otherFunction = to as FunctionType;
 
     // Return types must be compatible.
-    if (!otherFunction.returnType.canConvertTo(returnType)) {
+    if (!ValueType.isConversionImplicit(
+        otherFunction.returnType.conversionTo(returnType))) {
       return TypeConversion.None;
     }
 
@@ -73,7 +45,8 @@ class FunctionType extends ValueType {
 
     // Check if all the parameters match.
     for (var i = 0; i < parameterTypes.length; ++i) {
-      if (!otherFunction.parameterTypes[i].canConvertTo(parameterTypes[i])) {
+      if (!ValueType.isConversionImplicit(
+          otherFunction.parameterTypes[i].conversionTo(parameterTypes[i]))) {
         return TypeConversion.None;
       }
     }

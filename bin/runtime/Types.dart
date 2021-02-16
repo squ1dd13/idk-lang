@@ -18,12 +18,13 @@ enum TypeConversion {
 }
 
 abstract class ValueType extends Value {
-  // bool canTakeFrom(ValueType other);
-  bool canConvertTo(ValueType other);
-
   /// Returns a [TypeConversion] value indicating the style of conversion
   /// that may take place between this type and the type [to].
   TypeConversion conversionTo(ValueType to);
+
+  static bool isConversionImplicit(TypeConversion conversion) {
+    return conversion == TypeConversion.Implicit || conversion == TypeConversion.NoConversion;
+  }
 
   void assertConvertibleTo(ValueType endType) {
     if (conversionTo(endType) == TypeConversion.None) {
@@ -55,11 +56,6 @@ class ClassType extends ValueType {
   int get hashCode => name.hashCode;
 
   @override
-  bool canConvertTo(ValueType other) {
-    return this == other;
-  }
-
-  @override
   Evaluable copy() {
     return ClassType(name);
   }
@@ -85,11 +81,6 @@ class ClassType extends ValueType {
 }
 
 class AnyType extends ValueType {
-  @override
-  bool canConvertTo(ValueType other) {
-    return true;
-  }
-
   @override
   Evaluable copy() {
     return AnyType();
@@ -121,11 +112,6 @@ class AnyType extends ValueType {
 
 class NoType extends ValueType {
   @override
-  bool canConvertTo(ValueType other) {
-    return false;
-  }
-
-  @override
   Evaluable copy() {
     return NoType();
   }
@@ -151,11 +137,6 @@ class PrimitiveType extends ValueType {
   final Primitive _type;
 
   PrimitiveType(this._type);
-
-  @override
-  bool canConvertTo(ValueType other) {
-    return this == other;
-  }
 
   @override
   bool operator ==(Object other) =>
@@ -200,10 +181,6 @@ class ReferenceType extends ValueType {
 
   ReferenceType.forReferenceTo(this.referencedType);
 
-  @override
-  bool canConvertTo(ValueType other) {
-    return referencedType.canConvertTo(other);
-  }
 
   @override
   Evaluable copy() {

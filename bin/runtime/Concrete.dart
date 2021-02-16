@@ -97,9 +97,9 @@ class Reference implements Variable {
   }
 
   void redirect(Value source) {
-    if (!source.type.canConvertTo(type)) {
-      throw RuntimeError(
-          'Cannot redirect reference of type $type to value of type ${source.type}!');
+    if (source.type.conversionTo(type) != TypeConversion.None) {
+      throw RuntimeError('Cannot redirect reference of type $type '
+          'to value of type ${source.type}!');
     }
 
     _referenced = source;
