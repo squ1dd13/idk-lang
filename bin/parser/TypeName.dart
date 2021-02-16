@@ -1,6 +1,7 @@
 import '../Lexer.dart';
 import '../runtime/Concepts.dart';
 import '../runtime/Concrete.dart';
+import '../runtime/Types.dart';
 import 'Util.dart';
 
 class TypeName {
@@ -66,6 +67,10 @@ class TypeName {
 
     if (_name == 'string') {
       return PrimitiveType(Primitive.String);
+    }
+
+    if (_name == 'any') {
+      return AnyType();
     }
 
     // Only valid in function return type contexts.

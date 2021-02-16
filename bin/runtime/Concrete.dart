@@ -1,6 +1,7 @@
 import 'Concepts.dart';
 import 'Exceptions.dart';
 import 'Expression.dart';
+import 'Types.dart';
 
 class IntegerValue extends TypedValue implements Value {
   int value;
@@ -64,22 +65,6 @@ class Statement {
   }
 }
 
-class ReferenceType extends ValueType {
-  final ValueType referencedType;
-
-  ReferenceType.forReferenceTo(this.referencedType);
-
-  @override
-  bool canConvertTo(ValueType other) {
-    return referencedType.canConvertTo(other);
-  }
-
-  @override
-  Evaluable copy() {
-    return ReferenceType.forReferenceTo(referencedType);
-  }
-}
-
 /// Essentially a pointer, but with added safety and with custom
 /// syntax to increase clarity. Behaves like a variable when used
 /// like one (with normal syntax). Implements [Variable] so it can
@@ -128,55 +113,6 @@ class Reference implements Variable {
 
 enum Primitive {
   Int,
-  String,
+  String
 }
 
-class PrimitiveType extends ValueType {
-  final Primitive _type;
-
-  PrimitiveType(this._type);
-
-  @override
-  bool canConvertTo(ValueType other) {
-    return this == other;
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is PrimitiveType &&
-          runtimeType == other.runtimeType &&
-          _type == other._type;
-
-  @override
-  int get hashCode => _type.hashCode;
-
-  @override
-  Evaluable copy() {
-    return PrimitiveType(_type);
-  }
-}
-
-class AnyType extends ValueType {
-  @override
-  bool canConvertTo(ValueType other) {
-    return true;
-  }
-
-  @override
-  Evaluable copy() {
-    return AnyType();
-  }
-}
-
-class NoType extends ValueType {
-  @override
-  bool canConvertTo(ValueType other) {
-    return false;
-  }
-
-  @override
-  Evaluable copy() {
-    return NoType();
-  }
-}

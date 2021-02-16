@@ -4,6 +4,7 @@ import '../Concrete.dart';
 import '../Expression.dart';
 import '../Functions.dart';
 import '../Store.dart';
+import '../Types.dart';
 
 void registerIO() {
   var printFunction = FunctionValue('print', NoType(), <Statement>[

@@ -26,6 +26,12 @@ string basicFunction(string arg) {
     print(arg);
 }
 
+proc takesAny(@any couldBeAnything) {
+    print("*** generic ***");
+    print(couldBeAnything);
+    print("*** generic ***");
+}
+
 proc printWrapper(string something) {
     print(something);
 }
@@ -64,7 +70,19 @@ print("(after r = 5) someref = ");
 print(someRef);
 
 int somethingElse = 100;
+
+print("(after assignment) myNumber = ");
+print(myNumber);
+
 someRef -> somethingElse;
 
 print("(after redirect) someref = ");
 print(someRef);
+
+print("(after redirect) myNumber = ");
+print(myNumber);
+
+takesAny(-> somethingElse);
+takesAny(someRef);
+takesAny(-> myNumber);
+takesAny(-> myVar);

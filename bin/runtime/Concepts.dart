@@ -1,5 +1,6 @@
 import 'Concrete.dart';
 import 'Exceptions.dart';
+import 'Types.dart';
 
 /// Some component of the language.
 abstract class Concept {}
@@ -15,38 +16,6 @@ abstract class Evaluable implements Concept {
   Value get();
 
   Evaluable copy();
-}
-
-abstract class ValueType extends Value {
-  // bool canTakeFrom(ValueType other);
-  bool canConvertTo(ValueType other);
-}
-
-/// A class type. Equality is determined by name.
-class ClassType extends ValueType {
-  final String name;
-
-  ClassType(this.name);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ClassType &&
-          runtimeType == other.runtimeType &&
-          name == other.name;
-
-  @override
-  int get hashCode => name.hashCode;
-
-  @override
-  bool canConvertTo(ValueType other) {
-    return this == other;
-  }
-
-  @override
-  Evaluable copy() {
-    return ClassType(name);
-  }
 }
 
 /// Something with a type.
@@ -71,11 +40,21 @@ class Variable extends TypedValue implements Evaluable {
   }
 
   void set(TypedValue source) {
-    // Ensure the types are compatible.
-    if (!source.type.canConvertTo(type)) {
+    var conversion = source.type.conversionTo(type);
+
+    // Any conversions should have taken place before setting the value,
+    //  so by now, newValue's type should be the same as _value's.
+    if (conversion != TypeConversion.NoConversion) {
       throw RuntimeError(
-          'Cannot assign value of type ${source.type} to variable of type $type!');
+          'Attempted to replace value of type "${type}" with'
+              ' one of type "${source.type}"!');
     }
+
+    // Ensure the types are compatible.
+    // if (!source.type.canConvertTo(type)) {
+    //   throw RuntimeError(
+    //       'Cannot assign value of type ${source.type} to variable of type $type!');
+    // }
 
     _value = source.get();
   }

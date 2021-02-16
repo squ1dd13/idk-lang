@@ -1,6 +1,7 @@
 import 'Concepts.dart';
 import 'Concrete.dart';
 import 'Store.dart';
+import 'Types.dart';
 
 class FunctionType extends ValueType {
   ValueType returnType;
@@ -47,6 +48,41 @@ class FunctionType extends ValueType {
     // TODO: implement copy
     throw UnimplementedError();
   }
+
+  @override
+  TypeConversion conversionTo(ValueType to) {
+    if (!(to is FunctionType)) {
+      return TypeConversion.None;
+    }
+
+    var otherFunction = to as FunctionType;
+
+    // Return types must be compatible.
+    if (!otherFunction.returnType.canConvertTo(returnType)) {
+      return TypeConversion.None;
+    }
+
+    // Can't match types if the number of parameters is different.
+    if (otherFunction.parameterTypes.length != parameterTypes.length) {
+      return TypeConversion.None;
+    }
+
+    // Check if all the parameters match.
+    for (var i = 0; i < parameterTypes.length; ++i) {
+      if (!otherFunction.parameterTypes[i].canConvertTo(parameterTypes[i])) {
+        return TypeConversion.None;
+      }
+    }
+
+    // No conversion will take place.
+    return TypeConversion.NoConversion;
+  }
+
+  @override
+  TypedValue convertObjectTo(TypedValue object, ValueType endType) {
+    // TODO: implement convertObjectTo
+    throw UnimplementedError();
+  }
 }
 
 class FunctionValue extends TypedValue implements Value {
@@ -78,15 +114,12 @@ class FunctionValue extends TypedValue implements Value {
 
     // Open a new scope for the function body to run inside.
     Store.current().branch((store) {
-      // Bring the argument values into scope but as new variables.
-      // If we don't create variables here (just directly add the
-      //  values instead), reading the argument values will work,
-      //  but assigning to them could produce errors because there
-      //  would be no guarantee that they could be assigned to.
-      // If they could be assigned to, everything would be
-      //  pass-by-reference, which is not what we want as a default.
       for (var name in arguments.keys) {
-        store.add(name, arguments[name].copy());
+        // var argumentVariable = Variable(parameters[name], null);
+
+        var typed = arguments[name].copy() as TypedValue;
+        store.add(name, typed.type.convertObjectTo(typed, parameters[name]));
+        // store.add(name, arguments[name].copy());
       }
 
       // Execute the body.

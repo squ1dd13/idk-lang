@@ -1,8 +1,10 @@
 import '../Lexer.dart';
 import '../runtime/Concepts.dart';
 import '../runtime/Concrete.dart';
+import '../runtime/Exceptions.dart';
 import '../runtime/Expression.dart';
 import '../runtime/Store.dart';
+import '../runtime/Types.dart';
 import 'Parser.dart';
 import 'TypeName.dart';
 import 'Util.dart';
@@ -19,8 +21,8 @@ class Direction implements Statable {
   /// Parses the part of the direction which is common between directions
   /// and redirections.
   Direction._common(TokenStream tokens) {
-    tokens.requireNext('Expected name in direction.', 1,
-        TokenPattern.type(TokenType.Name));
+    tokens.requireNext(
+        'Expected name in direction.', 1, TokenPattern.type(TokenType.Name));
 
     _name = tokens.take().toString();
 
@@ -63,27 +65,28 @@ class Direction implements Statable {
       var reference = Reference(evaluated);
 
       if (_typeName == null) {
-        Store.current().getAs<Reference>(_name).set(
-            evaluated.get() as TypedValue);
+        Store.current()
+            .getAs<Reference>(_name)
+            .set(evaluated.get() as TypedValue);
       } else {
         Store.current().add(_name, reference);
       }
+
+      var storedReference = Store.current().getAs<Reference>(_name);
+      var requiredType = _typeName?.evaluate() ??
+          ReferenceType.forReferenceTo((evaluated as TypedValue).type);
+
+      if (storedReference.type.conversionTo(requiredType) !=
+          TypeConversion.NoConversion) {
+        throw RuntimeError('Reference "$_name" '
+            'should be of type "${requiredType}", but '
+            'direction gives type "${storedReference.type}".');
+      }
+
+      storedReference.type = requiredType;
+
       return null;
     }));
-
-    // // Redirections don't declare types (as they aren't declarations).
-    // if (_typeName == null) {
-    //
-    // }
-    //
-    // return Statement(InlineExpression(() {
-    //   // Evaluate the expression and then create a variable with the type.
-    //   var evaluated = _targetExpression.evaluate();
-    //
-    //   var reference = Reference(evaluated);
-    //   Store.current().add(_name, reference);
-    //   return null;
-    // }));
   }
 }
 

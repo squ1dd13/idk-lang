@@ -1,5 +1,6 @@
 import 'Concepts.dart';
 import 'Exceptions.dart';
+import 'Types.dart';
 
 class Store {
   final _contents = <String, Evaluable>{};
@@ -25,7 +26,7 @@ class Store {
         return _parent.get(name);
       }
 
-      throw RuntimeError('Undeclared identifier $name.');
+      throw RuntimeError('Undeclared identifier "$name".');
     }
 
     return _contents[name];
