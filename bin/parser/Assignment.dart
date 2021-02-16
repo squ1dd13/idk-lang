@@ -43,11 +43,7 @@ class Assignment implements Statable {
 
       var newValue = _source.evaluate().get();
 
-      if (!(newValue is TypedValue)) {
-        throw Exception('Cannot take value from untyped item.');
-      }
-
-      (target as Variable).set(newValue as TypedValue);
+      (target as Variable).set(newValue);
 
       return null;
     }));

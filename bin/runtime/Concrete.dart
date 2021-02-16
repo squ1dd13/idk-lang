@@ -3,7 +3,7 @@ import 'Exceptions.dart';
 import 'Expression.dart';
 import 'Types.dart';
 
-class IntegerValue extends TypedValue implements Value {
+class IntegerValue extends Value {
   int value;
 
   IntegerValue.raw(this.value);
@@ -24,7 +24,7 @@ class IntegerValue extends TypedValue implements Value {
   }
 }
 
-class StringValue extends TypedValue implements Value {
+class StringValue extends Value {
   String value;
 
   StringValue(this.value) {
@@ -48,7 +48,7 @@ class SideEffects {
   bool breaks = false;
   bool continues = false;
   bool returns = false;
-  TypedValue returnedValue;
+  Value returnedValue;
 }
 
 /// A single unit of code which affects the program without
@@ -70,12 +70,12 @@ class Statement {
 /// like one (with normal syntax). Implements [Variable] so it can
 /// provide a transparent but custom interface.
 class Reference implements Variable {
-  TypedValue _referenced;
+  Value _referenced;
 
   @override
   ValueType type;
 
-  Reference(TypedValue value) {
+  Reference(Value value) {
     _referenced = value;
     type = ReferenceType.forReferenceTo(value.type);
   }
@@ -86,7 +86,7 @@ class Reference implements Variable {
   }
 
   @override
-  void set(TypedValue source) {
+  void set(Value source) {
     if (_referenced is Variable) {
       // Let _referenced handle the type checking.
       (_referenced as Variable).set(source);
@@ -96,7 +96,7 @@ class Reference implements Variable {
     }
   }
 
-  void redirect(TypedValue source) {
+  void redirect(Value source) {
     if (!source.type.canConvertTo(type)) {
       throw RuntimeError(
           'Cannot redirect reference of type $type to value of type ${source.type}!');

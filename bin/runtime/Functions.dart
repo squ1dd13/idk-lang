@@ -83,7 +83,7 @@ class FunctionType extends ValueType {
   }
 
   @override
-  TypedValue convertObjectTo(TypedValue object, ValueType endType) {
+  Value convertObjectTo(Value object, ValueType endType) {
     // TODO: implement convertObjectTo
     throw UnimplementedError();
   }
@@ -99,7 +99,7 @@ class FunctionType extends ValueType {
   }
 }
 
-class FunctionValue extends TypedValue implements Value {
+class FunctionValue extends Value {
   final String name;
   final ValueType returnType;
   final Map<String, ValueType> parameters;
@@ -123,15 +123,15 @@ class FunctionValue extends TypedValue implements Value {
     return this;
   }
 
-  TypedValue call(Map<String, Evaluable> arguments) {
-    TypedValue returnedValue;
+  Value call(Map<String, Evaluable> arguments) {
+    Value returnedValue;
 
     // Open a new scope for the function body to run inside.
     Store.current().branch((store) {
       for (var name in arguments.keys) {
         // var argumentVariable = Variable(parameters[name], null);
 
-        var typed = arguments[name].copy() as TypedValue;
+        var typed = arguments[name].copy() as Value;
         store.add(name, typed.type.convertObjectTo(typed, parameters[name]));
         // store.add(name, arguments[name].copy());
       }

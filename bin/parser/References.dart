@@ -67,14 +67,14 @@ class Direction implements Statable {
       if (_typeName == null) {
         Store.current()
             .getAs<Reference>(_name)
-            .set(evaluated.get() as TypedValue);
+            .set(evaluated.get() as Value);
       } else {
         Store.current().add(_name, reference);
       }
 
       var storedReference = Store.current().getAs<Reference>(_name);
       var requiredType = _typeName?.evaluate() ??
-          ReferenceType.forReferenceTo((evaluated as TypedValue).type);
+          ReferenceType.forReferenceTo((evaluated as Value).type);
 
       if (storedReference.type.conversionTo(requiredType) !=
           TypeConversion.NoConversion) {

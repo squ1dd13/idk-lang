@@ -42,7 +42,7 @@ class Store {
     return null;
   }
 
-  void set(String name, TypedValue value) {
+  void set(String name, Value value) {
     if (!hasLocal(name)) {
       // Try the parent (if there is one).
       if (_parent != null) {

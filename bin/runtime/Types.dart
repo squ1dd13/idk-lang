@@ -31,9 +31,9 @@ abstract class ValueType extends Value {
     }
   }
 
-  TypedValue convertObjectTo(TypedValue object, ValueType endType);
+  Value convertObjectTo(Value object, ValueType endType);
 
-  TypedValue convertObjectFrom(TypedValue object, ValueType startType) {
+  Value convertObjectFrom(Value object, ValueType startType) {
     throw UnimplementedError('cOF');
   }
 }
@@ -78,7 +78,7 @@ class ClassType extends ValueType {
   }
 
   @override
-  TypedValue convertObjectTo(TypedValue object, ValueType endType) {
+  Value convertObjectTo(Value object, ValueType endType) {
     assertConvertibleTo(endType);
     return object;
   }
@@ -108,7 +108,7 @@ class AnyType extends ValueType {
   }
 
   @override
-  TypedValue convertObjectTo(TypedValue object, ValueType endType) {
+  Value convertObjectTo(Value object, ValueType endType) {
     assertConvertibleTo(endType);
     return endType.convertObjectFrom(object, this);
   }
@@ -136,7 +136,7 @@ class NoType extends ValueType {
   }
 
   @override
-  TypedValue convertObjectTo(TypedValue object, ValueType endType) {
+  Value convertObjectTo(Value object, ValueType endType) {
     assertConvertibleTo(endType);
     return object;
   }
@@ -184,7 +184,7 @@ class PrimitiveType extends ValueType {
   }
 
   @override
-  TypedValue convertObjectTo(TypedValue object, ValueType endType) {
+  Value convertObjectTo(Value object, ValueType endType) {
     assertConvertibleTo(endType);
     return object;
   }
@@ -235,7 +235,7 @@ class ReferenceType extends ValueType {
   }
 
   @override
-  TypedValue convertObjectTo(TypedValue object, ValueType endType) {
+  Value convertObjectTo(Value object, ValueType endType) {
     assertConvertibleTo(endType);
 
     var conversion = conversionTo(endType);
@@ -247,7 +247,7 @@ class ReferenceType extends ValueType {
     if (conversion == TypeConversion.Implicit) {
       // Implicit reference conversions are only ever while dereferencing.
       return referencedType.convertObjectTo(
-          object.get() as TypedValue, endType);
+          object.get() as Value, endType);
     }
 
     throw RuntimeError('There are no explicit reference conversions.');

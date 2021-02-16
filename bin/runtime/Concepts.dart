@@ -4,12 +4,6 @@ import 'Types.dart';
 /// Some component of the language.
 abstract class Concept {}
 
-/// Any concrete value.
-abstract class Value implements Concept, Evaluable {
-  @override
-  Value get() => this;
-}
-
 /// Something which can resolve to a value.
 abstract class Evaluable implements Concept {
   Value get();
@@ -18,12 +12,14 @@ abstract class Evaluable implements Concept {
 }
 
 /// Something with a type.
-abstract class TypedValue implements Evaluable {
-  Value _value;
+abstract class Value implements Evaluable {
   ValueType type;
+  Value get() => this;
 }
 
-class Variable extends TypedValue implements Evaluable {
+class Variable implements Value, Evaluable {
+  Value _value;
+
   Variable(ValueType theType, Value theValue) {
     if (theType is ReferenceType) {
       throw RuntimeError('Variables may not be of reference type!');
@@ -38,7 +34,7 @@ class Variable extends TypedValue implements Evaluable {
     return _value;
   }
 
-  void set(TypedValue source) {
+  void set(Value source) {
     var conversion = source.type.conversionTo(type);
 
     // Any conversions should have taken place before setting the value,
@@ -61,11 +57,14 @@ class Variable extends TypedValue implements Evaluable {
   Evaluable copy() {
     return Variable(type, _value);
   }
+
+  @override
+  ValueType type;
 }
 
-class Constant extends TypedValue {
+class Constant extends Value {
   @override
-  Value get() => _value;
+  Value get() => this;
 
   @override
   Evaluable copy() {
