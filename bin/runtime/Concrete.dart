@@ -51,6 +51,8 @@ class SideEffects {
   bool continues = false;
   bool returns = false;
   Value returnedValue;
+
+  bool get interrupts => breaks || continues || returns;
 }
 
 /// A single unit of code which affects the program without
@@ -64,6 +66,17 @@ class Statement {
   SideEffects execute() {
     _fullExpression.evaluate();
     return SideEffects();
+  }
+}
+
+class SideEffectStatement extends Statement {
+  final SideEffects Function() _action;
+
+  SideEffectStatement(this._action) : super(null);
+
+  @override
+  SideEffects execute() {
+    return _action();
   }
 }
 

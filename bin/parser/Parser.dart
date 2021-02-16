@@ -4,28 +4,30 @@ import '../runtime/Expression.dart';
 import '../runtime/Store.dart';
 import 'Assignment.dart';
 import 'Call.dart';
+import 'Conditional.dart';
 import 'Declaration.dart';
 import 'Function.dart';
 import 'References.dart';
 import 'Util.dart';
 
 class Parse {
-  static final _statementPasses = <Statement Function(TokenStream)>{
+  static final _statementPasses = <Statement Function(TokenStream)>[
+    (stream) => ConditionalClause(stream).createStatement(),
     (stream) => VariableDeclaration(stream).createStatement(),
     (stream) => Direction(stream).createStatement(),
     (stream) => Direction.redirection(stream).createStatement(),
     (stream) => FunctionDeclaration(stream).createStatement(),
     (stream) => FunctionCall.statement(stream).createStatement(),
     (stream) => Assignment(stream).createStatement(),
-  };
+  ];
 
-  static final _expressionPasses = <Expression Function(TokenStream)>{
+  static final _expressionPasses = <Expression Function(TokenStream)>[
     (stream) => FunctionCall(stream).createExpression(),
     (stream) => InlineDirection(stream).createExpression()
-  };
+  ];
 
   static List<ElementType> _parseRepeated<ElementType>(
-      List<Token> tokens, Set<ElementType Function(TokenStream)> generators) {
+      List<Token> tokens, Iterable<ElementType Function(TokenStream)> generators) {
     var stream = TokenStream(tokens, 0);
     var created = <ElementType>[];
 
