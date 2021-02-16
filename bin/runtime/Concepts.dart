@@ -1,20 +1,35 @@
 import 'Exceptions.dart';
 import 'Types.dart';
 
-/// Something which can resolve to a value.
+/// Something which can *resolve* to a value, but which may not itself be
+/// a value.
 abstract class Evaluable {
   Value get();
-
-  Evaluable copy();
 }
 
 /// Something with a type.
 abstract class Value implements Evaluable {
   ValueType type;
+
+  @override
   Value get() => this;
+
+  Value copy();
+
+  Value mustConvertTo(ValueType endType) {
+    var sourceType = type;
+
+    var conversionType = sourceType.conversionTo(endType);
+    if (!ValueType.isConversionImplicit(conversionType)) {
+      throw RuntimeError('Cannot implicitly convert from '
+          'type "${sourceType}" to type "$endType".');
+    }
+
+    return sourceType.convertObjectTo(copy(), endType);
+  }
 }
 
-class Variable implements Value, Evaluable {
+class Variable extends Value {
   Value _value;
 
   Variable(ValueType theType, Value theValue) {
@@ -45,12 +60,9 @@ class Variable implements Value, Evaluable {
   }
 
   @override
-  Evaluable copy() {
-    return Variable(type, _value);
+  Value copy() {
+    return Variable(type.copy(), _value.copy());
   }
-
-  @override
-  ValueType type;
 }
 
 class Constant extends Value {
@@ -58,8 +70,7 @@ class Constant extends Value {
   Value get() => this;
 
   @override
-  Evaluable copy() {
-    // TODO: implement copy
-    throw UnimplementedError();
+  Value copy() {
+    throw Exception('go away');
   }
 }

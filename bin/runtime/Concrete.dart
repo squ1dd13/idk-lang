@@ -6,7 +6,9 @@ import 'Types.dart';
 class IntegerValue extends Value {
   int value;
 
-  IntegerValue.raw(this.value);
+  IntegerValue.raw(this.value) {
+    type = PrimitiveType(Primitive.Int);
+  }
 
   IntegerValue(String string) : value = int.parse(string) {
     type = PrimitiveType(Primitive.Int);
@@ -19,7 +21,7 @@ class IntegerValue extends Value {
   Value get() => this;
 
   @override
-  Evaluable copy() {
+  Value copy() {
     return IntegerValue.raw(value);
   }
 }
@@ -38,7 +40,7 @@ class StringValue extends Value {
   Value get() => this;
 
   @override
-  Evaluable copy() {
+  Value copy() {
     return StringValue(value);
   }
 }
@@ -69,7 +71,7 @@ class Statement {
 /// syntax to increase clarity. Behaves like a variable when used
 /// like one (with normal syntax). Implements [Variable] so it can
 /// provide a transparent but custom interface.
-class Reference implements Variable {
+class Reference extends Value implements Variable {
   Value _referenced;
 
   @override
@@ -106,7 +108,8 @@ class Reference implements Variable {
   }
 
   @override
-  Evaluable copy() {
+  Value copy() {
+    // Note that we don't copy _referenced.
     return Reference(_referenced);
   }
 }

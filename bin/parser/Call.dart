@@ -48,6 +48,7 @@ class FunctionCall implements Statable, Expressible {
     }
   }
 
+  @override
   Expression createExpression() {
     return InlineExpression(() {
       // Find something to call, then call it.
@@ -67,7 +68,7 @@ class FunctionCall implements Statable, Expressible {
       }
 
       // Map the arguments to their names.
-      var mappedArguments = <String, Evaluable>{};
+      var mappedArguments = <String, Value>{};
       var parameterNames = parameters.keys.toList();
 
       for (var i = 0; i < _arguments.length; ++i) {

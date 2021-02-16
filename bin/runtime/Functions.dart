@@ -1,5 +1,6 @@
 import 'Concepts.dart';
 import 'Concrete.dart';
+import 'Exceptions.dart';
 import 'Store.dart';
 import 'Types.dart';
 
@@ -7,17 +8,17 @@ class FunctionType extends ValueType {
   ValueType returnType;
   var parameterTypes = <ValueType>[];
 
-  FunctionType();
-
-  FunctionType.forFunction(FunctionValue function) {
+  FunctionType(FunctionValue function) {
     returnType = function.returnType;
     parameterTypes = function.parameters.values.toList();
   }
 
+  FunctionType.build(this.returnType, this.parameterTypes);
+
   @override
-  Evaluable copy() {
-    // TODO: implement copy
-    throw UnimplementedError();
+  Value copy() {
+    return FunctionType.build(
+        returnType.copy(), parameterTypes.map((type) => type.copy()));
   }
 
   @override
@@ -88,7 +89,7 @@ class FunctionValue extends Value {
   /// Sets the function's type. Should be done after all changes
   /// have been made.
   void applyType() {
-    type = FunctionType.forFunction(this);
+    type = FunctionType(this);
   }
 
   @override
@@ -96,17 +97,14 @@ class FunctionValue extends Value {
     return this;
   }
 
-  Value call(Map<String, Evaluable> arguments) {
+  Value call(Map<String, Value> arguments) {
     Value returnedValue;
 
     // Open a new scope for the function body to run inside.
     Store.current().branch((store) {
       for (var name in arguments.keys) {
-        // var argumentVariable = Variable(parameters[name], null);
-
-        var typed = arguments[name].copy() as Value;
-        store.add(name, typed.type.convertObjectTo(typed, parameters[name]));
-        // store.add(name, arguments[name].copy());
+        var copied = arguments[name].copy();
+        store.add(name, copied.type.convertObjectTo(copied, parameters[name]));
       }
 
       // Execute the body.
@@ -132,8 +130,7 @@ class FunctionValue extends Value {
   }
 
   @override
-  Evaluable copy() {
-    // TODO: implement copy
-    throw UnimplementedError();
+  Value copy() {
+    throw RuntimeError('Copying functions is not allowed.');
   }
 }

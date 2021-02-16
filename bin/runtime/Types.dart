@@ -23,7 +23,8 @@ abstract class ValueType extends Value {
   TypeConversion conversionTo(ValueType to);
 
   static bool isConversionImplicit(TypeConversion conversion) {
-    return conversion == TypeConversion.Implicit || conversion == TypeConversion.NoConversion;
+    return conversion == TypeConversion.Implicit ||
+        conversion == TypeConversion.NoConversion;
   }
 
   void assertConvertibleTo(ValueType endType) {
@@ -56,7 +57,7 @@ class ClassType extends ValueType {
   int get hashCode => name.hashCode;
 
   @override
-  Evaluable copy() {
+  Value copy() {
     return ClassType(name);
   }
 
@@ -82,7 +83,7 @@ class ClassType extends ValueType {
 
 class AnyType extends ValueType {
   @override
-  Evaluable copy() {
+  Value copy() {
     return AnyType();
   }
 
@@ -112,7 +113,7 @@ class AnyType extends ValueType {
 
 class NoType extends ValueType {
   @override
-  Evaluable copy() {
+  Value copy() {
     return NoType();
   }
 
@@ -149,7 +150,7 @@ class PrimitiveType extends ValueType {
   int get hashCode => _type.hashCode;
 
   @override
-  Evaluable copy() {
+  Value copy() {
     return PrimitiveType(_type);
   }
 
@@ -181,10 +182,9 @@ class ReferenceType extends ValueType {
 
   ReferenceType.forReferenceTo(this.referencedType);
 
-
   @override
-  Evaluable copy() {
-    return ReferenceType.forReferenceTo(referencedType);
+  Value copy() {
+    return ReferenceType.forReferenceTo(referencedType.copy());
   }
 
   @override
@@ -223,8 +223,7 @@ class ReferenceType extends ValueType {
 
     if (conversion == TypeConversion.Implicit) {
       // Implicit reference conversions are only ever while dereferencing.
-      return referencedType.convertObjectTo(
-          object.get() as Value, endType);
+      return referencedType.convertObjectTo(object.get(), endType);
     }
 
     throw RuntimeError('There are no explicit reference conversions.');

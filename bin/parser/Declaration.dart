@@ -42,12 +42,14 @@ class VariableDeclaration implements Statable {
   Statement createStatement() {
     return Statement(InlineExpression(() {
       // Evaluate the expression and then create a variable with the type.
-      var evaluated = _valueExpression.evaluate();
+      var sourceValue = _valueExpression.evaluate() as Value;
+      var declaredType = _typeName.evaluate();
 
-      // TODO: Check that the evaluated result and type actually match.
-      var variable = Variable(_typeName.evaluate(), evaluated);
+      var variable =
+          Variable(declaredType, sourceValue.mustConvertTo(declaredType));
 
       Store.current().add(_name, variable);
+
       return null;
     }));
   }
