@@ -26,7 +26,7 @@ class VariableDeclaration implements Statable {
     // We don't need to keep the '=' token.
     tokens.skip();
 
-    var expressionTokens = tokens.takeWhile(TokenPattern.semicolon.notMatch);
+    var expressionTokens = tokens.takeUntilSemicolon();
     if (expressionTokens.isEmpty) {
       throw tokens.createException(
           'Declaration value expression may not be empty.', 4);

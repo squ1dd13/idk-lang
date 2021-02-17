@@ -23,7 +23,7 @@ class Assignment implements Statable {
     tokens.skip();
 
     _source =
-        Parse.expression(tokens.takeWhile(TokenPattern.semicolon.notMatch));
+        Parse.expression(tokens.takeUntilSemicolon());
 
     // We don't allow assignments to be expressions (like 'x = (y = z)'), so
     //  there must be a semicolon at the end.

@@ -91,15 +91,15 @@ class StringValue extends PrimitiveValue {
 }
 
 class SideEffect {
-  // TODO: "break n"
-  bool breaks = false;
-  bool continues = false;
-  bool returns = false;
+  String breakName;
+  String continueName;
   Value returnedValue;
 
   // TODO: 'throws' flag (and exception value).
 
-  bool get interrupts => breaks || continues || returns;
+  bool get interrupts {
+    return breakName != null || continueName != null || returnedValue != null;
+  }
 }
 
 /// A single unit of code which affects the program without

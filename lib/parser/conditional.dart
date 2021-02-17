@@ -3,6 +3,7 @@ import 'package:language/parser/parser.dart';
 import 'package:language/parser/util.dart';
 import 'package:language/runtime/concrete.dart';
 import 'package:language/runtime/expression.dart';
+import 'package:language/runtime/store.dart';
 import 'package:language/runtime/type.dart';
 
 /// Any part of an if..else if..else statement.
@@ -64,30 +65,36 @@ class ConditionalClause implements Statable {
   @override
   Statement createStatement() {
     return SideEffectStatement(() {
-      var conditionValue = true;
+      var sideEffect = SideEffect();
 
-      if (_condition != null) {
-        // TODO: Introduce Boolean type.
-        var convertedToInt =
-            _condition.evaluate().get().mustConvertTo(PrimitiveType.integer);
+      Store.current().branch((_) {
+        var conditionValue = true;
 
-        conditionValue = (convertedToInt as IntegerValue).value != 0;
-      }
+        if (_condition != null) {
+          // TODO: Introduce Boolean type.
+          var convertedToInt =
+          _condition.evaluate().get().mustConvertTo(PrimitiveType.integer);
 
-      if (!conditionValue) {
-        // Run the subsequent clause, or return if it is null.
-        return _nextClause?.createStatement()?.execute() ?? SideEffect();
-      }
-
-      for (var bodyStatement in _body) {
-        var statementEffect = bodyStatement.execute();
-
-        if (statementEffect.interrupts) {
-          return statementEffect;
+          conditionValue = (convertedToInt as IntegerValue).value != 0;
         }
-      }
 
-      return SideEffect();
+        if (!conditionValue) {
+          // Run the subsequent clause, or return if it is null.
+          sideEffect = _nextClause?.createStatement()?.execute();
+          return;
+        }
+
+        for (var bodyStatement in _body) {
+          var statementEffect = bodyStatement.execute();
+
+          if (statementEffect.interrupts) {
+            sideEffect = statementEffect;
+            return;
+          }
+        }
+      });
+
+      return sideEffect;
     });
   }
 }

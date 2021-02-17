@@ -1,3 +1,9 @@
+proc testForLoops() {
+    for let i = 0; i < 10; ++i {
+        print(i);
+    }
+}
+
 proc testReferenceChanges() {
     let a = 1;
     let ref -> a;
@@ -43,3 +49,4 @@ proc testReferenceChanges() {
 }
 
 testReferenceChanges();
+testForLoops();

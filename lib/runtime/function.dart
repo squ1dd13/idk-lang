@@ -113,7 +113,27 @@ class FunctionValue extends Value {
 
         // Check the side effects for stuff we need to handle.
         if (sideEffects != null) {
-          if (sideEffects.returns) {
+          if ((sideEffects.breakName ?? sideEffects.continueName) != null) {
+            // Being able to break or continue loops across function boundaries
+            //  seems like a very bad idea, so let's disallow it.
+            String badThingVerb, badThingKeyword;
+
+            if (sideEffects.breakName != null) {
+              badThingVerb = 'Breaking';
+              badThingKeyword = 'break';
+            } else {
+              badThingVerb = 'Continuing';
+              badThingKeyword = 'continue';
+            }
+
+            var affectedLoop =
+                sideEffects.breakName ?? sideEffects.continueName;
+
+            throw RuntimeError('$badThingVerb loops across function boundaries '
+                'is disallowed. ("$badThingKeyword $affectedLoop").');
+          }
+
+          if (sideEffects.returnedValue != null) {
             returnedValue = sideEffects.returnedValue;
 
             // Stop executing the statements - we're returning.

@@ -31,7 +31,7 @@ class Direction implements Statable {
 
     tokens.skip();
 
-    var expressionTokens = tokens.takeWhile(TokenPattern.semicolon.notMatch);
+    var expressionTokens = tokens.takeUntilSemicolon();
     if (expressionTokens.isEmpty) {
       throw tokens.createException(
           'Direction target expression may not be empty.', 3);

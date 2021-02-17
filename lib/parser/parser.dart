@@ -8,6 +8,7 @@ import 'call.dart';
 import 'conditional.dart';
 import 'declaration.dart';
 import 'function.dart';
+import 'iteration.dart';
 import 'operation.dart';
 import 'reference.dart';
 import 'util.dart';
@@ -15,6 +16,7 @@ import 'util.dart';
 class Parse {
   static final _statementPasses = <Statement Function(TokenStream)>[
     (stream) => ConditionalClause(stream).createStatement(),
+    (stream) => Loop(stream).createStatement(),
     (stream) => VariableDeclaration(stream).createStatement(),
     (stream) => Direction(stream).createStatement(),
     (stream) => Direction.redirection(stream).createStatement(),
@@ -29,17 +31,20 @@ class Parse {
     (stream) => InlineDirection(stream).createExpression(),
   ];
 
-  static List<ElementType> _parseRepeated<ElementType>(List<Token> tokens,
-      Iterable<ElementType Function(TokenStream)> generators) {
-    var stream = TokenStream(tokens, 0);
+  static List<ElementType> _parseRepeated<ElementType>(TokenStream stream,
+      Iterable<ElementType Function(TokenStream)> generators, int limit) {
     var created = <ElementType>[];
 
-    while (stream.hasCurrent()) {
+    while (stream.hasCurrent() && (limit < 1 || created.length < limit)) {
       // We keep the exception thrown at the furthest point in parsing so
       //  that if nothing succeeds, we know what to complain about.
       var furthestException = InvalidSyntaxException('', -1, -1, -1);
 
       for (var pass in generators) {
+        if (!stream.hasCurrent()) {
+          break;
+        }
+
         // Save the index in case this pass fails.
         stream.saveIndex();
 
@@ -70,8 +75,12 @@ class Parse {
     return created;
   }
 
-  static List<Statement> statements(List<Token> tokens) {
-    return _parseRepeated(tokens, _statementPasses);
+  static List<Statement> statements(List<Token> tokens, {int limit = -1}) {
+    return _parseRepeated(TokenStream(tokens, 0), _statementPasses, limit);
+  }
+
+  static Statement statement(TokenStream tokens) {
+    return _parseRepeated(tokens, _statementPasses, 1)[0];
   }
 
   static List<List<Token>> split(TokenStream tokens, TokenPattern pattern) {
@@ -108,7 +117,8 @@ class Parse {
       }
     }
 
-    var allParsed = _parseRepeated(tokens, _expressionPasses);
+    var allParsed =
+        _parseRepeated(TokenStream(tokens, 0), _expressionPasses, 1);
 
     if (allParsed.isEmpty) {
       return InlineExpression(() {

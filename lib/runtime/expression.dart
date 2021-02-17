@@ -1,6 +1,7 @@
 import 'abstract.dart';
 
 abstract class Expression {
+  // TODO: Side effects for expressions (for exceptions).
   Evaluable evaluate();
 }
 

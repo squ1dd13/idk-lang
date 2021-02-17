@@ -73,6 +73,9 @@ class TokenStream {
     return taken;
   }
 
+  List<Token> takeUntilSemicolon() =>
+      takeWhile(TokenPattern.semicolon.notMatch);
+
   void skipWhile(bool Function(Token token) predicate) {
     while (hasCurrent() && predicate(current())) {
       skip();
@@ -86,7 +89,7 @@ class TokenStream {
 
   InvalidSyntaxException createException(String message, int stage) {
     return InvalidSyntaxException(
-        message, stage, current().line, current().column);
+        message, stage, hasCurrent() ? current().line : -1, hasCurrent() ? current().column : -1);
   }
 
   List<Token> toList() {

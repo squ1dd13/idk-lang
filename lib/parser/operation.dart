@@ -13,7 +13,7 @@ class OperatorExpression implements Expression {
   List<Token> _tokens;
 
   OperatorExpression(TokenStream tokens) {
-    _tokens = infixToPostfix(tokens.takeWhile(TokenPattern.semicolon.notMatch));
+    _tokens = infixToPostfix(tokens.takeUntilSemicolon());
   }
 
   @override
