@@ -1,6 +1,7 @@
 import 'dart:math';
 
-import 'parser/Util.dart';
+import 'parser/operation.dart' as operation;
+import 'parser/util.dart';
 
 enum TokenType { Name, Symbol, Number, String, Keyword, Group, None }
 
@@ -108,7 +109,20 @@ class Lexer {
       }
     }
 
+    _fixWordOperators();
     _createGroups();
+  }
+
+  /// Convert word operators like "and", "or" and "xor" into symbols.
+  void _fixWordOperators() {
+    for (var i = 0; i < generatedTokens.length; ++i) {
+      var token = generatedTokens[i];
+
+      if (token.type == TokenType.Name &&
+          operation.operators.containsKey(token.toString())) {
+        generatedTokens[i] = TextToken(TokenType.Symbol, token.toString());
+      }
+    }
   }
 
   void _addToken(Token token) {
@@ -139,16 +153,26 @@ class Lexer {
     return [line, column];
   }
 
+  static final _opChars = <String>{};
+
+  static Set<String> get _operatorChars {
+    if (_opChars.isEmpty) {
+      for (var operator in operation.operators.keys) {
+        _opChars.addAll(
+            operator.codeUnits.map((code) => String.fromCharCode(code)));
+      }
+    }
+
+    return _opChars;
+  }
+
   bool _generateOperator() {
     // TODO: Improve operator lexing (make it work properly).
-
-    const operators = <String>{'==', '->'};
-    const operatorChars = '=->';
 
     var buffer = StringBuffer();
     var startLineColumn = _lineAndColumn();
 
-    while (_hasNext() && operatorChars.contains(_getCharacter())) {
+    while (_hasNext() && _operatorChars.contains(_getCharacter())) {
       buffer.write(_getCharacter(moveAfter: true));
     }
 
@@ -158,7 +182,7 @@ class Lexer {
 
     var operatorString = buffer.toString();
 
-    if (!operators.contains(operatorString)) {
+    if (!operation.operators.containsKey(operatorString)) {
       // Split into multiple tokens.
       for (var i = 0; i < operatorString.length; ++i) {
         var character = String.fromCharCode(operatorString.codeUnitAt(i));
@@ -367,6 +391,10 @@ class Lexer {
 
         delimiters.removeLast();
         groups.removeLast();
+      } else {
+        var lineColumn = _lineAndColumn();
+        throw InvalidSyntaxException(
+            'Mismatched delimiters.', 1, lineColumn[0], lineColumn[1]);
       }
     }
 

@@ -1,9 +1,10 @@
-import '../Lexer.dart';
-import '../runtime/Concepts.dart';
-import '../runtime/Concrete.dart';
-import '../runtime/Expression.dart';
-import 'Parser.dart';
-import 'Util.dart';
+import 'package:language/parser/parser.dart';
+import 'package:language/parser/util.dart';
+import 'package:language/runtime/abstract.dart';
+import 'package:language/runtime/concrete.dart';
+import 'package:language/runtime/expression.dart';
+
+import '../lexer.dart';
 
 class Assignment implements Statable {
   Expression _destination;

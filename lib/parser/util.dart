@@ -1,6 +1,7 @@
-import '../Lexer.dart';
-import '../runtime/Concrete.dart';
-import '../runtime/Expression.dart';
+import 'package:language/runtime/concrete.dart';
+import 'package:language/runtime/expression.dart';
+
+import '../lexer.dart';
 
 /// Something that can be converted to a statement.
 abstract class Statable {

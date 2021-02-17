@@ -1,11 +1,11 @@
-import '../Lexer.dart';
-import '../runtime/Concepts.dart';
-import '../runtime/Concrete.dart';
-import '../runtime/Expression.dart';
-import '../runtime/Functions.dart';
-import '../runtime/Store.dart';
-import 'Parser.dart';
-import 'Util.dart';
+import '../lexer.dart';
+import '../runtime/abstract.dart';
+import '../runtime/concrete.dart';
+import '../runtime/expression.dart';
+import '../runtime/function.dart';
+import '../runtime/store.dart';
+import 'parser.dart';
+import 'util.dart';
 
 /// THIS IS NOT PERMANENT! Function call syntax will eventually be
 /// handled as an operator (the '()' operator, like in C++). This class

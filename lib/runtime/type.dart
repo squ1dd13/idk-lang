@@ -1,6 +1,5 @@
-import 'Concepts.dart';
-import 'Concrete.dart';
-import 'Exceptions.dart';
+import 'abstract.dart';
+import 'exception.dart';
 
 /// Describes how one type may be converted to another.
 enum TypeConversion {
@@ -134,8 +133,14 @@ class NoType extends ValueType {
   }
 }
 
+enum Primitive { Int, String }
+
 class PrimitiveType extends ValueType {
   final Primitive _type;
+
+  static PrimitiveType get integer => PrimitiveType(Primitive.Int);
+
+  static PrimitiveType get string => PrimitiveType(Primitive.String);
 
   PrimitiveType(this._type);
 

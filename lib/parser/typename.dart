@@ -1,7 +1,6 @@
-import '../Lexer.dart';
-import '../runtime/Concrete.dart';
-import '../runtime/Types.dart';
-import 'Util.dart';
+import '../lexer.dart';
+import '../runtime/type.dart';
+import 'util.dart';
 
 class TypeName {
   int line, column;

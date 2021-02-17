@@ -1,9 +1,13 @@
-import 'Concepts.dart';
-import 'Exceptions.dart';
-import 'Expression.dart';
-import 'Types.dart';
+import 'abstract.dart';
+import 'exception.dart';
+import 'expression.dart';
+import 'type.dart';
 
-class IntegerValue extends Value {
+abstract class PrimitiveValue extends Value {
+  dynamic get rawValue;
+}
+
+class IntegerValue extends PrimitiveValue {
   int value;
 
   IntegerValue.raw(this.value) {
@@ -24,9 +28,22 @@ class IntegerValue extends Value {
   Value copy() {
     return IntegerValue.raw(value);
   }
+
+  @override
+  int get rawValue => value;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is IntegerValue &&
+          runtimeType == other.runtimeType &&
+          value == other.value;
+
+  @override
+  int get hashCode => value.hashCode;
 }
 
-class StringValue extends Value {
+class StringValue extends PrimitiveValue {
   String value;
 
   StringValue(this.value) {
@@ -43,14 +60,29 @@ class StringValue extends Value {
   Value copy() {
     return StringValue(value);
   }
+
+  @override
+  String get rawValue => value;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is StringValue &&
+          runtimeType == other.runtimeType &&
+          value == other.value;
+
+  @override
+  int get hashCode => value.hashCode;
 }
 
-class SideEffects {
+class SideEffect {
   // TODO: "break n"
   bool breaks = false;
   bool continues = false;
   bool returns = false;
   Value returnedValue;
+
+  // TODO: 'throws' flag (and exception value).
 
   bool get interrupts => breaks || continues || returns;
 }
@@ -63,19 +95,19 @@ class Statement {
 
   Statement(this._fullExpression);
 
-  SideEffects execute() {
+  SideEffect execute() {
     _fullExpression.evaluate();
-    return SideEffects();
+    return SideEffect();
   }
 }
 
 class SideEffectStatement extends Statement {
-  final SideEffects Function() _action;
+  final SideEffect Function() _action;
 
   SideEffectStatement(this._action) : super(null);
 
   @override
-  SideEffects execute() {
+  SideEffect execute() {
     return _action();
   }
 }
@@ -126,5 +158,3 @@ class Reference extends Value implements Variable {
     return Reference(_referenced);
   }
 }
-
-enum Primitive { Int, String }

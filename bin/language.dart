@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'Lexer.dart';
-import 'parser/Parser.dart';
-import 'runtime/standard/IO.dart';
+import 'package:language/lexer.dart';
+import 'package:language/parser/parser.dart';
+import 'package:language/runtime/standard/io.dart';
 
 void main(List<String> arguments) {
   registerIO();

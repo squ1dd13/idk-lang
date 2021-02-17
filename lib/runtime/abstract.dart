@@ -1,5 +1,5 @@
-import 'Exceptions.dart';
-import 'Types.dart';
+import 'exception.dart';
+import 'type.dart';
 
 /// Something which can *resolve* to a value, but which may not itself be
 /// a value.

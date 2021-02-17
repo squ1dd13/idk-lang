@@ -1,11 +1,11 @@
-import '../Lexer.dart';
-import '../runtime/Concrete.dart';
-import '../runtime/Expression.dart';
-import '../runtime/Functions.dart';
-import '../runtime/Store.dart';
-import 'Parser.dart';
-import 'TypeName.dart';
-import 'Util.dart';
+import '../lexer.dart';
+import '../runtime/concrete.dart';
+import '../runtime/expression.dart';
+import '../runtime/function.dart';
+import '../runtime/store.dart';
+import 'parser.dart';
+import 'typename.dart';
+import 'util.dart';
 
 class _Parameter {
   TypeName type;

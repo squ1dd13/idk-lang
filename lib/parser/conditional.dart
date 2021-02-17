@@ -1,9 +1,9 @@
-import '../Lexer.dart';
-import '../runtime/Concrete.dart';
-import '../runtime/Expression.dart';
-import '../runtime/Types.dart';
-import 'Parser.dart';
-import 'Util.dart';
+import 'package:language/lexer.dart';
+import 'package:language/parser/parser.dart';
+import 'package:language/parser/util.dart';
+import 'package:language/runtime/concrete.dart';
+import 'package:language/runtime/expression.dart';
+import 'package:language/runtime/type.dart';
 
 /// Any part of an if..else if..else statement.
 class ConditionalClause implements Statable {
@@ -34,7 +34,7 @@ class ConditionalClause implements Statable {
     } else {
       throw tokens.createException(
           'Expected "if", "else if" or "else" in conditional, '
-              'got "$clauseKeyword" instead.',
+          'got "$clauseKeyword" instead.',
           2);
     }
 
@@ -68,16 +68,17 @@ class ConditionalClause implements Statable {
 
       if (_condition != null) {
         // TODO: Introduce Boolean type.
-        var convertedToInt = _condition.evaluate()
+        var convertedToInt = _condition
+            .evaluate()
             .get()
-            .mustConvertTo(PrimitiveType(Primitive.Int));
+            .mustConvertTo(PrimitiveType.integer);
 
         conditionValue = (convertedToInt as IntegerValue).value != 0;
       }
 
       if (!conditionValue) {
         // Run the subsequent clause, or return if it is null.
-        return _nextClause?.createStatement()?.execute() ?? SideEffects();
+        return _nextClause?.createStatement()?.execute() ?? SideEffect();
       }
 
       for (var bodyStatement in _body) {
@@ -88,7 +89,7 @@ class ConditionalClause implements Statable {
         }
       }
 
-      return SideEffects();
+      return SideEffect();
     });
   }
 }

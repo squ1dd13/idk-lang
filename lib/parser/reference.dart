@@ -1,13 +1,13 @@
-import '../Lexer.dart';
-import '../runtime/Concepts.dart';
-import '../runtime/Concrete.dart';
-import '../runtime/Exceptions.dart';
-import '../runtime/Expression.dart';
-import '../runtime/Store.dart';
-import '../runtime/Types.dart';
-import 'Parser.dart';
-import 'TypeName.dart';
-import 'Util.dart';
+import '../lexer.dart';
+import '../runtime/abstract.dart';
+import '../runtime/concrete.dart';
+import '../runtime/exception.dart';
+import '../runtime/expression.dart';
+import '../runtime/store.dart';
+import '../runtime/type.dart';
+import 'parser.dart';
+import 'typename.dart';
+import 'util.dart';
 
 /// The initial direction of a reference, such as:
 /// ```
@@ -65,9 +65,7 @@ class Direction implements Statable {
       var reference = Reference(evaluated);
 
       if (_typeName == null) {
-        Store.current()
-            .getAs<Reference>(_name)
-            .set(evaluated.get() as Value);
+        Store.current().getAs<Reference>(_name).set(evaluated.get());
       } else {
         Store.current().add(_name, reference);
       }

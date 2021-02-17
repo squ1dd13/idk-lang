@@ -1,10 +1,10 @@
 library standard;
 
-import '../Concrete.dart';
-import '../Expression.dart';
-import '../Functions.dart';
-import '../Store.dart';
-import '../Types.dart';
+import '../concrete.dart';
+import '../expression.dart';
+import '../function.dart';
+import '../store.dart';
+import '../type.dart';
 
 void registerIO() {
   var printFunction = FunctionValue('print', NoType(), <Statement>[

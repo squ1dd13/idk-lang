@@ -1,14 +1,15 @@
-import '../Lexer.dart';
-import '../runtime/Concrete.dart';
-import '../runtime/Expression.dart';
-import '../runtime/Store.dart';
-import 'Assignment.dart';
-import 'Call.dart';
-import 'Conditional.dart';
-import 'Declaration.dart';
-import 'Function.dart';
-import 'References.dart';
-import 'Util.dart';
+import '../lexer.dart';
+import '../runtime/concrete.dart';
+import '../runtime/expression.dart';
+import '../runtime/store.dart';
+import 'assignment.dart';
+import 'call.dart';
+import 'conditional.dart';
+import 'declaration.dart';
+import 'function.dart';
+import 'operation.dart';
+import 'reference.dart';
+import 'util.dart';
 
 class Parse {
   static final _statementPasses = <Statement Function(TokenStream)>[
@@ -23,11 +24,12 @@ class Parse {
 
   static final _expressionPasses = <Expression Function(TokenStream)>[
     (stream) => FunctionCall(stream).createExpression(),
-    (stream) => InlineDirection(stream).createExpression()
+    (stream) => OperatorExpression(stream),
+    (stream) => InlineDirection(stream).createExpression(),
   ];
 
-  static List<ElementType> _parseRepeated<ElementType>(
-      List<Token> tokens, Iterable<ElementType Function(TokenStream)> generators) {
+  static List<ElementType> _parseRepeated<ElementType>(List<Token> tokens,
+      Iterable<ElementType Function(TokenStream)> generators) {
     var stream = TokenStream(tokens, 0);
     var created = <ElementType>[];
 
