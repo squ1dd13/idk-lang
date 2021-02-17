@@ -1,7 +1,8 @@
-import '../lexer.dart';
-import '../runtime/concrete.dart';
-import '../runtime/expression.dart';
-import '../runtime/store.dart';
+import 'package:language/lexer.dart';
+import 'package:language/runtime/concrete.dart';
+import 'package:language/runtime/expression.dart';
+import 'package:language/runtime/store.dart';
+
 import 'assignment.dart';
 import 'call.dart';
 import 'conditional.dart';

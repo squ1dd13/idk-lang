@@ -48,7 +48,9 @@ class TokenOperator implements Function {
 /// Implements the operators. For many, we can just pass through to Dart's
 /// operators, although there are some where we have to add extra behaviour.
 class _Operations {
-  static dynamic _getRaw<T>(Value value) {
+  static dynamic _getRaw<T>(Value v) {
+    var value = v.get();
+
     if (T == bool) {
       return (_getRaw<int>(value) != 0 ? true : false);
     }
@@ -159,15 +161,15 @@ class _Operations {
   }
 
   static Value cast(Iterable<Value> operands) {
-    return operands.first.mustConvertTo(operands.last.type);
+    return operands.first.mustConvertTo(operands.last);
   }
 
   static Value equal(Iterable<Value> operands) {
-    return _wrapPrimitive(operands.first == operands.last);
+    return _wrapPrimitive(operands.first.equals(operands.last));
   }
 
   static Value notEqual(Iterable<Value> operands) {
-    return _wrapPrimitive(operands.first != operands.last);
+    return _wrapPrimitive(operands.first.notEquals(operands.last));
   }
 
   static Value bitand(Iterable<Value> operands) {
@@ -227,6 +229,7 @@ var operators = <String, TokenOperator>{
   '~': TokenOperator(15.0, _Operations.bitnot, isUnary: true),
   '->u': TokenOperator(15.0, _Operations.redirect),
   '-u': TokenOperator(15.0, _Operations.unaryMinus, isUnary: true),
+  // '@': TokenOperator(15.0, _Operations.referenceTo, isUnary: true),
 
   '*': TokenOperator(14.0, _Operations.multiply),
   '/': TokenOperator(14.0, _Operations.divide),
@@ -276,7 +279,7 @@ List<Token> infixToPostfix(List<Token> infix) {
   var stack = <Token>[];
 
   // Find and resolve unary operations.
-  for (int i = 0; i < infix.length; ++i) {
+  for (var i = 0; i < infix.length; ++i) {
     var token = infix[i];
     if (!isOperator(token)) {
       continue;
@@ -309,13 +312,7 @@ List<Token> infixToPostfix(List<Token> infix) {
   }
 
   for (var token in infix) {
-    // if (GroupPattern('(', ')').hasMatch(token)) {
-    //   rpn.addAll(parseInfix(token.allTokens()));
-    //   continue;
-    // }
-
-    if (token.type != TokenType.Symbol ||
-        !operators.containsKey(token.toString())) {
+    if (!isOperator(token)) {
       rpn.add(token);
       continue;
     }

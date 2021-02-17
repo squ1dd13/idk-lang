@@ -65,7 +65,7 @@ class Direction implements Statable {
       var reference = Reference(evaluated);
 
       if (_typeName == null) {
-        Store.current().getAs<Reference>(_name).set(evaluated.get());
+        Store.current().getAs<Reference>(_name).redirect(evaluated);
       } else {
         Store.current().add(_name, reference);
       }

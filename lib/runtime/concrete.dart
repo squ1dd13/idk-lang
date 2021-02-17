@@ -5,6 +5,21 @@ import 'type.dart';
 
 abstract class PrimitiveValue extends Value {
   dynamic get rawValue;
+
+  @override
+  bool equals(Evaluable other) {
+    return (other is PrimitiveValue) && rawValue == other.rawValue;
+  }
+
+  @override
+  bool greaterThan(Evaluable other) {
+    return (other is PrimitiveValue) && rawValue > other.rawValue;
+  }
+
+  @override
+  bool lessThan(Evaluable other) {
+    return (other is PrimitiveValue) && rawValue < other.rawValue;
+  }
 }
 
 class IntegerValue extends PrimitiveValue {
@@ -138,16 +153,15 @@ class Variable extends Value {
   Value copy() {
     return Variable(type.copy(), _value.copy());
   }
-}
-
-class Constant extends Value {
-  @override
-  Value get() => this;
 
   @override
-  Value copy() {
-    throw Exception('go away');
-  }
+  bool equals(Evaluable other) => _value.equals(other);
+
+  @override
+  bool greaterThan(Evaluable other) => _value.greaterThan(other);
+
+  @override
+  bool lessThan(Evaluable other) => _value.lessThan(other);
 }
 
 /// Essentially a pointer, but with added safety and with custom
@@ -193,7 +207,16 @@ class Reference extends Value implements Variable {
 
   @override
   Value copy() {
-    // Note that we don't copy _referenced.
+    // Note that we don't copy _value.
     return Reference(_value);
   }
+
+  @override
+  bool equals(Evaluable other) => _value.equals(other);
+
+  @override
+  bool greaterThan(Evaluable other) => _value.greaterThan(other);
+
+  @override
+  bool lessThan(Evaluable other) => _value.lessThan(other);
 }

@@ -133,4 +133,27 @@ class FunctionValue extends Value {
   Value copy() {
     throw RuntimeError('Copying functions is not allowed.');
   }
+
+  @override
+  bool equals(Evaluable other) {
+    if (!(other is FunctionValue)) {
+      return false;
+    }
+
+    var function = other as FunctionValue;
+    return name == function.name &&
+        returnType == function.returnType &&
+        parameters == function.parameters &&
+        _statements == function._statements;
+  }
+
+  @override
+  bool greaterThan(Evaluable other) {
+    return hashCode > other.hashCode;
+  }
+
+  @override
+  bool lessThan(Evaluable other) {
+    return hashCode < other.hashCode;
+  }
 }

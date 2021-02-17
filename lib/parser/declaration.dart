@@ -43,7 +43,10 @@ class VariableDeclaration implements Statable {
     return Statement(InlineExpression(() {
       // Evaluate the expression and then create a variable with the type.
       var sourceValue = _valueExpression.evaluate() as Value;
-      var declaredType = _typeName.evaluate();
+
+      // If _typeName evaluates to 'null', this is a 'let' declaration.
+      // We take the type from the value.
+      var declaredType = _typeName.evaluate() ?? sourceValue.type;
 
       var variable =
           Variable(declaredType, sourceValue.mustConvertTo(declaredType));

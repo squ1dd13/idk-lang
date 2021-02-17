@@ -1,0 +1,45 @@
+proc testReferenceChanges() {
+    let a = 1;
+    let ref -> a;
+
+    if ref != 1 {
+        fatal("Reference not passing through to target.");
+    }
+
+    a = 2;
+
+    if ref as int != 2 {
+        fatal("Reference value did not change after value change.");
+    }
+
+    ref = 1;
+
+    if a != 1 {
+        fatal("Value did not change after setting through reference.");
+    }
+
+    int b = 3;
+    ref -> b;
+
+    if ref != 3 {
+        fatal("Reference does not resolve to redirected target.");
+    }
+
+    if a == 3 {
+        fatal("Redirection changed previous target's value.");
+    }
+
+    ref = 4;
+
+    if b != 4 {
+        fatal("Redirected reference did not change new target's value.");
+    }
+
+    if a == 4 {
+        fatal("Redirected reference changed previous target's value.");
+    }
+
+    print("All reference change tests passed.");
+}
+
+testReferenceChanges();

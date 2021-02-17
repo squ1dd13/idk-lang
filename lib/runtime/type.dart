@@ -17,6 +17,9 @@ enum TypeConversion {
 }
 
 abstract class ValueType extends Value {
+  @override
+  ValueType get type => TypeOfType.shared;
+
   /// Returns a [TypeConversion] value indicating the style of conversion
   /// that may take place between this type and the type [to].
   TypeConversion conversionTo(ValueType to);
@@ -36,6 +39,46 @@ abstract class ValueType extends Value {
 
   Value convertObjectFrom(Value object, ValueType startType) {
     throw UnimplementedError('cOF');
+  }
+
+  @override
+  bool equals(Evaluable other) {
+    return conversionTo(other) == TypeConversion.None;
+  }
+
+  @override
+  bool greaterThan(Evaluable other) {
+    return hashCode > other.hashCode;
+  }
+
+  @override
+  bool lessThan(Evaluable other) {
+    return hashCode < other.hashCode;
+  }
+}
+
+/// The type of value types.
+class TypeOfType extends ValueType {
+  static TypeOfType shared = TypeOfType();
+
+  @override
+  TypeConversion conversionTo(ValueType to) {
+    if (to == this || to is AnyType) {
+      return TypeConversion.NoConversion;
+    }
+
+    return TypeConversion.None;
+  }
+
+  @override
+  Value convertObjectTo(Value object, ValueType endType) {
+    assertConvertibleTo(endType);
+    return object;
+  }
+
+  @override
+  Value copy() {
+    return this;
   }
 }
 

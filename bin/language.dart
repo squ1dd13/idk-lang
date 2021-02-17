@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:language/lexer.dart';
 import 'package:language/parser/parser.dart';
-import 'package:language/runtime/standard/io.dart';
+import 'package:language/runtime/standard/language_core.dart';
 
 void main(List<String> arguments) {
-  registerIO();
+  registerCore();
 
   var toLex = File(arguments[0]).readAsStringSync();
 

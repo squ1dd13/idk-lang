@@ -59,6 +59,10 @@ class TypeName {
       return ReferenceType.forReferenceTo(_referencedType.evaluate());
     }
 
+    if (_name == 'let') {
+      return null;
+    }
+
     if (_name == 'int') {
       return PrimitiveType(Primitive.Int);
     }

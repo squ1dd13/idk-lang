@@ -81,7 +81,6 @@ someReference -> someIntegerSomewhereElse;
 Functions (and procedures, but we'll just call them functions here) are objects,
 so you can create references to them and call them from other places.
 
-<!-- The Java highlighting doesn't work so well here. -->
 ```java
 proc interestingProcedure() {
     print("Doing useful stuff, please wait...");
