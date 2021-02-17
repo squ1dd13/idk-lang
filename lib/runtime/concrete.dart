@@ -112,31 +112,70 @@ class SideEffectStatement extends Statement {
   }
 }
 
+class Variable extends Value {
+  Value _value;
+
+  Variable(ValueType theType, Value theValue) {
+    if (theType is ReferenceType) {
+      throw RuntimeError('Variables may not be of reference type!');
+    }
+
+    _value = theValue;
+    type = theType;
+  }
+
+  @override
+  Value get() {
+    return _value;
+  }
+
+  void set(Value source) {
+    // Keep things type-safe by ensuring that the value is of the correct type.
+    _value = source.mustConvertTo(type);
+  }
+
+  @override
+  Value copy() {
+    return Variable(type.copy(), _value.copy());
+  }
+}
+
+class Constant extends Value {
+  @override
+  Value get() => this;
+
+  @override
+  Value copy() {
+    throw Exception('go away');
+  }
+}
+
 /// Essentially a pointer, but with added safety and with custom
 /// syntax to increase clarity. Behaves like a variable when used
 /// like one (with normal syntax). Implements [Variable] so it can
 /// provide a transparent but custom interface.
 class Reference extends Value implements Variable {
-  Value _referenced;
+  @override
+  Value _value;
 
   @override
   ValueType type;
 
   Reference(Value value) {
-    _referenced = value;
+    _value = value;
     type = ReferenceType.forReferenceTo(value.type);
   }
 
   @override
   Value get() {
-    return _referenced.get();
+    return _value.get();
   }
 
   @override
   void set(Value source) {
-    if (_referenced is Variable) {
+    if (_value is Variable) {
       // Let _referenced handle the type checking.
-      (_referenced as Variable).set(source);
+      (_value as Variable).set(source);
     } else {
       throw RuntimeError(
           'Cannot set value through reference to non-variable value.');
@@ -149,12 +188,12 @@ class Reference extends Value implements Variable {
           'to value of type ${source.type}!');
     }
 
-    _referenced = source;
+    _value = source;
   }
 
   @override
   Value copy() {
     // Note that we don't copy _referenced.
-    return Reference(_referenced);
+    return Reference(_value);
   }
 }
