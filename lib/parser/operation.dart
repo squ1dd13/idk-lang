@@ -13,7 +13,26 @@ class OperatorExpression implements Expression {
   List<Token> _tokens;
 
   OperatorExpression(TokenStream tokens) {
-    _tokens = infixToPostfix(tokens.takeUntilSemicolon());
+    // Infix expressions can't have two operands next to each other,
+    //  so the expression ends when we find a semicolon or two tokens
+    //  that would be operands.
+
+    var lastWasOperand = false;
+    var found = <Token>[];
+
+    while (tokens.hasCurrent() &&
+        TokenPattern.semicolon.notMatch(tokens.current())) {
+      var notOperator = tokens.current().isNotOperator;
+
+      if (notOperator && lastWasOperand) {
+        break;
+      }
+
+      found.add(tokens.take());
+      lastWasOperand = notOperator;
+    }
+
+    _tokens = infixToPostfix(found);
   }
 
   @override
@@ -27,7 +46,7 @@ class TokenOperator implements Function {
   bool rightAssociative;
   bool isUnary;
   String warning;
-  Value Function(Iterable<Value> operands) _implementation;
+  final Value Function(Iterable<Value> operands) _implementation;
 
   TokenOperator(this.precedence, this._implementation,
       {this.rightAssociative = false, this.isUnary = false, this.warning = ''});
@@ -122,6 +141,10 @@ class _Operations {
 
   static Value unaryMinus(Iterable<Value> operands) {
     return _wrapPrimitive(-_getRaw(operands.first));
+  }
+
+  static Value referenceTo(Iterable<Value> operands) {
+    return ReferenceType.forReferenceTo(operands.first);
   }
 
   static Value multiply(Iterable<Value> operands) {
@@ -229,7 +252,7 @@ var operators = <String, TokenOperator>{
   '~': TokenOperator(15.0, _Operations.bitnot, isUnary: true),
   '->u': TokenOperator(15.0, _Operations.redirect),
   '-u': TokenOperator(15.0, _Operations.unaryMinus, isUnary: true),
-  // '@': TokenOperator(15.0, _Operations.referenceTo, isUnary: true),
+  '@': TokenOperator(15.0, _Operations.referenceTo, isUnary: true),
 
   '*': TokenOperator(14.0, _Operations.multiply),
   '/': TokenOperator(14.0, _Operations.divide),
@@ -270,18 +293,13 @@ var operators = <String, TokenOperator>{
 };
 
 List<Token> infixToPostfix(List<Token> infix) {
-  bool isOperator(Token token) {
-    return token.type == TokenType.Symbol &&
-        operators.containsKey(token.toString());
-  }
-
   var rpn = <Token>[];
   var stack = <Token>[];
 
   // Find and resolve unary operations.
   for (var i = 0; i < infix.length; ++i) {
     var token = infix[i];
-    if (!isOperator(token)) {
+    if (token.isNotOperator) {
       continue;
     }
 
@@ -290,7 +308,7 @@ List<Token> infixToPostfix(List<Token> infix) {
     // Also, if the previous token in the infix expression was also an operator,
     //  then this must be a unary operator: infix only allows two operators
     //  side-by-side if the rightmost one is a unary operator (AFAIK).
-    if (i != 0 && !isOperator(infix[i - 1])) {
+    if (i != 0 && infix[i - 1].isNotOperator) {
       continue;
     }
 
@@ -312,7 +330,7 @@ List<Token> infixToPostfix(List<Token> infix) {
   }
 
   for (var token in infix) {
-    if (!isOperator(token)) {
+    if (token.isNotOperator) {
       rpn.add(token);
       continue;
     }

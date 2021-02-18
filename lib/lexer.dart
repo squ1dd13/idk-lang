@@ -3,7 +3,7 @@ import 'dart:math';
 import 'parser/operation.dart' as operation;
 import 'parser/util.dart';
 
-enum TokenType { Name, Symbol, Number, String, Keyword, Group, None }
+enum TokenType { Name, Symbol, Number, String, Group, None }
 
 abstract class Token {
   TokenType type = TokenType.None;
@@ -16,6 +16,16 @@ abstract class Token {
   /// All subtokens of this token.
   List<Token> allTokens() {
     return [this];
+  }
+
+  bool get isOperator {
+    return type == TokenType.Symbol &&
+        operation.operators.containsKey(toString());
+  }
+
+  bool get isNotOperator {
+    return type != TokenType.Symbol ||
+        !operation.operators.containsKey(toString());
   }
 }
 
@@ -109,7 +119,8 @@ class Lexer {
       }
 
       var lineColumn = _lineAndColumn();
-      throw InvalidSyntaxException('Unexpected character "$character".', 0, lineColumn[0], lineColumn[1]);
+      throw InvalidSyntaxException('Unexpected character "$character".', 0,
+          lineColumn[0], lineColumn[1]);
     }
 
     _fixWordOperators();

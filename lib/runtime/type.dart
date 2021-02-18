@@ -159,6 +159,16 @@ class NoType extends ValueType {
     return NoType();
   }
 
+  /// [NoType] is likely to be printed in errors, but 'proc'
+  /// doesn't make sense in all errors (e.g. you can't return
+  /// 'proc' from a function), so we can specify a different
+  /// name to use.
+  String _name;
+
+  NoType({String name = 'proc'}) {
+    _name = name;
+  }
+
   @override
   TypeConversion conversionTo(ValueType to) {
     return to is NoType ? TypeConversion.NoConversion : TypeConversion.None;
@@ -172,7 +182,7 @@ class NoType extends ValueType {
 
   @override
   String toString() {
-    return 'proc';
+    return _name;
   }
 }
 

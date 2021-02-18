@@ -30,6 +30,8 @@ print(b);
 string basicFunction(string arg) {
     arg = "haha";
     print(arg);
+
+    return "nothing here";
 }
 
 proc takesAny(@any couldBeAnything) {

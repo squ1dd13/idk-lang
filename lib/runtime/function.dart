@@ -98,7 +98,8 @@ class FunctionValue extends Value {
   }
 
   Value call(Map<String, Value> arguments) {
-    Value returnedValue = Variable(NoType(), IntegerValue.raw(0));
+    Value returnedValue =
+        Variable(NoType(name: 'no type'), IntegerValue.raw(0));
 
     // Open a new scope for the function body to run inside.
     Store.current().branch((store) {
@@ -122,7 +123,7 @@ class FunctionValue extends Value {
             throw RuntimeError(
                 'Interrupting loops across function boundaries is disallowed. '
                 '(No parent loop matching the name "$interruptedName" was '
-                    'found.)');
+                'found.)');
           }
 
           if (sideEffect.returnedValue != null) {
