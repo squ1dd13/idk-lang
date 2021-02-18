@@ -49,7 +49,14 @@ class TokenOperator implements Function {
   final Value Function(Iterable<Value> operands) _implementation;
 
   TokenOperator(this.precedence, this._implementation,
-      {this.rightAssociative = false, this.isUnary = false, this.warning = ''});
+      {this.rightAssociative = false,
+      this.isUnary = false,
+      this.warning = ''}) {
+    if (isUnary) {
+      // We don't have postfix yet, so this is fine.
+      rightAssociative = true;
+    }
+  }
 
   void issueWarningIfAny(int line, int column) {
     if (warning?.isEmpty ?? true) {
@@ -112,6 +119,10 @@ class _Operations {
         .set(_wrapPrimitive(_getRaw(operands.first) + 1));
 
     return oldValue;
+  }
+
+  static Value getAtIndex(Iterable<Value> operands) {
+    return operands.first.at(operands.last);
   }
 
   static Value not(Iterable<Value> operands) {
@@ -245,6 +256,7 @@ var operators = <String, TokenOperator>{
   '^': TokenOperator(17.0, _Operations.exponent, rightAssociative: true),
 
   '++': TokenOperator(16.0, _Operations.preIncrement, isUnary: true),
+  '[]': TokenOperator(16.0, (bleh) => throw RuntimeError('made it')),
 
   '!': TokenOperator(15.0, _Operations.not,
       isUnary: true, warning: 'Use "not" instead of "!".'),
@@ -369,13 +381,24 @@ List<Token> infixToPostfix(List<Token> infix) {
   return rpn;
 }
 
+var _indexingPattern = GroupPattern('[', ']');
+
 Value evaluatePostfix(List<Token> postfix) {
   var numberStack = <Value>[];
 
   for (var token in postfix) {
+    if (_indexingPattern.hasMatch(token)) {
+      numberStack.add(_Operations.getAtIndex([
+        numberStack.removeLast(),
+        Parse.expression(token.allTokens()).evaluate()
+      ]));
+      continue;
+    }
+
     if (token.type == TokenType.Symbol &&
         operators.containsKey(token.toString())) {
       var operator = operators[token.toString()];
+
       // Check for unary operations.
       if (operator.isUnary) {
         var oldTop = numberStack.removeLast();

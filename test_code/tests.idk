@@ -106,6 +106,13 @@ proc testReturnValues() {
     print("All return value tests passed.");
 }
 
+proc testIndexedAccess() {
+    let someString = "Hello, world!";
+
+    print(someString[0]);
+}
+
 testReferenceChanges();
 testForLoops();
 testReturnValues();
+testIndexedAccess();

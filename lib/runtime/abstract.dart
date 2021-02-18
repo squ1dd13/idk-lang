@@ -21,7 +21,7 @@ abstract class Evaluable {
 
   @override
   bool operator ==(Object other) {
-    throw Exception('Don\'t compare Evaluables with ==.');
+    throw Exception("Don't compare Evaluables with ==.");
   }
 }
 
@@ -44,5 +44,9 @@ abstract class Value extends Evaluable {
     }
 
     return sourceType.convertObjectTo(copy(), endType);
+  }
+
+  Value at(Value key) {
+    throw RuntimeError('$type does not support "[]".');
   }
 }

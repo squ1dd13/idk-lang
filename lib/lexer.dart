@@ -65,6 +65,25 @@ class GroupToken extends Token {
         open.hasMatch(children.first) &&
         close.hasMatch(children.last);
   }
+
+  @override
+  bool get isOperator {
+    return super.isOperator ||
+        delimitedBy(TokenPattern(string: '[', type: TokenType.Symbol),
+            TokenPattern(string: ']', type: TokenType.Symbol));
+  }
+
+  @override
+  bool get isNotOperator {
+    return super.isNotOperator &&
+        !delimitedBy(TokenPattern(string: '[', type: TokenType.Symbol),
+            TokenPattern(string: ']', type: TokenType.Symbol));
+  }
+
+  @override
+  String toString() {
+    return children.first.toString() + children.last.toString();
+  }
 }
 
 const _whitespace = ' \t\n\r';
