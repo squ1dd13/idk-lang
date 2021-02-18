@@ -10,8 +10,11 @@ class Assignment implements Statable {
   Expression _source;
 
   Assignment(TokenStream tokens) {
-    var firstPart = tokens
-        .takeWhile(TokenPattern(string: '=', type: TokenType.Symbol).notMatch);
+    var firstPart = tokens.takeWhile((token) {
+      return TokenPattern(string: '=', type: TokenType.Symbol)
+              .notMatch(token) &&
+          TokenPattern.semicolon.notMatch(token);
+    });
 
     if (firstPart.isEmpty) {
       throw tokens.createException('Cannot assign to empty expression!', 1);
@@ -22,8 +25,7 @@ class Assignment implements Statable {
     // Skip '='.
     tokens.skip();
 
-    _source =
-        Parse.expression(tokens.takeUntilSemicolon());
+    _source = Parse.expression(tokens.takeUntilSemicolon());
 
     // We don't allow assignments to be expressions (like 'x = (y = z)'), so
     //  there must be a semicolon at the end.

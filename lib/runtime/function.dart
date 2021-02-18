@@ -98,7 +98,7 @@ class FunctionValue extends Value {
   }
 
   Value call(Map<String, Value> arguments) {
-    Value returnedValue;
+    Value returnedValue = Variable(NoType(), IntegerValue.raw(0));
 
     // Open a new scope for the function body to run inside.
     Store.current().branch((store) {
@@ -109,32 +109,24 @@ class FunctionValue extends Value {
 
       // Execute the body.
       for (var statement in _statements) {
-        var sideEffects = statement.execute();
+        var sideEffect = statement.execute();
 
         // Check the side effects for stuff we need to handle.
-        if (sideEffects != null) {
-          if ((sideEffects.breakName ?? sideEffects.continueName) != null) {
+        if (sideEffect != null) {
+          if (sideEffect.isLoopInterrupt) {
             // Being able to break or continue loops across function boundaries
             //  seems like a very bad idea, so let's disallow it.
-            String badThingVerb, badThingKeyword;
+            var interruptedName =
+                sideEffect.continueName ?? sideEffect.breakName;
 
-            if (sideEffects.breakName != null) {
-              badThingVerb = 'Breaking';
-              badThingKeyword = 'break';
-            } else {
-              badThingVerb = 'Continuing';
-              badThingKeyword = 'continue';
-            }
-
-            var affectedLoop =
-                sideEffects.breakName ?? sideEffects.continueName;
-
-            throw RuntimeError('$badThingVerb loops across function boundaries '
-                'is disallowed. ("$badThingKeyword $affectedLoop").');
+            throw RuntimeError(
+                'Interrupting loops across function boundaries is disallowed. '
+                '(No parent loop matching the name "$interruptedName" was '
+                    'found.)');
           }
 
-          if (sideEffects.returnedValue != null) {
-            returnedValue = sideEffects.returnedValue;
+          if (sideEffect.returnedValue != null) {
+            returnedValue = sideEffect.returnedValue;
 
             // Stop executing the statements - we're returning.
             break;
@@ -146,7 +138,7 @@ class FunctionValue extends Value {
       //  the scope is closed.
     });
 
-    return returnedValue;
+    return returnedValue.mustConvertTo(returnType);
   }
 
   @override

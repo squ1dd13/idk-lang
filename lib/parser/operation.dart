@@ -145,19 +145,19 @@ class _Operations {
   }
 
   static Value lessThan(Iterable<Value> operands) {
-    return _wrapPrimitive(_getRaw(operands.first) < _getRaw(operands.last));
+    return _wrapPrimitive(operands.first.lessThan(operands.last));
   }
 
   static Value lessThanOrEqual(Iterable<Value> operands) {
-    return _wrapPrimitive(_getRaw(operands.first) <= _getRaw(operands.last));
+    return _wrapPrimitive(operands.first.lessThanOrEqualTo(operands.last));
   }
 
   static Value greaterThan(Iterable<Value> operands) {
-    return _wrapPrimitive(_getRaw(operands.first) > _getRaw(operands.last));
+    return _wrapPrimitive(operands.first.greaterThan(operands.last));
   }
 
   static Value greaterThanEqual(Iterable<Value> operands) {
-    return _wrapPrimitive(_getRaw(operands.first) >= _getRaw(operands.last));
+    return _wrapPrimitive(operands.first.greaterThanOrEqualTo(operands.last));
   }
 
   static Value cast(Iterable<Value> operands) {

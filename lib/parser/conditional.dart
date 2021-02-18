@@ -56,8 +56,9 @@ class ConditionalClause implements Statable {
     _body = Parse.statements(tokens.take().allTokens());
 
     // Check if there's a chained clause after this.
-    if (TokenPattern(string: 'else', type: TokenType.Name)
-        .hasMatch(tokens.current())) {
+    if (tokens.hasCurrent() &&
+        TokenPattern(string: 'else', type: TokenType.Name)
+            .hasMatch(tokens.current())) {
       _nextClause = ConditionalClause(tokens);
     }
   }
@@ -65,7 +66,7 @@ class ConditionalClause implements Statable {
   @override
   Statement createStatement() {
     return SideEffectStatement(() {
-      var sideEffect = SideEffect();
+      var sideEffect = SideEffect.nothing();
 
       Store.current().branch((_) {
         var conditionValue = true;
@@ -73,21 +74,23 @@ class ConditionalClause implements Statable {
         if (_condition != null) {
           // TODO: Introduce Boolean type.
           var convertedToInt =
-          _condition.evaluate().get().mustConvertTo(PrimitiveType.integer);
+              _condition.evaluate().get().mustConvertTo(PrimitiveType.integer);
 
           conditionValue = (convertedToInt as IntegerValue).value != 0;
         }
 
         if (!conditionValue) {
-          // Run the subsequent clause, or return if it is null.
-          sideEffect = _nextClause?.createStatement()?.execute();
+          // Run the subsequent clause, or return an empty side effect if there
+          //  isn't another clause to run.
+          sideEffect =
+              _nextClause?.createStatement()?.execute() ?? SideEffect.nothing();
           return;
         }
 
         for (var bodyStatement in _body) {
           var statementEffect = bodyStatement.execute();
 
-          if (statementEffect.interrupts) {
+          if (statementEffect.isInterrupt) {
             sideEffect = statementEffect;
             return;
           }

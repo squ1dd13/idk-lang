@@ -1,7 +1,51 @@
 proc testForLoops() {
+    print(" => Three-part for loop");
     for let i = 0; i < 10; ++i {
         print(i);
     }
+
+    print(" => Two-part for loop");
+    for let i = 0; i < 10 {
+        print(i);
+        ++i;
+    }
+
+    print(" => One-part for loop");
+    for let i = 0 {
+        if i >= 10 {
+            break;
+        }
+
+        print(i);
+        ++i;
+    }
+
+    print(" => Zero-part for loop");
+
+    let i = 0;
+    for {
+        if i >= 10 {
+            break;
+        }
+
+        print(i);
+        ++i;
+    }
+
+    print(" => Nested for loop break");
+
+    for let x = 0; x < 10; ++x {
+        for let y = 0; y < 10; ++y {
+            print(x);
+            print(y);
+            print("");
+
+            if x + y == 10 {
+                print("Breaking outer loop!");
+                break outerLoop;
+            }
+        }
+    } outerLoop;
 }
 
 proc testReferenceChanges() {
@@ -48,5 +92,20 @@ proc testReferenceChanges() {
     print("All reference change tests passed.");
 }
 
+proc testReturnValues() {
+    int someFunction(int a, int b) {
+        return a + b;
+    }
+
+    int result = someFunction(1, 2);
+
+    if result != 3 {
+        fatal("1 + 2 != 3");
+    }
+
+    print("All return value tests passed.");
+}
+
 testReferenceChanges();
 testForLoops();
+testReturnValues();

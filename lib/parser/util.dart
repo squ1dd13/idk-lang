@@ -89,7 +89,10 @@ class TokenStream {
 
   InvalidSyntaxException createException(String message, int stage) {
     return InvalidSyntaxException(
-        message, stage, hasCurrent() ? current().line : -1, hasCurrent() ? current().column : -1);
+        message,
+        stage,
+        hasCurrent() ? current().line : -1,
+        hasCurrent() ? current().column : -1);
   }
 
   List<Token> toList() {

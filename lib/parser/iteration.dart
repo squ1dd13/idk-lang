@@ -26,10 +26,11 @@ class Loop implements Statable {
     tokens.saveIndex();
 
     // To work out if this is a for-each or just a for loop, we compare the
-    //  number of tokens there are before the next semicolon to the number of
-    //  tokens there are before the next braced group. If a semicolon comes
-    //  before the braces, we know that this must be a for loop.
-    var untilSemicolon = tokens.takeUntilSemicolon();
+    //  number of tokens there are before the next 'in' to the number of
+    //  tokens there are before the next braced group. If an 'in' comes
+    //  before the braces, we know that this must be a for-each loop.
+    var untilIn = tokens
+        .takeWhile(TokenPattern(string: 'in', type: TokenType.Name).notMatch);
     tokens.restoreIndex();
 
     var untilBraces = tokens.takeWhile(GroupPattern('{', '}').notMatch);
@@ -37,39 +38,96 @@ class Loop implements Statable {
     // We don't restore after finding the braces, because we have all the
     //  tokens we need until then.
 
-    var isForEach = untilBraces.length < untilSemicolon.length;
+    var isForEach = untilIn.length < untilBraces.length;
 
     if (!isForEach) {
-      // Read three statements from the pre-brace tokens. We have to add
-      //  a semicolon at the end because the third statement doesn't require
-      //  one from the user.
-      untilBraces.add(TextToken(TokenType.Symbol, ';'));
+      // We may have to add a semicolon at the end because the third
+      // statement doesn't require one from the user.
+      if (untilBraces.isNotEmpty &&
+          !TokenPattern.semicolon.hasMatch(untilBraces.last)) {
+        untilBraces.add(TextToken(TokenType.Symbol, ';'));
+      }
 
-      var headerStream = TokenStream(untilBraces, 0);
-      _setup = Parse.statement(headerStream);
-
-      var checkTokens = headerStream.takeUntilSemicolon();
-      _check = Parse.expression(checkTokens);
-
-      headerStream.consumeSemicolon(2);
-
-      var changeTokens = headerStream.takeUntilSemicolon();
-      _change = Parse.expression(changeTokens);
+      _readClassicHeader(untilBraces);
     }
 
     _body = Parse.statements(tokens.take().allTokens());
+
+    // Save the index because there may not be a name.
+    tokens.saveIndex();
+
+    if (!tokens.hasCurrent()) {
+      tokens.restoreIndex();
+      return;
+    }
+
+    var nameToken = tokens.take();
+    if (TokenPattern.type(TokenType.Name).notMatch(nameToken)) {
+      tokens.restoreIndex();
+      return;
+    }
+
+    if (!tokens.hasCurrent() ||
+        TokenPattern.semicolon.notMatch(tokens.take())) {
+      tokens.restoreIndex();
+      return;
+    }
+
+    _name = nameToken.toString();
+  }
+
+  /// Read the header of a classic three-part for loop.
+  void _readClassicHeader(List<Token> tokens) {
+    // Fallbacks in case the user omits parts.
+    _setup = SideEffectStatement(() {
+      return SideEffect.nothing();
+    });
+
+    // Return true to keep the loop going until the user stops it.
+    _check = InlineExpression(() {
+      return IntegerValue.raw(1);
+    });
+
+    // No change.
+    _change = InlineExpression(() {
+      return null;
+    });
+
+    var headerStream = TokenStream(tokens, 0);
+
+    if (!headerStream.hasCurrent()) {
+      return;
+    }
+
+    _setup = Parse.statement(headerStream);
+
+    if (!headerStream.hasCurrent()) {
+      return;
+    }
+
+    var checkTokens = headerStream.takeUntilSemicolon();
+    _check = Parse.expression(checkTokens);
+
+    headerStream.consumeSemicolon(2);
+
+    if (!headerStream.hasCurrent()) {
+      return;
+    }
+
+    var changeTokens = headerStream.takeUntilSemicolon();
+    _change = Parse.expression(changeTokens);
   }
 
   @override
   Statement createStatement() {
     return SideEffectStatement(() {
-      var sideEffect = SideEffect();
+      var sideEffect = SideEffect.nothing();
 
       Store.current().branch((_) {
         var setupEffect = _setup.execute();
 
         // Handle interrupts in the setup (probably exceptions).
-        if (setupEffect.interrupts) {
+        if (setupEffect.isInterrupt) {
           sideEffect = setupEffect;
           return;
         }
@@ -86,19 +144,19 @@ class Loop implements Statable {
           for (var statement in _body) {
             var statementEffect = statement.execute();
 
-            if (!statementEffect.interrupts) {
+            if (!statementEffect.isInterrupt) {
               continue;
             }
 
-            if (_name == statementEffect.continueName) {
+            if (statementEffect.breaksLoopName(_name)) {
+              // We return from the branch closure to break the loop.
+              return;
+            }
+
+            if (statementEffect.continuesLoopName(_name)) {
               // We break to continue, because we're inside the statement
               //  loop as well as the actual loop.
               break;
-            }
-
-            if (_name == statementEffect.breakName) {
-              // We return from the branch closure to break the loop.
-              return;
             }
 
             // This effect will be handled by something else (another loop
@@ -110,7 +168,7 @@ class Loop implements Statable {
           _change.evaluate();
         }
 
-        sideEffect = SideEffect();
+        sideEffect = SideEffect.nothing();
       });
 
       return sideEffect;

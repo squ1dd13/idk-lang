@@ -1,5 +1,6 @@
 import 'package:language/lexer.dart';
 import 'package:language/runtime/concrete.dart';
+import 'package:language/runtime/exception.dart';
 import 'package:language/runtime/expression.dart';
 import 'package:language/runtime/store.dart';
 
@@ -7,6 +8,7 @@ import 'assignment.dart';
 import 'call.dart';
 import 'conditional.dart';
 import 'declaration.dart';
+import 'flow.dart';
 import 'function.dart';
 import 'iteration.dart';
 import 'operation.dart';
@@ -23,6 +25,12 @@ class Parse {
     (stream) => FunctionDeclaration(stream).createStatement(),
     (stream) => FunctionCall.statement(stream).createStatement(),
     (stream) => Assignment(stream).createStatement(),
+    (stream) => FlowStatement(stream).createStatement(),
+    (stream) {
+      var statement = Statement(OperatorExpression(stream));
+      stream.consumeSemicolon(3);
+      return statement;
+    },
   ];
 
   static final _expressionPasses = <Expression Function(TokenStream)>[
@@ -101,6 +109,10 @@ class Parse {
   }
 
   static Expression expression(List<Token> tokens) {
+    if (tokens.isEmpty) {
+      throw InvalidSyntaxException('Empty', 3, -1, -1);
+    }
+
     if (tokens.length == 1) {
       if (tokens.first.type == TokenType.String) {
         return InlineExpression(() => StringValue(tokens.first.toString()));
@@ -121,10 +133,7 @@ class Parse {
         _parseRepeated(TokenStream(tokens, 0), _expressionPasses, 1);
 
     if (allParsed.isEmpty) {
-      return InlineExpression(() {
-        print('Unparsed!');
-        return null;
-      });
+      throw RuntimeError('Unparsed!');
     }
 
     if (allParsed.length > 1) {

@@ -58,7 +58,7 @@ class GroupToken extends Token {
 }
 
 const _whitespace = ' \t\n\r';
-const _symbols = '@<>[]{}()+=/?-#~:;|!\$%^&*';
+const _symbols = ',@<>[]{}()+=/?-#~:;|!\$%^&*';
 
 class Lexer {
   var generatedTokens = <Token>[];
@@ -72,6 +72,12 @@ class Lexer {
     while (_moveNext()) {
       var startPos = _position;
 
+      if (_generateOperator()) {
+        continue;
+      }
+
+      _position = startPos;
+
       // Try generating a string literal.
       if (_generateStringLiteral()) {
         continue;
@@ -80,12 +86,6 @@ class Lexer {
       _position = startPos;
 
       if (_generateName()) {
-        continue;
-      }
-
-      _position = startPos;
-
-      if (_generateOperator()) {
         continue;
       }
 
@@ -107,6 +107,9 @@ class Lexer {
         _addToken(TextToken(TokenType.Symbol, character));
         continue;
       }
+
+      var lineColumn = _lineAndColumn();
+      throw InvalidSyntaxException('Unexpected character "$character".', 0, lineColumn[0], lineColumn[1]);
     }
 
     _fixWordOperators();
@@ -166,7 +169,68 @@ class Lexer {
     return _opChars;
   }
 
+  static Set<String> _operatorStarters;
+
   bool _generateOperator() {
+    // Fill operatorStarters on the first call so only the operators set has to be
+    //  updated to add an operator.
+    if (_operatorStarters == null) {
+      _operatorStarters = <String>{};
+      for (var key in operation.operators.keys) {
+        _operatorStarters.add(key.substring(0, 1));
+      }
+    }
+
+    if (!_operatorStarters.contains(_getCharacter())) return false;
+
+    var operatorString = '';
+
+    // Keep reading until the next character invalidates the operator.
+    while (true) {
+      var extendedOperator = operatorString + _getCharacter();
+
+      var foundAny =
+          operation.operators.keys.any((k) => k.startsWith(extendedOperator));
+
+      if (!foundAny) {
+        const identifierChars = '_abcdefghijklmnopqrstuvwxyz0123456789';
+        const alphabet = 'abcdefghijklmnopqrstuvwxyz';
+
+        // This is why you cannot mix letters and symbols in operators: we need to
+        //  know whether this is operator "xy" or the start of the word "xyz".
+        // If we find the 'z', we know it is part of the same word because it comes
+        //  after a 'y', which is alphabetical.
+        var lastChar = operatorString[operatorString.length - 1];
+
+        if (identifierChars.contains(_getCharacter().toLowerCase()) &&
+            alphabet.contains(lastChar.toLowerCase())) {
+          // We've discovered that this 'operator' is actually the start of a word,
+          //  so set the operator string to empty and cancel.
+          operatorString = '';
+        }
+
+        // Operator invalidated by the new character, so stop here.
+        break;
+      }
+
+      operatorString = extendedOperator;
+      _moveNext();
+    }
+
+    // The final character (the one that invalidated the operator) doesn't
+    //  belong to us, so go back to it so the next lexing pass can read it.
+    --_position;
+
+    if (operatorString.isEmpty ||
+        !operation.operators.containsKey(operatorString)) {
+      return false;
+    }
+
+    _addToken(TextToken(TokenType.Symbol, operatorString));
+    return true;
+  }
+
+  bool _genedrateOperator() {
     // TODO: Improve operator lexing (make it work properly).
 
     var buffer = StringBuffer();
@@ -344,67 +408,91 @@ class Lexer {
 
   /// Find tokens between common delimiters and group them.
   void _createGroups() {
-    var tokens = generatedTokens;
-
-    const openingSymbols = <String>{
-      '{',
-      '(',
-      '[' /*, "<"*/
-    };
-    const allDelimiters = <String>{
-      '{',
-      '(',
-      '[',
-      /* "<", */
-      '}',
-      ')',
-      ']' /*, ">"*/
-    };
-
-    const reverseSymbols = <String, String>{
+    const delimiters = <String, String>{
       '{': '}',
       '(': ')',
       '[': ']',
-      /* { "<", ">" }, */
     };
 
-    var groups = <GroupToken>[GroupToken([])];
+    // Our token groups. We start with one empty group for top-level tokens.
+    var tokenGroups = <List<Token>>[[]];
 
-    var delimiters = <String>[];
-
-    for (var tokenGroup in tokens) {
-      if (tokenGroup.type != TokenType.Symbol ||
-          !allDelimiters.contains(tokenGroup.toString())) {
-        groups.last.children.add(tokenGroup);
+    for (var token in generatedTokens) {
+      if (token.type != TokenType.Symbol) {
+        // Non-symbols are useless.
+        tokenGroups.last.add(token);
         continue;
       }
 
-      if (openingSymbols.contains(tokenGroup.toString())) {
-        groups.last.children.add(GroupToken([]));
-        groups.add(groups.last.children.last);
-        groups.last.children.add(tokenGroup);
+      var tokenValue = token.toString();
 
-        delimiters.add(tokenGroup.toString());
-      } else if (delimiters.isNotEmpty &&
-          tokenGroup.toString() == reverseSymbols[delimiters.last]) {
-        groups.last.children.add(tokenGroup);
+      var isOpening = delimiters.keys.contains(tokenValue);
+      var isClosing = !isOpening && delimiters.values.contains(tokenValue);
 
-        delimiters.removeLast();
-        groups.removeLast();
-      } else {
-        var lineColumn = _lineAndColumn();
-        throw InvalidSyntaxException(
-            'Mismatched delimiters.', 1, lineColumn[0], lineColumn[1]);
+      if (!isOpening && !isClosing) {
+        // This is just a normal symbol, so add it like any other token.
+        tokenGroups.last.add(token);
+        continue;
+      }
+
+      // Is this an opening delimiter?
+      if (isOpening) {
+        // Yes, so start a new group with it. This group won't close
+        //  until we find a closing delimiter at the same level as the
+        //  opening one.
+        tokenGroups.add([token]);
+        continue;
+      }
+
+      // Is this a closing delimiter?
+      if (isClosing) {
+        // Yes, so make sure it matches the current group's opening
+        //  delimiter. If it does, we can add the closing token and
+        //  close the group.
+
+        // You can't close the global group.
+        if (tokenGroups.length == 1) {
+          throw InvalidSyntaxException(
+              'Cannot close global scope!', 0, token.line, token.column);
+        }
+
+        // The first token of the group is guaranteed to be a delimiter.
+        var openingToken = tokenGroups.last.first;
+        var openingDelimiter = openingToken.toString();
+
+        // Make sure the delimiters match.
+        var expectedDelimiter = delimiters[openingDelimiter];
+
+        if (tokenValue != expectedDelimiter) {
+          throw InvalidSyntaxException(
+              'Expected "$expectedDelimiter" to match "$openingDelimiter" '
+              '(${openingToken.line}, ${openingToken.column}).',
+              0,
+              token.line,
+              token.column);
+        }
+
+        tokenGroups.last.add(token);
+
+        // The group is now closed, so we can turn it into a token and
+        //  add it to its parent group.
+        var closedTokens = tokenGroups.removeLast();
+
+        // The last group is now the parent.
+        tokenGroups.last.add(GroupToken(closedTokens));
       }
     }
 
-    generatedTokens = groups.last.children;
-
-    for (var token in generatedTokens) {
-      if (token is GroupToken && token.children.isNotEmpty) {
-        token.line = token.children[0].line;
-        token.column = token.children[0].column;
-      }
+    // All the closed groups should now be in the global group.
+    // If there is anything else left, something wasn't closed properly.
+    if (tokenGroups.length > 1) {
+      var errorStart = tokenGroups[1].first;
+      throw InvalidSyntaxException(
+          'Unterminated group.', 0, errorStart.line, errorStart.column);
     }
+
+    // Replace the ungrouped tokens with the grouped ones from the global
+    //  group.
+    generatedTokens = tokenGroups[0];
   }
 }

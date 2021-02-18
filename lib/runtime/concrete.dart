@@ -94,12 +94,40 @@ class SideEffect {
   String breakName;
   String continueName;
   Value returnedValue;
+  Value thrownValue;
 
-  // TODO: 'throws' flag (and exception value).
+  SideEffect.nothing();
 
-  bool get interrupts {
-    return breakName != null || continueName != null || returnedValue != null;
+  SideEffect.breaks({String name = ''}) {
+    breakName = name;
   }
+
+  SideEffect.continues({String name = ''}) {
+    continueName = name;
+  }
+
+  SideEffect.throws(this.thrownValue);
+
+  SideEffect.returns(this.returnedValue);
+
+  bool continuesLoopName(String name) {
+    // If the name is empty, we match any loop (the first loop that handles
+    //  the effect). If the name is null, the effect is not present.
+    return continueName != null &&
+        (continueName.isEmpty || continueName == name);
+  }
+
+  bool breaksLoopName(String name) {
+    return breakName != null && (breakName.isEmpty || breakName == name);
+  }
+
+  bool get isLoopInterrupt => breakName != null || continueName != null;
+
+  bool get isInterrupt =>
+      breakName != null ||
+      continueName != null ||
+      returnedValue != null ||
+      thrownValue != null;
 }
 
 /// A single unit of code which affects the program without
@@ -112,7 +140,7 @@ class Statement {
 
   SideEffect execute() {
     _fullExpression.evaluate();
-    return SideEffect();
+    return SideEffect.nothing();
   }
 }
 
