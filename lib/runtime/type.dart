@@ -1,3 +1,5 @@
+import 'package:language/runtime/concrete.dart';
+
 import 'abstract.dart';
 import 'exception.dart';
 
@@ -91,9 +93,9 @@ class ClassType extends ValueType {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ClassType &&
-          runtimeType == other.runtimeType &&
-          name == other.name;
+          other is ClassType &&
+              runtimeType == other.runtimeType &&
+              name == other.name;
 
   @override
   int get hashCode => name.hashCode;
@@ -200,9 +202,9 @@ class PrimitiveType extends ValueType {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is PrimitiveType &&
-          runtimeType == other.runtimeType &&
-          _type == other._type;
+          other is PrimitiveType &&
+              runtimeType == other.runtimeType &&
+              _type == other._type;
 
   @override
   int get hashCode => _type.hashCode;
@@ -214,8 +216,6 @@ class PrimitiveType extends ValueType {
 
   @override
   TypeConversion conversionTo(ValueType to) {
-    // TODO: Explicit casts from string to int and from int to string.
-
     if (this == to || to is AnyType) {
       return TypeConversion.NoConversion;
     }
@@ -290,5 +290,51 @@ class ReferenceType extends ValueType {
   @override
   String toString() {
     return '@($referencedType)';
+  }
+}
+
+class ArrayType extends ValueType {
+  final ValueType _elementType;
+
+  ArrayType(this._elementType);
+
+  @override
+  TypeConversion conversionTo(ValueType to) {
+    if (!(to is ArrayType)) {
+      return TypeConversion.None;
+    }
+
+    var toElement = (to as ArrayType)._elementType;
+    var elementConversion = _elementType.conversionTo(toElement);
+
+    if (elementConversion != TypeConversion.NoConversion) {
+      return TypeConversion.None;
+    }
+
+    return TypeConversion.NoConversion;
+  }
+
+  @override
+  Value convertObjectTo(Value object, ValueType endType) {
+    assertConvertibleTo(endType);
+
+    var array = object as ArrayValue;
+    var arrayType = endType as ArrayType;
+
+    return ArrayValue(
+        endType,
+        array.elements
+            .map((e) => e.mustConvertTo(arrayType._elementType))
+            .toList());
+  }
+
+  @override
+  Value copy() {
+    return ArrayType(_elementType.copy());
+  }
+
+  @override
+  String toString() {
+    return '$_elementType[]';
   }
 }

@@ -1,0 +1,64 @@
+// Put the entire file in the 'core' space. This is like a big
+//  'space' statement, but we don't waste an indentation level.
+in core;
+
+// Everything automatically inherits from Object.
+abstract Object {
+    Object copy() {
+        return self;
+    }
+
+    String describe() {
+        return "[Object value]";
+    }
+}
+
+abstract IndexedCollection {
+    int length();
+
+    any at(int index);
+    proc set(int index, any value);
+
+    any operator[] (int index) {
+        return get(index);
+    }
+}
+
+class String of IndexedCollection {
+    // Read-only outside the class, so users can only
+    //  modify this through the interface we provide.
+    readonly char[] characters = {};
+
+    // Normal initialisation should be by literal.
+    private make () {}
+
+    // String.from({ ... })
+    make from(@(const char[]) chars) {
+        characters = chars.copy();
+    }
+    
+    int length() override {
+        return characters.length();
+    }
+
+    char at(int index) override {
+        return characters[index];
+    }
+
+    // We have to use 'as' to change the types of parameters
+    //  of overriden functions so it is obvious that we have
+    //  done so.
+    proc set(int index, as char value) override {
+        characters[index] = value;
+    }
+
+    String substring(int start, int count = length()) {
+        let chars = char[](count);
+
+        for let i = 0; i < count; ++i {
+            chars[i] = self[start + i];
+        }
+
+        return from(-> chars);
+    }
+}

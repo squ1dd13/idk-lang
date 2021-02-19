@@ -1,13 +1,13 @@
 proc testForLoops() {
     print(" => Three-part for loop");
-    for let i = 0; i < 10; ++i {
+    for let i = 0; i < 10; i++ {
         print(i);
     }
 
     print(" => Two-part for loop");
     for let i = 0; i < 10 {
         print(i);
-        ++i;
+        i++;
     }
 
     print(" => One-part for loop");
@@ -17,7 +17,7 @@ proc testForLoops() {
         }
 
         print(i);
-        ++i;
+        i++;
     }
 
     print(" => Zero-part for loop");
@@ -29,13 +29,13 @@ proc testForLoops() {
         }
 
         print(i);
-        ++i;
+        i++;
     }
 
     print(" => Nested for loop break");
 
-    for let x = 0; x < 10; ++x {
-        for let y = 0; y < 10; ++y {
+    for let x = 0; x < 10; x++ {
+        for let y = 0; y < 10; y++ {
             print(x);
             print(y);
             print("");
@@ -107,9 +107,14 @@ proc testReturnValues() {
 }
 
 proc testIndexedAccess() {
-    let someString = "Hello, world!";
+    string[] someStrings = {
+        "this",
+        "is",
+        "a",
+        "collection"
+    };
 
-    print(someString[0]);
+    print(someStrings[0]);
 }
 
 testReferenceChanges();

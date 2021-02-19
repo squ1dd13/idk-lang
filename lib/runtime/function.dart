@@ -169,4 +169,7 @@ class FunctionValue extends Value {
   bool lessThan(Evaluable other) {
     return hashCode < other.hashCode;
   }
+
+  @override
+  ValueType get type => throw UnimplementedError();
 }

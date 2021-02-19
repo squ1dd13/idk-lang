@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'parser/operation.dart' as operation;
-import 'parser/util.dart';
+import 'components/operation.dart';
+import 'components/util.dart';
 
 enum TokenType { Name, Symbol, Number, String, Group, None }
 
@@ -19,13 +19,17 @@ abstract class Token {
   }
 
   bool get isOperator {
-    return type == TokenType.Symbol &&
-        operation.operators.containsKey(toString());
+    return ShuntingYard.isAnOperator(this);
   }
 
   bool get isNotOperator {
-    return type != TokenType.Symbol ||
-        !operation.operators.containsKey(toString());
+    return !ShuntingYard.isAnOperator(this);
+  }
+
+  /// Throws a syntax with the given [message] for the given [stage]. This
+  /// stops the caller having to get the token's line and column.
+  void throwSyntax(String message, int stage) {
+    throw InvalidSyntaxException(message, stage, line, column);
   }
 }
 
@@ -45,7 +49,9 @@ class TextToken extends Token {
 class GroupToken extends Token {
   final List<Token> children;
 
-  GroupToken(this.children);
+  GroupToken(this.children) {
+    type = TokenType.Group;
+  }
 
   @override
   List<Token> allTokens() {
@@ -152,7 +158,7 @@ class Lexer {
       var token = generatedTokens[i];
 
       if (token.type == TokenType.Name &&
-          operation.operators.containsKey(token.toString())) {
+          ShuntingYard.yardOperators.containsKey(token.toString())) {
         generatedTokens[i] = TextToken(TokenType.Symbol, token.toString());
       }
     }
@@ -190,7 +196,7 @@ class Lexer {
 
   static Set<String> get _operatorChars {
     if (_opChars.isEmpty) {
-      for (var operator in operation.operators.keys) {
+      for (var operator in ShuntingYard.yardOperators.keys) {
         _opChars.addAll(
             operator.codeUnits.map((code) => String.fromCharCode(code)));
       }
@@ -206,7 +212,7 @@ class Lexer {
     //  updated to add an operator.
     if (_operatorStarters == null) {
       _operatorStarters = <String>{};
-      for (var key in operation.operators.keys) {
+      for (var key in ShuntingYard.yardOperators.keys) {
         _operatorStarters.add(key.substring(0, 1));
       }
     }
@@ -216,11 +222,11 @@ class Lexer {
     var operatorString = '';
 
     // Keep reading until the next character invalidates the operator.
-    while (true) {
+    while (_hasNext()) {
       var extendedOperator = operatorString + _getCharacter();
 
-      var foundAny =
-          operation.operators.keys.any((k) => k.startsWith(extendedOperator));
+      var foundAny = ShuntingYard.yardOperators.keys
+          .any((k) => k.startsWith(extendedOperator));
 
       if (!foundAny) {
         const identifierChars = '_abcdefghijklmnopqrstuvwxyz0123456789';
@@ -252,7 +258,7 @@ class Lexer {
     --_position;
 
     if (operatorString.isEmpty ||
-        !operation.operators.containsKey(operatorString)) {
+        !ShuntingYard.yardOperators.containsKey(operatorString)) {
       return false;
     }
 
@@ -276,7 +282,7 @@ class Lexer {
 
     var operatorString = buffer.toString();
 
-    if (!operation.operators.containsKey(operatorString)) {
+    if (!ShuntingYard.yardOperators.containsKey(operatorString)) {
       // Split into multiple tokens.
       for (var i = 0; i < operatorString.length; ++i) {
         var character = String.fromCharCode(operatorString.codeUnitAt(i));

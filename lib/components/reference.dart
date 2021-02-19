@@ -1,11 +1,11 @@
 import '../lexer.dart';
+import '../parser.dart';
 import '../runtime/abstract.dart';
 import '../runtime/concrete.dart';
 import '../runtime/exception.dart';
 import '../runtime/expression.dart';
 import '../runtime/store.dart';
 import '../runtime/type.dart';
-import 'parser.dart';
 import 'typename.dart';
 import 'util.dart';
 

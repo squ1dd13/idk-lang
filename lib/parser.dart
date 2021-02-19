@@ -4,16 +4,17 @@ import 'package:language/runtime/exception.dart';
 import 'package:language/runtime/expression.dart';
 import 'package:language/runtime/store.dart';
 
-import 'assignment.dart';
-import 'call.dart';
-import 'conditional.dart';
-import 'declaration.dart';
-import 'flow.dart';
-import 'function.dart';
-import 'iteration.dart';
-import 'operation.dart';
-import 'reference.dart';
-import 'util.dart';
+import 'components/assignment.dart';
+import 'components/call.dart';
+import 'components/collection.dart';
+import 'components/conditional.dart';
+import 'components/declaration.dart';
+import 'components/flow.dart';
+import 'components/function.dart';
+import 'components/iteration.dart';
+import 'components/operation.dart';
+import 'components/reference.dart';
+import 'components/util.dart';
 
 class Parse {
   static final _statementPasses = <Statement Function(TokenStream)>[
@@ -35,6 +36,7 @@ class Parse {
 
   static final _expressionPasses = <Expression Function(TokenStream)>[
     (stream) => FunctionCall(stream).createExpression(),
+    (stream) => CollectionLiteral(stream).createExpression(),
     (stream) => OperatorExpression(stream),
     (stream) => InlineDirection(stream).createExpression(),
   ];

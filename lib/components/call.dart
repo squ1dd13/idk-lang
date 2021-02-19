@@ -1,10 +1,10 @@
 import '../lexer.dart';
+import '../parser.dart';
 import '../runtime/abstract.dart';
 import '../runtime/concrete.dart';
 import '../runtime/expression.dart';
 import '../runtime/function.dart';
 import '../runtime/store.dart';
-import 'parser.dart';
 import 'util.dart';
 
 /// THIS IS NOT PERMANENT! Function call syntax will eventually be

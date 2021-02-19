@@ -2,7 +2,7 @@ import 'package:language/lexer.dart';
 import 'package:language/runtime/concrete.dart';
 import 'package:language/runtime/expression.dart';
 
-import 'parser.dart';
+import '../parser.dart';
 import 'util.dart';
 
 class FlowStatement implements Statable {

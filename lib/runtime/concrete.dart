@@ -190,6 +190,11 @@ class Variable extends Value {
 
   @override
   bool lessThan(Evaluable other) => _value.lessThan(other);
+
+  @override
+  Value at(Value key) {
+    return _value.at(key);
+  }
 }
 
 /// Essentially a pointer, but with added safety and with custom
@@ -247,4 +252,110 @@ class Reference extends Value implements Variable {
 
   @override
   bool lessThan(Evaluable other) => _value.lessThan(other);
+
+  @override
+  Value at(Value key) {
+    return _value.at(key);
+  }
+}
+
+/// 'any' but for elements from collection literals. We need
+/// this class because we don't know the collection type
+/// immediately, so we need a type we can convert to the real
+/// element type as soon as we find it out.
+class ElementType extends AnyType {
+  @override
+  TypeConversion conversionTo(ValueType to) {
+    if (to is ReferenceType) {
+      return TypeConversion.None;
+    }
+
+    return TypeConversion.NoConversion;
+  }
+
+  @override
+  Value copy() {
+    return ElementType();
+  }
+
+  @override
+  String toString() {
+    return 'element';
+  }
+}
+
+class ArrayValue extends Value {
+  final List<Value> elements;
+
+  ArrayValue(ArrayType arrayType, this.elements) {
+    type = arrayType;
+  }
+
+  @override
+  Value copy() {
+    // Copy element-by-element.
+    var copiedElements = elements.map((e) => e.copy()).toList(growable: false);
+
+    return ArrayValue(type.copy() as ArrayType, copiedElements);
+  }
+
+  @override
+  bool equals(Evaluable other) {
+    var otherValue = other.get();
+
+    if (otherValue.type.conversionTo(type) != TypeConversion.NoConversion) {
+      return false;
+    }
+
+    var otherArray = otherValue as ArrayValue;
+    if (elements.length != otherArray.elements.length) {
+      return false;
+    }
+
+    for (var i = 0; i < elements.length; ++i) {
+      if (elements[i].notEquals(otherArray.elements[i])) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  @override
+  bool notEquals(Evaluable other) {
+    var otherValue = other.get();
+
+    if (otherValue.type.conversionTo(type) != TypeConversion.NoConversion) {
+      return true;
+    }
+
+    var otherArray = otherValue as ArrayValue;
+    if (elements.length != otherArray.elements.length) {
+      return true;
+    }
+
+    for (var i = 0; i < elements.length; ++i) {
+      if (elements[i].notEquals(otherArray.elements[i])) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  // Not sure what to do with these yet.
+  @override
+  bool greaterThan(Evaluable other) {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool lessThan(Evaluable other) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Value at(Value key) {
+    return elements[(key as IntegerValue).rawValue];
+  }
 }

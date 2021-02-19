@@ -4,7 +4,7 @@ import 'package:language/runtime/expression.dart';
 import 'package:language/runtime/store.dart';
 import 'package:language/runtime/type.dart';
 
-import 'parser.dart';
+import '../parser.dart';
 import 'util.dart';
 
 class Loop implements Statable {

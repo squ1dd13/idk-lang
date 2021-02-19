@@ -1,6 +1,6 @@
+import 'package:language/components/util.dart';
 import 'package:language/lexer.dart';
-import 'package:language/parser/parser.dart';
-import 'package:language/parser/util.dart';
+import 'package:language/parser.dart';
 import 'package:language/runtime/concrete.dart';
 import 'package:language/runtime/expression.dart';
 import 'package:language/runtime/store.dart';
@@ -35,7 +35,7 @@ class ConditionalClause implements Statable {
     } else {
       throw tokens.createException(
           'Expected "if", "else if" or "else" in conditional, '
-          'got "$clauseKeyword" instead.',
+              'got "$clauseKeyword" instead.',
           2);
     }
 
@@ -74,7 +74,7 @@ class ConditionalClause implements Statable {
         if (_condition != null) {
           // TODO: Introduce Boolean type.
           var convertedToInt =
-              _condition.evaluate().get().mustConvertTo(PrimitiveType.integer);
+          _condition.evaluate().get().mustConvertTo(PrimitiveType.integer);
 
           conditionValue = (convertedToInt as IntegerValue).value != 0;
         }

@@ -1,5 +1,5 @@
-import 'package:language/parser/parser.dart';
-import 'package:language/parser/util.dart';
+import 'package:language/components/util.dart';
+import 'package:language/parser.dart';
 import 'package:language/runtime/concrete.dart';
 import 'package:language/runtime/expression.dart';
 
