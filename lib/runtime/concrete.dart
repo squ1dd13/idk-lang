@@ -195,6 +195,11 @@ class Variable extends Value {
   Value at(Value key) {
     return _value.at(key);
   }
+
+  @override
+  String toString() {
+    return _value.toString();
+  }
 }
 
 /// Essentially a pointer, but with added safety and with custom
@@ -285,10 +290,14 @@ class ElementType extends AnyType {
 }
 
 class ArrayValue extends Value {
-  final List<Value> elements;
+  var elements = <Variable>[];
 
-  ArrayValue(ArrayType arrayType, this.elements) {
+  ArrayValue(ArrayType arrayType, List<Value> values) {
     type = arrayType;
+
+    for (var value in values) {
+      elements.add(Variable(arrayType.elementType, value));
+    }
   }
 
   @override

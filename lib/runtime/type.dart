@@ -93,9 +93,9 @@ class ClassType extends ValueType {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is ClassType &&
-              runtimeType == other.runtimeType &&
-              name == other.name;
+      other is ClassType &&
+          runtimeType == other.runtimeType &&
+          name == other.name;
 
   @override
   int get hashCode => name.hashCode;
@@ -202,9 +202,9 @@ class PrimitiveType extends ValueType {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is PrimitiveType &&
-              runtimeType == other.runtimeType &&
-              _type == other._type;
+      other is PrimitiveType &&
+          runtimeType == other.runtimeType &&
+          _type == other._type;
 
   @override
   int get hashCode => _type.hashCode;
@@ -227,6 +227,20 @@ class PrimitiveType extends ValueType {
   Value convertObjectTo(Value object, ValueType endType) {
     assertConvertibleTo(endType);
     return object;
+  }
+
+  @override
+  Value convertObjectFrom(Value object, ValueType startType) {
+    if (this == startType) {
+      return object;
+    }
+
+    if (_type == Primitive.Int) {
+      throw RuntimeError("Can't use cOF for integers.");
+    }
+
+    // Everything has toString().
+    return StringValue(object.toString());
   }
 
   @override
@@ -294,9 +308,9 @@ class ReferenceType extends ValueType {
 }
 
 class ArrayType extends ValueType {
-  final ValueType _elementType;
+  final ValueType elementType;
 
-  ArrayType(this._elementType);
+  ArrayType(this.elementType);
 
   @override
   TypeConversion conversionTo(ValueType to) {
@@ -304,8 +318,8 @@ class ArrayType extends ValueType {
       return TypeConversion.None;
     }
 
-    var toElement = (to as ArrayType)._elementType;
-    var elementConversion = _elementType.conversionTo(toElement);
+    var toElement = (to as ArrayType).elementType;
+    var elementConversion = elementType.conversionTo(toElement);
 
     if (elementConversion != TypeConversion.NoConversion) {
       return TypeConversion.None;
@@ -321,20 +335,19 @@ class ArrayType extends ValueType {
     var array = object as ArrayValue;
     var arrayType = endType as ArrayType;
 
-    return ArrayValue(
-        endType,
-        array.elements
-            .map((e) => e.mustConvertTo(arrayType._elementType))
-            .toList());
+    var mapped =
+        array.elements.map((e) => e.get().mustConvertTo(arrayType.elementType));
+
+    return ArrayValue(endType, mapped.toList());
   }
 
   @override
   Value copy() {
-    return ArrayType(_elementType.copy());
+    return ArrayType(elementType.copy());
   }
 
   @override
   String toString() {
-    return '$_elementType[]';
+    return '$elementType[]';
   }
 }

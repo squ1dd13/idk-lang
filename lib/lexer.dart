@@ -19,11 +19,11 @@ abstract class Token {
   }
 
   bool get isOperator {
-    return ShuntingYard.isAnOperator(this);
+    return ShuntingYard.isOperator(this);
   }
 
   bool get isNotOperator {
-    return !ShuntingYard.isAnOperator(this);
+    return !isOperator;
   }
 
   /// Throws a syntax with the given [message] for the given [stage]. This
@@ -158,7 +158,7 @@ class Lexer {
       var token = generatedTokens[i];
 
       if (token.type == TokenType.Name &&
-          ShuntingYard.yardOperators.containsKey(token.toString())) {
+          ShuntingYard.operators.containsKey(token.toString())) {
         generatedTokens[i] = TextToken(TokenType.Symbol, token.toString());
       }
     }
@@ -196,7 +196,7 @@ class Lexer {
 
   static Set<String> get _operatorChars {
     if (_opChars.isEmpty) {
-      for (var operator in ShuntingYard.yardOperators.keys) {
+      for (var operator in ShuntingYard.operators.keys) {
         _opChars.addAll(
             operator.codeUnits.map((code) => String.fromCharCode(code)));
       }
@@ -212,7 +212,7 @@ class Lexer {
     //  updated to add an operator.
     if (_operatorStarters == null) {
       _operatorStarters = <String>{};
-      for (var key in ShuntingYard.yardOperators.keys) {
+      for (var key in ShuntingYard.operators.keys) {
         _operatorStarters.add(key.substring(0, 1));
       }
     }
@@ -225,7 +225,7 @@ class Lexer {
     while (_hasNext()) {
       var extendedOperator = operatorString + _getCharacter();
 
-      var foundAny = ShuntingYard.yardOperators.keys
+      var foundAny = ShuntingYard.operators.keys
           .any((k) => k.startsWith(extendedOperator));
 
       if (!foundAny) {
@@ -258,7 +258,7 @@ class Lexer {
     --_position;
 
     if (operatorString.isEmpty ||
-        !ShuntingYard.yardOperators.containsKey(operatorString)) {
+        !ShuntingYard.operators.containsKey(operatorString)) {
       return false;
     }
 
@@ -282,7 +282,7 @@ class Lexer {
 
     var operatorString = buffer.toString();
 
-    if (!ShuntingYard.yardOperators.containsKey(operatorString)) {
+    if (!ShuntingYard.operators.containsKey(operatorString)) {
       // Split into multiple tokens.
       for (var i = 0; i < operatorString.length; ++i) {
         var character = String.fromCharCode(operatorString.codeUnitAt(i));

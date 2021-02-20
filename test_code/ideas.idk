@@ -1,0 +1,38 @@
+/****** Enums with arbitrary value types ******/
+
+// With a 'Pair' or 'Tuple' type (likely in 'core'),
+//  this could be used to have more than one value per name.
+enum SomeEnum of String {
+    coolThingOne = "yeah",
+    coolThingTwo = "another yeah",
+    coolThingThree = "and so on"
+}
+
+/****** 'flags' for automatic flag enum values ******/
+// 'of' would be illegal here, since flags should always
+//  be 'int'.
+flags SomeFlags {
+    flagOne,
+    flagTwo,
+    flagThree
+}
+
+// This would be equivalent to the following:
+enum SomeFlags {
+    flagOne = 1 << 0,
+    flagTwo = 1 << 1,
+    flagThree = 1 << 2
+}
+
+/****** Scoped parameters ******/
+proc doSomething(SomeEnum thing in SomeEnum) {
+    // Use 'thing' for stuff.
+}
+
+// The expression passed as 'thing' is evaluated in the scope
+//  of SomeEnum, so we don't have to type SomeEnum.coolThingOne.
+// This should work for any static scope.
+doSomething(coolThingOne);
+
+// We can also do this, if we want to type the full thing:
+doSomething(SomeEnum.coolThingOne);

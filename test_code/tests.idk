@@ -115,6 +115,15 @@ proc testIndexedAccess() {
     };
 
     print(someStrings[0]);
+    if someStrings[0] != "this" {
+        fatal("Index 0 returned incorrect value!");
+    }
+
+    someStrings[1] = "might be";
+
+    print(someStrings[1]);
+
+    
 }
 
 testReferenceChanges();
