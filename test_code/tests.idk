@@ -114,19 +114,56 @@ proc testIndexedAccess() {
         "collection"
     };
 
-    print(someStrings[0]);
     if someStrings[0] != "this" {
-        fatal("Index 0 returned incorrect value!");
+        fatal("Failed index access test!");
     }
 
     someStrings[1] = "might be";
 
-    print(someStrings[1]);
+    if someStrings[1] != "might be" {
+        fatal("Failed index assignment test!");
+    }
 
-    
+    print("All index tests passed.");
+}
+
+proc testOperators() {
+    if (1 + 2) != 3 {
+        fatal("Failed basic test.");
+    }
+
+    if (1 + -2 + 3 + -4 + 5 + -6) != -3 {
+        fatal("Failed addition operator test.");
+    }
+
+    if (1 - -2 - 3 - -4 - 5 - -6) != 5 {
+        fatal("Failed subtraction operator test.");
+    }
+
+    if (1 * 2 * -3 * 4 * -5) != 120 {
+        fatal("Failed multiplication operator test.");
+    }
+
+    if (-5 % 2) != 1 {
+        fatal("Failed modulus operator test.");
+    }
+
+    int returnNumber() {
+        return 10;
+    }
+
+    int giveMeNumber() {
+        return 2;
+    }
+
+    int result = returnNumber() * giveMeNumber();
+    print(result);
+
+    print("All operator tests passed.");
 }
 
 testReferenceChanges();
 testForLoops();
 testReturnValues();
 testIndexedAccess();
+testOperators();

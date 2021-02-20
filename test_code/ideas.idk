@@ -36,3 +36,45 @@ doSomething(coolThingOne);
 
 // We can also do this, if we want to type the full thing:
 doSomething(SomeEnum.coolThingOne);
+
+/****** 'finally' keyword equivalent to Go's 'defer' ******/
+// I think 'finally' is clearer than 'defer', even though both are
+//  completely valid. Also, 'finally' reads well for short statements.
+
+proc someProcedure() {
+    // Single statement.
+    finally print("Something");
+
+    // Block. This and the short form above could be
+    //  handled in the same way if '{}' groups are parsed
+    //  as statements (which they should be).
+    finally {
+        int number = calculateSomething();
+
+        if number == 10 {
+            print("Number is 10!");
+        } else {
+            print("Number is not 10!");
+        }
+    }
+}
+
+
+/****** 'check..when' for switches ******/
+String doCheck(int number) {
+    check number {
+        when 1 {
+            return "Your number is 1";
+        }
+
+        when 2, 3, 4 {
+            return "Your number is 2, 3 or 4.";
+        }
+
+        other {
+            return "Your number is not 1, 2, 3 or 4.";
+        }
+    }
+
+    return "How did we get here?";
+}

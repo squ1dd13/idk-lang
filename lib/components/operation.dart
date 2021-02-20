@@ -32,6 +32,10 @@ class OperatorExpression implements Expression {
       lastWasOperand = notOperator;
     }
 
+    if (found.length == 1 && found[0].type == TokenType.Symbol) {
+      found.first.throwSyntax('Invalid expression! Found only one symbol.', 1);
+    }
+
     _tokens = ShuntingYard.toPostfix(found);
   }
 
@@ -351,9 +355,64 @@ class ShuntingYard {
     return null;
   }
 
+  // static List<Token> _findHiddenUnaries(List<Token> input) {
+  //   var output = <Token>[];
+  //
+  //   _Operator previousOperator;
+  //   var isFirstToken = true;
+  //
+  //   for (var i = 0; i < input.length; ++i) {
+  //     var token = input[i];
+  //
+  //     var isFirst = isFirstToken;
+  //     isFirstToken = false;
+  //
+  //     // If the token is not an operator or if it has been detected as unary,
+  //     //  we don't need to do anything. We care about seemingly non-unary
+  //     //  operators.
+  //     if (token.isNotOperator || _getOperator(token).operandCount == 1) {
+  //       output.add(token);
+  //       continue;
+  //     }
+  //
+  //     var potentialUnary = _getOperator(
+  //         TextToken(TokenType.Symbol, token.toString() + 'u'));
+  //
+  //     if (potentialUnary == null) {
+  //       output.add(token);
+  //       continue;
+  //     }
+  //
+  //     if (previousOperator == null) {
+  //       // This is not unary, because a
+  //     }
+  //   }
+  // }
+
   static List<Token> toPostfix(List<Token> input) {
     var output = <Token>[];
     var stack = <Token>[];
+
+    const minusPattern = TokenPattern(string: '-', type: TokenType.Symbol);
+    for (var i = 0; i < input.length; ++i) {
+      if (minusPattern.hasMatch(input[i])) {
+        var isUnary = false;
+
+        if (i == 0) {
+          isUnary = true;
+        } else {
+          var previousOperator = _getOperator(input[i - 1]);
+
+          if (previousOperator != null && previousOperator.fixity == _Fix.In) {
+            isUnary = true;
+          }
+        }
+
+        if (isUnary) {
+          input[i] = TextToken(TokenType.Symbol, '-u');
+        }
+      }
+    }
 
     for (var token in input) {
       var operator = _getOperator(token);
