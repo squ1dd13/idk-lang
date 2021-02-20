@@ -148,16 +148,34 @@ proc testOperators() {
         fatal("Failed modulus operator test.");
     }
 
-    int returnNumber() {
-        return 10;
+    int returnNumber(int a, int b) {
+        return a * b;
     }
 
-    int giveMeNumber() {
-        return 2;
+    int giveMeNumber(int a, int b) {
+        return a + b;
     }
 
-    int result = returnNumber() * giveMeNumber();
-    print(result);
+    int result = (2 + (returnNumber((((2 + 4) / 1) / (2 + 4)) * 2, 3) * giveMeNumber(1, 1)) + giveMeNumber(1, 3)) / 3;
+    if result != 6 {
+        fatal("Failed complex function-based expression.");
+    }
+
+    let t = @any;
+
+    @any one -> returnNumber;
+    @any two -> giveMeNumber;
+
+    t[] functions = {
+        one, two
+    };
+
+    int result2 = (2 + (functions[0]((((2 + 4) / 1) / (2 + 4)) * 2, 3) * functions[1](1, 1)) + functions[1](1, 3)) / 3;
+    if result2 != 6 {
+        fatal("Failed complex function/array-based expression.");
+    }
+
+    print(result2);
 
     print("All operator tests passed.");
 }

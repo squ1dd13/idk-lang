@@ -2,7 +2,6 @@ import 'package:language/components/util.dart';
 import 'package:language/lexer.dart';
 import 'package:language/runtime/concrete.dart';
 import 'package:language/runtime/expression.dart';
-import 'package:language/runtime/type.dart';
 
 import '../parser.dart';
 
@@ -35,8 +34,13 @@ class CollectionLiteral implements Expressible {
   @override
   Expression createExpression() {
     return InlineExpression(() {
-      return ArrayValue(ArrayType(ElementType()),
-          _elementExpressions.map((e) => e.evaluate().get()).toList());
+      var list = InitializerList();
+
+      for (var expression in _elementExpressions) {
+        list.contents.add(expression.evaluate());
+      }
+
+      return list;
     });
   }
 }

@@ -43,7 +43,7 @@ class Assignment implements Statable {
         throw Exception('Cannot assign to non-variables.');
       }
 
-      var newValue = _source.evaluate().get().copy();
+      var newValue = _source.evaluate().get().copyValue();
 
       (target as Variable).set(newValue);
 

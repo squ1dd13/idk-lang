@@ -1,3 +1,5 @@
+import 'package:language/runtime/function.dart';
+
 import 'abstract.dart';
 import 'exception.dart';
 import 'expression.dart';
@@ -40,7 +42,7 @@ class IntegerValue extends PrimitiveValue {
   Value get() => this;
 
   @override
-  Value copy() {
+  Value copyValue() {
     return IntegerValue.raw(value);
   }
 
@@ -50,9 +52,9 @@ class IntegerValue extends PrimitiveValue {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is IntegerValue &&
-          runtimeType == other.runtimeType &&
-          value == other.value;
+          other is IntegerValue &&
+              runtimeType == other.runtimeType &&
+              value == other.value;
 
   @override
   int get hashCode => value.hashCode;
@@ -72,7 +74,7 @@ class StringValue extends PrimitiveValue {
   Value get() => this;
 
   @override
-  Value copy() {
+  Value copyValue() {
     return StringValue(value);
   }
 
@@ -82,9 +84,9 @@ class StringValue extends PrimitiveValue {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is StringValue &&
-          runtimeType == other.runtimeType &&
-          value == other.value;
+          other is StringValue &&
+              runtimeType == other.runtimeType &&
+              value == other.value;
 
   @override
   int get hashCode => value.hashCode;
@@ -125,9 +127,9 @@ class SideEffect {
 
   bool get isInterrupt =>
       breakName != null ||
-      continueName != null ||
-      returnedValue != null ||
-      thrownValue != null;
+          continueName != null ||
+          returnedValue != null ||
+          thrownValue != null;
 }
 
 /// A single unit of code which affects the program without
@@ -159,6 +161,10 @@ class Variable extends Value {
   Value _value;
 
   Variable(ValueType theType, Value theValue) {
+    if (theType is FunctionType) {
+      throw RuntimeError('Variables may not be of function type!');
+    }
+
     if (theType is ReferenceType) {
       throw RuntimeError('Variables may not be of reference type!');
     }
@@ -178,8 +184,8 @@ class Variable extends Value {
   }
 
   @override
-  Value copy() {
-    return Variable(type.copy(), _value.copy());
+  Value copyValue() {
+    return Variable(type.copyValue(), _value.copyValue());
   }
 
   @override
@@ -244,7 +250,7 @@ class Reference extends Value implements Variable {
   }
 
   @override
-  Value copy() {
+  Value copyValue() {
     // Note that we don't copy _value.
     return Reference(_value);
   }
@@ -264,28 +270,59 @@ class Reference extends Value implements Variable {
   }
 }
 
-/// 'any' but for elements from collection literals. We need
-/// this class because we don't know the collection type
-/// immediately, so we need a type we can convert to the real
-/// element type as soon as we find it out.
-class ElementType extends AnyType {
+class InitializerListType extends ValueType {
   @override
   TypeConversion conversionTo(ValueType to) {
-    if (to is ReferenceType) {
-      return TypeConversion.None;
+    return TypeConversion.None;
+  }
+
+  @override
+  Value convertObjectTo(Value object, ValueType endType) {
+    return (object as InitializerList)
+        .convertToArray((endType as ArrayType).elementType);
+  }
+
+  @override
+  Value copyValue() {
+    return this;
+  }
+}
+
+class InitializerList extends Value {
+  final contents = <Value>[];
+
+  @override
+  Value copyValue() {
+    throw RuntimeError('Cannot copy initialiser lists.');
+  }
+
+  @override
+  bool equals(Evaluable other) {
+    throw RuntimeError('Cannot compare initialiser lists.');
+  }
+
+  @override
+  bool greaterThan(Evaluable other) {
+    throw RuntimeError('Cannot compare initialiser lists.');
+  }
+
+  @override
+  bool lessThan(Evaluable other) {
+    throw RuntimeError('Cannot compare initialiser lists.');
+  }
+
+  Value convertToArray(ValueType elementType) {
+    var values = contents.map((e) => e.mustConvertTo(elementType)).toList();
+    return ArrayValue(ArrayType(elementType), values);
+  }
+
+  @override
+  Value mustConvertTo(ValueType endType) {
+    if (!(endType is ArrayType)) {
+      throw RuntimeError('Initialiser lists may only be converted to arrays.');
     }
 
-    return TypeConversion.NoConversion;
-  }
-
-  @override
-  Value copy() {
-    return ElementType();
-  }
-
-  @override
-  String toString() {
-    return 'element';
+    return convertToArray((endType as ArrayType).elementType);
   }
 }
 
@@ -296,16 +333,22 @@ class ArrayValue extends Value {
     type = arrayType;
 
     for (var value in values) {
+      if (value.type is ReferenceType) {
+        elements.add(value);
+        continue;
+      }
+
       elements.add(Variable(arrayType.elementType, value));
     }
   }
 
   @override
-  Value copy() {
+  Value copyValue() {
     // Copy element-by-element.
-    var copiedElements = elements.map((e) => e.copy()).toList(growable: false);
+    var copiedElements =
+        elements.map((e) => e.copyValue()).toList(growable: false);
 
-    return ArrayValue(type.copy() as ArrayType, copiedElements);
+    return ArrayValue(type.copyValue() as ArrayType, copiedElements);
   }
 
   @override

@@ -65,7 +65,7 @@ class TypeOfType extends ValueType {
 
   @override
   TypeConversion conversionTo(ValueType to) {
-    if (to == this || to is AnyType) {
+    if (to is TypeOfType || to is AnyType) {
       return TypeConversion.NoConversion;
     }
 
@@ -79,7 +79,7 @@ class TypeOfType extends ValueType {
   }
 
   @override
-  Value copy() {
+  Value copyValue() {
     return this;
   }
 }
@@ -101,7 +101,7 @@ class ClassType extends ValueType {
   int get hashCode => name.hashCode;
 
   @override
-  Value copy() {
+  Value copyValue() {
     return ClassType(name);
   }
 
@@ -127,7 +127,7 @@ class ClassType extends ValueType {
 
 class AnyType extends ValueType {
   @override
-  Value copy() {
+  Value copyValue() {
     return AnyType();
   }
 
@@ -157,7 +157,7 @@ class AnyType extends ValueType {
 
 class NoType extends ValueType {
   @override
-  Value copy() {
+  Value copyValue() {
     return NoType();
   }
 
@@ -210,7 +210,7 @@ class PrimitiveType extends ValueType {
   int get hashCode => _type.hashCode;
 
   @override
-  Value copy() {
+  Value copyValue() {
     return PrimitiveType(_type);
   }
 
@@ -255,8 +255,8 @@ class ReferenceType extends ValueType {
   ReferenceType.forReferenceTo(this.referencedType);
 
   @override
-  Value copy() {
-    return ReferenceType.forReferenceTo(referencedType.copy());
+  Value copyValue() {
+    return ReferenceType.forReferenceTo(referencedType.copyValue());
   }
 
   @override
@@ -302,8 +302,48 @@ class ReferenceType extends ValueType {
   }
 
   @override
+  Value convertObjectFrom(Value object, ValueType startType) {
+    if (object.type is ReferenceType) {
+      var reference = object.type as ReferenceType;
+      if (reference.referencedType.conversionTo(referencedType) ==
+          TypeConversion.NoConversion) {
+        return object;
+      }
+
+      throw RuntimeError('no');
+      return null;
+    }
+  }
+
+  @override
   String toString() {
     return '@($referencedType)';
+  }
+}
+
+/// 'any' but for elements from collection literals. We need
+/// this class because we don't know the collection type
+/// immediately, so we need a type we can convert to the real
+/// element type as soon as we find it out.
+class ElementType extends AnyType {
+  @override
+  TypeConversion conversionTo(ValueType to) {
+    return TypeConversion.NoConversion;
+  }
+
+  @override
+  Value copyValue() {
+    return ElementType();
+  }
+
+  @override
+  String toString() {
+    return 'element';
+  }
+
+  @override
+  bool equals(Evaluable other) {
+    return other is ElementType;
   }
 }
 
@@ -342,12 +382,22 @@ class ArrayType extends ValueType {
   }
 
   @override
-  Value copy() {
-    return ArrayType(elementType.copy());
+  Value copyValue() {
+    return ArrayType(elementType.copyValue());
   }
 
   @override
   String toString() {
     return '$elementType[]';
+  }
+
+  @override
+  bool equals(Evaluable other) {
+    if (!(other.get() is ArrayType)) {
+      return false;
+    }
+
+    var array = other.get() as ArrayType;
+    return elementType.equals(array.elementType);
   }
 }

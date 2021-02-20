@@ -5,7 +5,6 @@ import 'package:language/runtime/expression.dart';
 import 'package:language/runtime/store.dart';
 
 import 'components/assignment.dart';
-import 'components/call.dart';
 import 'components/collection.dart';
 import 'components/conditional.dart';
 import 'components/declaration.dart';
@@ -24,20 +23,21 @@ class Parse {
     (stream) => Direction(stream).createStatement(),
     (stream) => Direction.redirection(stream).createStatement(),
     (stream) => FunctionDeclaration(stream).createStatement(),
-    (stream) => FunctionCall.statement(stream).createStatement(),
-    (stream) => Assignment(stream).createStatement(),
     (stream) => FlowStatement(stream).createStatement(),
+
     (stream) {
       var statement = Statement(OperatorExpression(stream));
       stream.consumeSemicolon(3);
       return statement;
     },
+    // (stream) => FunctionCall.statement(stream).createStatement(),
+    (stream) => Assignment(stream).createStatement(),
   ];
 
   static final _expressionPasses = <Expression Function(TokenStream)>[
-    (stream) => FunctionCall(stream).createExpression(),
     (stream) => CollectionLiteral(stream).createExpression(),
     (stream) => OperatorExpression(stream),
+    // (stream) => FunctionCall(stream).createExpression(),
     (stream) => InlineDirection(stream).createExpression(),
   ];
 

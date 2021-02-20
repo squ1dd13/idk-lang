@@ -16,9 +16,9 @@ class FunctionType extends ValueType {
   FunctionType.build(this.returnType, this.parameterTypes);
 
   @override
-  Value copy() {
+  Value copyValue() {
     return FunctionType.build(
-        returnType.copy(), parameterTypes.map((type) => type.copy()));
+        returnType.copyValue(), parameterTypes.map((type) => type.copyValue()));
   }
 
   @override
@@ -104,7 +104,7 @@ class FunctionValue extends Value {
     // Open a new scope for the function body to run inside.
     Store.current().branch((store) {
       for (var name in arguments.keys) {
-        var copied = arguments[name].copy();
+        var copied = arguments[name].copyValue();
         store.add(name, copied.type.convertObjectTo(copied, parameters[name]));
       }
 
@@ -143,7 +143,7 @@ class FunctionValue extends Value {
   }
 
   @override
-  Value copy() {
+  Value copyValue() {
     throw RuntimeError('Copying functions is not allowed.');
   }
 
@@ -169,7 +169,4 @@ class FunctionValue extends Value {
   bool lessThan(Evaluable other) {
     return hashCode < other.hashCode;
   }
-
-  @override
-  ValueType get type => throw UnimplementedError();
 }

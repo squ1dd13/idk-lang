@@ -32,10 +32,14 @@ abstract class Value extends Evaluable {
   @override
   Value get() => this;
 
-  Value copy();
+  Value copyValue();
 
   Value mustConvertTo(ValueType endType) {
     var sourceType = type;
+
+    if (sourceType.equals(endType)) {
+      return this;
+    }
 
     var conversionType = sourceType.conversionTo(endType);
     if (!ValueType.isConversionImplicit(conversionType)) {
@@ -43,7 +47,7 @@ abstract class Value extends Evaluable {
           'type "${sourceType}" to type "$endType".');
     }
 
-    return sourceType.convertObjectTo(copy(), endType);
+    return sourceType.convertObjectTo(copyValue(), endType);
   }
 
   Value at(Value key) {
