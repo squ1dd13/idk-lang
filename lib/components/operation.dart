@@ -285,6 +285,7 @@ class ShuntingYard {
     '->':
         _Operator(_Side.Right, 15.0, 1, _Fix.Pre, _Operations.inlineDirection),
     '@': _Operator(_Side.Right, 15.0, 1, _Fix.Pre, _Operations.referenceTo),
+    '#': _Operator(_Side.Right, 15.0, 1, _Fix.Pre, _Operations.squareBrackets),
 
     '*': _Operator(_Side.Left, 14.0, 2, _Fix.In, _Operations.multiply),
     '/': _Operator(_Side.Left, 14.0, 2, _Fix.In, _Operations.divide),
@@ -568,7 +569,9 @@ class ShuntingYard {
     var postfix = <Token>[];
 
     for (var token in tokens) {
-      if (isOperator(token) && token is GroupToken) {
+      if (isOperator(token) &&
+          token is GroupToken &&
+          token.middle().isNotEmpty) {
         var separatedTokens = <Token>[
           TextToken(TokenType.Symbol, '('),
           TextToken(TokenType.Symbol, ')')

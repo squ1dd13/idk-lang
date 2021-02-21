@@ -107,7 +107,7 @@ proc testReturnValues() {
 }
 
 proc testIndexedAccess() {
-    string[] someStrings = {
+    #string someStrings = {
         "this",
         "is",
         "a",
@@ -125,6 +125,10 @@ proc testIndexedAccess() {
     }
 
     print("All index tests passed.");
+}
+
+proc Array(Type someType) {
+    return #someType;
 }
 
 proc testOperators() {
@@ -166,7 +170,7 @@ proc testOperators() {
     @any one -> returnNumber;
     @any two -> giveMeNumber;
 
-    t[] functions = {
+    Array(@any) functions = {
         one, two
     };
 
