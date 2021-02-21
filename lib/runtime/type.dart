@@ -44,17 +44,17 @@ abstract class ValueType extends Value {
   }
 
   @override
-  bool equals(Evaluable other) {
+  bool equals(Value other) {
     return conversionTo(other) == TypeConversion.None;
   }
 
   @override
-  bool greaterThan(Evaluable other) {
+  bool greaterThan(Value other) {
     return hashCode > other.hashCode;
   }
 
   @override
-  bool lessThan(Evaluable other) {
+  bool lessThan(Value other) {
     return hashCode < other.hashCode;
   }
 }
@@ -171,6 +171,17 @@ class NoType extends ValueType {
     _name = name;
   }
 
+  static Value nullValue() {
+    var integer = IntegerValue.raw(0);
+    integer.type = NoType(name: 'null');
+
+    return integer;
+  }
+
+  static Handle nullHandle() {
+    return Handle.create(nullValue());
+  }
+
   @override
   TypeConversion conversionTo(ValueType to) {
     return to is NoType ? TypeConversion.NoConversion : TypeConversion.None;
@@ -252,11 +263,11 @@ class PrimitiveType extends ValueType {
 class ReferenceType extends ValueType {
   final ValueType referencedType;
 
-  ReferenceType.forReferenceTo(this.referencedType);
+  ReferenceType.to(this.referencedType);
 
   @override
   Value copyValue() {
-    return ReferenceType.forReferenceTo(referencedType.copyValue());
+    return ReferenceType.to(referencedType.copyValue());
   }
 
   @override
@@ -295,7 +306,7 @@ class ReferenceType extends ValueType {
 
     if (conversion == TypeConversion.Implicit) {
       // Implicit reference conversions are only ever while dereferencing.
-      return referencedType.convertObjectTo(object.get(), endType);
+      return referencedType.convertObjectTo(object, endType);
     }
 
     throw RuntimeError('There are no explicit reference conversions.');
@@ -342,7 +353,7 @@ class ElementType extends AnyType {
   }
 
   @override
-  bool equals(Evaluable other) {
+  bool equals(Value other) {
     return other is ElementType;
   }
 }
@@ -376,7 +387,7 @@ class ArrayType extends ValueType {
     var arrayType = endType as ArrayType;
 
     var mapped =
-        array.elements.map((e) => e.get().mustConvertTo(arrayType.elementType));
+        array.elements.map((e) => e.convertHandleTo(arrayType.elementType));
 
     return ArrayValue(endType, mapped.toList());
   }
@@ -392,12 +403,12 @@ class ArrayType extends ValueType {
   }
 
   @override
-  bool equals(Evaluable other) {
-    if (!(other.get() is ArrayType)) {
+  bool equals(Value other) {
+    if (!(other is ArrayType)) {
       return false;
     }
 
-    var array = other.get() as ArrayType;
+    var array = other as ArrayType;
     return elementType.equals(array.elementType);
   }
 }

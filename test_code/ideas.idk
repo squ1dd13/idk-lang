@@ -78,3 +78,20 @@ String doCheck(int number) {
 
     return "How did we get here?";
 }
+
+/****** Two cast operators: 'to' for conversions and 'as' for reinterpreting ******/
+class SomeClass {
+    String operator to() {
+        return "Instance of SomeClass";
+    }
+}
+
+let instance = SomeClass();
+
+// Could be anything - we have no control here.
+let reinterpreted = instance as String;
+
+// Uses the 'to' operator for String that we defined earlier, so
+//  we are in control.
+let converted = instance to String;
+

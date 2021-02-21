@@ -1,3 +1,5 @@
+import 'package:language/runtime/abstract.dart';
+
 import '../lexer.dart';
 import '../parser.dart';
 import '../runtime/concrete.dart';
@@ -80,7 +82,7 @@ class FunctionDeclaration implements Statable {
       }
 
       function.applyType();
-      Store.current().add(_name, function);
+      Store.current().add(_name, Handle.create(function));
 
       return null;
     }));

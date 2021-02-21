@@ -1,6 +1,5 @@
 import '../lexer.dart';
 import '../parser.dart';
-import '../runtime/abstract.dart';
 import '../runtime/concrete.dart';
 import '../runtime/expression.dart';
 import '../runtime/store.dart';
@@ -42,14 +41,13 @@ class VariableDeclaration implements Statable {
   Statement createStatement() {
     return Statement(InlineExpression(() {
       // Evaluate the expression and then create a variable with the type.
-      var sourceValue = _valueExpression.evaluate() as Value;
+      var sourceValue = _valueExpression.evaluate();
 
       // If _typeName evaluates to 'null', this is a 'let' declaration.
       // We take the type from the value.
-      var declaredType = _typeName.evaluate() ?? sourceValue.type;
+      var declaredType = _typeName.evaluate() ?? sourceValue.handleType;
 
-      var variable =
-          Variable(declaredType, sourceValue.mustConvertTo(declaredType));
+      var variable = sourceValue.convertHandleTo(declaredType);
 
       Store.current().add(_name, variable);
 

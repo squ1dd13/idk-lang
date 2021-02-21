@@ -1,9 +1,8 @@
 import 'abstract.dart';
-import 'concrete.dart';
 import 'exception.dart';
 
 class Store {
-  final _contents = <String, Evaluable>{};
+  final _contents = <String, Handle>{};
   final Store _parent;
 
   static var stack = <Store>[Store(null)];
@@ -12,7 +11,7 @@ class Store {
 
   static Store current() => stack.last;
 
-  void add(String name, Evaluable item) {
+  void add(String name, Handle item) {
     if (has(name)) {
       throw RuntimeError('$name already exists in this scope.');
     }
@@ -20,7 +19,7 @@ class Store {
     _contents[name] = item;
   }
 
-  Evaluable get(String name) {
+  Handle get(String name) {
     if (!has(name)) {
       if (_parent != null) {
         return _parent.get(name);
@@ -32,27 +31,8 @@ class Store {
     return _contents[name];
   }
 
-  // TODO: Throw on failed cast?
-  T getAs<T>(String name) {
-    var evaluable = get(name);
-
-    if (evaluable is T) {
-      return evaluable as T;
-    }
-
-    return null;
-  }
-
-  void set(String name, Value value) {
-    var variable = getAs<Variable>(name);
-
-    if (variable == null) {
-      // getAs returns null when the cast fails, so variable isn't actually
-      //  of the Variable type.
-      throw RuntimeError('Cannot set value of constant $name.');
-    }
-
-    variable.set(value);
+  void set(String name, Handle handle) {
+    get(name).value = handle.value;
   }
 
   bool has(String name) {

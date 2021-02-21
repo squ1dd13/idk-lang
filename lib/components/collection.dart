@@ -1,5 +1,6 @@
 import 'package:language/components/util.dart';
 import 'package:language/lexer.dart';
+import 'package:language/runtime/abstract.dart';
 import 'package:language/runtime/concrete.dart';
 import 'package:language/runtime/expression.dart';
 
@@ -40,7 +41,7 @@ class CollectionLiteral implements Expressible {
         list.contents.add(expression.evaluate());
       }
 
-      return list;
+      return Handle.create(list);
     });
   }
 }

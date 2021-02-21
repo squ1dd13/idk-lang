@@ -1,5 +1,6 @@
 library standard;
 
+import 'package:language/runtime/abstract.dart';
 import 'package:language/runtime/exception.dart';
 
 import '../concrete.dart';
@@ -11,7 +12,7 @@ import '../type.dart';
 void registerCore() {
   var printFunction = FunctionValue('print', NoType(), <Statement>[
     Statement(InlineExpression(() {
-      var argument = Store.current().get('value').get();
+      var argument = Store.current().get('value').value;
       print(argument);
 
       return null;
@@ -22,18 +23,18 @@ void registerCore() {
 
   var fatalError = FunctionValue('fatal', NoType(), <Statement>[
     Statement(InlineExpression(() {
-      var argument = Store.current().get('message').get();
+      var argument = Store.current().get('message').value;
       throw RuntimeError(argument.toString());
     }))
   ])
     ..addParameter('message', AnyType())
     ..applyType();
 
-  Store.current().add('print', printFunction);
-  Store.current().add('fatal', fatalError);
+  Store.current().add('print', Handle.create(printFunction));
+  Store.current().add('fatal', Handle.create(fatalError));
 
-  Store.current().add('int', PrimitiveType.integer);
-  Store.current().add('string', PrimitiveType.string);
-  Store.current().add('proc', NoType());
-  Store.current().add('any', AnyType());
+  Store.current().add('int', Handle.create(PrimitiveType.integer));
+  Store.current().add('string', Handle.create(PrimitiveType.string));
+  Store.current().add('proc', Handle.create(NoType()));
+  Store.current().add('any', Handle.create(AnyType()));
 }

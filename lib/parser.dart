@@ -14,6 +14,7 @@ import 'components/iteration.dart';
 import 'components/operation.dart';
 import 'components/reference.dart';
 import 'components/util.dart';
+import 'runtime/abstract.dart';
 
 class Parse {
   static final _statementPasses = <Statement Function(TokenStream)>[
@@ -117,11 +118,13 @@ class Parse {
 
     if (tokens.length == 1) {
       if (tokens.first.type == TokenType.String) {
-        return InlineExpression(() => StringValue(tokens.first.toString()));
+        return InlineExpression(
+            () => Handle.create(StringValue(tokens.first.toString())));
       }
 
       if (tokens.first.type == TokenType.Number) {
-        return InlineExpression(() => IntegerValue(tokens.first.toString()));
+        return InlineExpression(
+            () => Handle.create(IntegerValue(tokens.first.toString())));
       }
 
       if (tokens.first.type == TokenType.Name) {

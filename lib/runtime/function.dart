@@ -58,8 +58,7 @@ class FunctionType extends ValueType {
 
   @override
   Value convertObjectTo(Value object, ValueType endType) {
-    // TODO: implement convertObjectTo
-    throw UnimplementedError();
+    return object;
   }
 
   @override
@@ -92,20 +91,14 @@ class FunctionValue extends Value {
     type = FunctionType(this);
   }
 
-  @override
-  Value get() {
-    return this;
-  }
-
-  Value call(Map<String, Value> arguments) {
-    Value returnedValue =
-        Variable(NoType(name: 'no type'), IntegerValue.raw(0));
+  Handle call(Map<String, Handle> arguments) {
+    var returnedHandle = NoType.nullHandle();
 
     // Open a new scope for the function body to run inside.
     Store.current().branch((store) {
       for (var name in arguments.keys) {
-        var copied = arguments[name].copyValue();
-        store.add(name, copied.type.convertObjectTo(copied, parameters[name]));
+        var copied = arguments[name].copyHandle();
+        store.add(name, copied.convertHandleTo(parameters[name]));
       }
 
       // Execute the body.
@@ -126,8 +119,8 @@ class FunctionValue extends Value {
                 'found.)');
           }
 
-          if (sideEffect.returnedValue != null) {
-            returnedValue = sideEffect.returnedValue;
+          if (sideEffect.returned != null) {
+            returnedHandle = sideEffect.returned;
 
             // Stop executing the statements - we're returning.
             break;
@@ -139,7 +132,7 @@ class FunctionValue extends Value {
       //  the scope is closed.
     });
 
-    return returnedValue.mustConvertTo(returnType);
+    return returnedHandle.convertHandleTo(returnType);
   }
 
   @override
@@ -148,7 +141,7 @@ class FunctionValue extends Value {
   }
 
   @override
-  bool equals(Evaluable other) {
+  bool equals(Value other) {
     if (!(other is FunctionValue)) {
       return false;
     }
@@ -161,12 +154,12 @@ class FunctionValue extends Value {
   }
 
   @override
-  bool greaterThan(Evaluable other) {
+  bool greaterThan(Value other) {
     return hashCode > other.hashCode;
   }
 
   @override
-  bool lessThan(Evaluable other) {
+  bool lessThan(Value other) {
     return hashCode < other.hashCode;
   }
 }

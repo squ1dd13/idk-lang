@@ -39,13 +39,13 @@ class Assignment implements Statable {
     return Statement(InlineExpression(() {
       var target = _destination.evaluate();
 
-      if (!(target is Variable)) {
-        throw Exception('Cannot assign to non-variables.');
-      }
+      // if (!(target is Variable)) {
+      //   throw Exception('Cannot assign to non-variables.');
+      // }
 
-      var newValue = _source.evaluate().get().copyValue();
+      var newValue = _source.evaluate().copyHandle();
 
-      (target as Variable).set(newValue);
+      target.value = newValue.value;
 
       return null;
     }));

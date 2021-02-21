@@ -1,6 +1,5 @@
 import '../lexer.dart';
 import '../parser.dart';
-import '../runtime/abstract.dart';
 import '../runtime/concrete.dart';
 import '../runtime/exception.dart';
 import '../runtime/expression.dart';
@@ -65,23 +64,31 @@ class Direction implements Statable {
       var reference = Reference(evaluated);
 
       if (_typeName == null) {
-        Store.current().getAs<Reference>(_name).redirect(evaluated);
+        var handle = Store.current().get(_name);
+
+        if (!(handle is Reference)) {
+          throw RuntimeError('Cannot redirect non-reference.');
+        }
+
+        (handle as Reference).redirect(evaluated);
       } else {
         Store.current().add(_name, reference);
       }
 
-      var storedReference = Store.current().getAs<Reference>(_name);
-      var requiredType = _typeName?.evaluate() ??
-          ReferenceType.forReferenceTo((evaluated as Value).type);
+      var storedReference = Store.current().get(_name) as Reference;
+      var requiredType =
+          _typeName?.evaluate() ?? ReferenceType.to(evaluated.valueType);
 
-      if (storedReference.type.conversionTo(requiredType) !=
+      if (storedReference.handleType.conversionTo(requiredType) !=
           TypeConversion.NoConversion) {
-        var targetType = (storedReference.type as ReferenceType).referencedType;
+        var targetType =
+            (storedReference.handleType as ReferenceType).referencedType;
         throw RuntimeError('Cannot direct "$requiredType" to "$targetType".');
       }
 
-      storedReference.type = requiredType;
-
+      storedReference.value =
+          storedReference.convertValueTo(requiredType).value;
+      // throw UnimplementedError();
       return null;
     }));
   }

@@ -60,6 +60,6 @@ class TypeName {
   }
 
   ValueType evaluate() {
-    return _typeExpression?.evaluate();
+    return _typeExpression?.evaluate()?.value;
   }
 }

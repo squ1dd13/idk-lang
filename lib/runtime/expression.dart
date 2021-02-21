@@ -2,16 +2,16 @@ import 'abstract.dart';
 
 abstract class Expression {
   // TODO: Side effects for expressions (for exceptions).
-  Value evaluate();
+  Handle evaluate();
 }
 
 class InlineExpression implements Expression {
-  final Evaluable Function() _action;
+  final Handle Function() _action;
 
   InlineExpression(this._action);
 
   @override
-  Value evaluate() {
+  Handle evaluate() {
     return _action();
   }
 }

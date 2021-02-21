@@ -1,4 +1,3 @@
-import 'package:language/runtime/function.dart';
 
 import 'abstract.dart';
 import 'exception.dart';
@@ -9,17 +8,17 @@ abstract class PrimitiveValue extends Value {
   dynamic get rawValue;
 
   @override
-  bool equals(Evaluable other) {
+  bool equals(Value other) {
     return (other is PrimitiveValue) && rawValue == other.rawValue;
   }
 
   @override
-  bool greaterThan(Evaluable other) {
+  bool greaterThan(Value other) {
     return (other is PrimitiveValue) && rawValue > other.rawValue;
   }
 
   @override
-  bool lessThan(Evaluable other) {
+  bool lessThan(Value other) {
     return (other is PrimitiveValue) && rawValue < other.rawValue;
   }
 }
@@ -52,9 +51,9 @@ class IntegerValue extends PrimitiveValue {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is IntegerValue &&
-              runtimeType == other.runtimeType &&
-              value == other.value;
+      other is IntegerValue &&
+          runtimeType == other.runtimeType &&
+          value == other.value;
 
   @override
   int get hashCode => value.hashCode;
@@ -84,9 +83,9 @@ class StringValue extends PrimitiveValue {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is StringValue &&
-              runtimeType == other.runtimeType &&
-              value == other.value;
+      other is StringValue &&
+          runtimeType == other.runtimeType &&
+          value == other.value;
 
   @override
   int get hashCode => value.hashCode;
@@ -95,8 +94,8 @@ class StringValue extends PrimitiveValue {
 class SideEffect {
   String breakName;
   String continueName;
-  Value returnedValue;
-  Value thrownValue;
+  Handle returned;
+  Handle thrown;
 
   SideEffect.nothing();
 
@@ -108,9 +107,9 @@ class SideEffect {
     continueName = name;
   }
 
-  SideEffect.throws(this.thrownValue);
+  SideEffect.throws(this.thrown);
 
-  SideEffect.returns(this.returnedValue);
+  SideEffect.returns(this.returned);
 
   bool continuesLoopName(String name) {
     // If the name is empty, we match any loop (the first loop that handles
@@ -127,9 +126,9 @@ class SideEffect {
 
   bool get isInterrupt =>
       breakName != null ||
-          continueName != null ||
-          returnedValue != null ||
-          thrownValue != null;
+      continueName != null ||
+      returned != null ||
+      thrown != null;
 }
 
 /// A single unit of code which affects the program without
@@ -157,116 +156,128 @@ class SideEffectStatement extends Statement {
   }
 }
 
-class Variable extends Value {
+class Variable extends Handle {
   Value _value;
 
-  Variable(ValueType theType, Value theValue) {
-    if (theType is FunctionType) {
-      throw RuntimeError('Variables may not be of function type!');
+  Variable(this._value);
+
+  @override
+  Value get value => _value;
+
+  @override
+  set value(Value newValue) {
+    var conversion = newValue.type.conversionTo(valueType);
+
+    if (!ValueType.isConversionImplicit(conversion)) {
+      throw RuntimeError('Cannot set value of "${valueType}" variable to '
+          '"${newValue.type}"');
     }
 
-    if (theType is ReferenceType) {
-      throw RuntimeError('Variables may not be of reference type!');
-    }
-
-    _value = theValue;
-    type = theType;
+    _value = newValue.mustConvertTo(valueType);
   }
 
   @override
-  Value get() {
-    return _value;
-  }
-
-  void set(Value source) {
-    // Keep things type-safe by ensuring that the value is of the correct type.
-    _value = source.mustConvertTo(type);
+  Handle convertValueTo(ValueType endType) {
+    return Handle.create(value.mustConvertTo(endType));
   }
 
   @override
-  Value copyValue() {
-    return Variable(type.copyValue(), _value.copyValue());
+  Handle convertHandleTo(ValueType endType) => convertValueTo(endType);
+
+  @override
+  Handle copyHandle() {
+    // Variables copy values around with them - two Variables should never share
+    //  a Value object.
+    return Handle.create(value.copyValue());
   }
 
   @override
-  bool equals(Evaluable other) => _value.equals(other);
+  ValueType get valueType => _value.type;
 
   @override
-  bool greaterThan(Evaluable other) => _value.greaterThan(other);
+  ValueType get handleType => valueType;
+}
+
+/// Almost exactly the same as [Variable], except that the value may not be
+/// set more than once.
+class Constant extends Variable {
+  Constant(Value value) : super(value);
 
   @override
-  bool lessThan(Evaluable other) => _value.lessThan(other);
-
-  @override
-  Value at(Value key) {
-    return _value.at(key);
-  }
-
-  @override
-  String toString() {
-    return _value.toString();
+  set value(Value newValue) {
+    throw RuntimeError('Cannot set value of constant.');
   }
 }
 
-/// Essentially a pointer, but with added safety and with custom
-/// syntax to increase clarity. Behaves like a variable when used
-/// like one (with normal syntax). Implements [Variable] so it can
-/// provide a transparent but custom interface.
-class Reference extends Value implements Variable {
-  @override
-  Value _value;
+class Reference extends Handle {
+  // Variable, Constant etc.
+  Handle _valueHandle;
+
+  Reference(this._valueHandle);
 
   @override
-  ValueType type;
+  Value get value => _valueHandle.value;
 
-  Reference(Value value) {
-    _value = value;
-    type = ReferenceType.forReferenceTo(value.type);
+  @override
+  set value(Value newValue) {
+    _valueHandle.value = newValue.mustConvertTo(value.type);
   }
 
   @override
-  Value get() {
-    return _value.get();
+  Handle copyHandle() {
+    // We're copying this handle, so the result is a new reference to the
+    //  same base handle.
+    return Handle.reference(_valueHandle);
   }
 
   @override
-  void set(Value source) {
-    if (_value is Variable) {
-      // Let _referenced handle the type checking.
-      (_value as Variable).set(source);
-    } else {
-      throw RuntimeError(
-          'Cannot set value through reference to non-variable value.');
-    }
-  }
+  ValueType get valueType => _valueHandle.valueType;
 
-  void redirect(Value source) {
-    if (source.type.conversionTo(type) != TypeConversion.None) {
-      throw RuntimeError('Cannot redirect reference of type $type '
-          'to value of type ${source.type}!');
+  @override
+  ValueType get handleType => ReferenceType.to(valueType);
+
+  void redirect(Handle newTarget) {
+    var conversion = newTarget.valueType.conversionTo(valueType);
+
+    if (!ValueType.isConversionImplicit(conversion)) {
+      throw RuntimeError('Cannot change target from "${valueType}" to '
+          '"${newTarget.valueType}"');
     }
 
-    _value = source;
+    _valueHandle = newTarget;
   }
 
   @override
-  Value copyValue() {
-    // Note that we don't copy _value.
-    return Reference(_value);
+  Handle convertValueTo(ValueType endType) {
+    var conversion = valueType.conversionTo(endType);
+
+    if (conversion == TypeConversion.None) {
+      // We can just return this reference, because there is no conversion
+      //  involved.
+      return this;
+    }
+
+    // Return a reference to the converted handle, or throw an exception if
+    //  we couldn't convert (this happens in mustConvertTo).
+    return Handle.reference(_valueHandle.convertValueTo(endType));
   }
 
   @override
-  bool equals(Evaluable other) => _value.equals(other);
+  Handle convertHandleTo(ValueType endType) {
+    if (!(endType is ReferenceType)) {
+      // The caller wants a non-reference handle, so we need to convert the
+      //  underlying handle.
+      return _valueHandle.convertHandleTo(endType);
+    }
 
-  @override
-  bool greaterThan(Evaluable other) => _value.greaterThan(other);
+    var conversion = handleType.conversionTo(endType);
 
-  @override
-  bool lessThan(Evaluable other) => _value.lessThan(other);
+    if (conversion == TypeConversion.None) {
+      return this;
+    }
 
-  @override
-  Value at(Value key) {
-    return _value.at(key);
+    var newValueType = (endType as ReferenceType).referencedType;
+    return Handle.reference(_valueHandle.convertValueTo(newValueType));
   }
 }
 
@@ -289,7 +300,7 @@ class InitializerListType extends ValueType {
 }
 
 class InitializerList extends Value {
-  final contents = <Value>[];
+  final contents = <Handle>[];
 
   @override
   Value copyValue() {
@@ -297,22 +308,22 @@ class InitializerList extends Value {
   }
 
   @override
-  bool equals(Evaluable other) {
+  bool equals(Value other) {
     throw RuntimeError('Cannot compare initialiser lists.');
   }
 
   @override
-  bool greaterThan(Evaluable other) {
+  bool greaterThan(Value other) {
     throw RuntimeError('Cannot compare initialiser lists.');
   }
 
   @override
-  bool lessThan(Evaluable other) {
+  bool lessThan(Value other) {
     throw RuntimeError('Cannot compare initialiser lists.');
   }
 
   Value convertToArray(ValueType elementType) {
-    var values = contents.map((e) => e.mustConvertTo(elementType)).toList();
+    var values = contents.map((e) => e.convertHandleTo(elementType)).toList();
     return ArrayValue(ArrayType(elementType), values);
   }
 
@@ -327,39 +338,31 @@ class InitializerList extends Value {
 }
 
 class ArrayValue extends Value {
-  var elements = <Variable>[];
+  List<Handle> elements;
 
-  ArrayValue(ArrayType arrayType, List<Value> values) {
+  ArrayValue(ArrayType arrayType, List<Handle> handles) {
     type = arrayType;
 
-    for (var value in values) {
-      if (value.type is ReferenceType) {
-        elements.add(value);
-        continue;
-      }
+    elements = List<Handle>.filled(handles.length, null);
 
-      elements.add(Variable(arrayType.elementType, value));
+    for (var i = 0; i < handles.length; ++i) {
+      elements[i] = handles[i].copyHandle();
     }
   }
 
   @override
   Value copyValue() {
-    // Copy element-by-element.
-    var copiedElements =
-        elements.map((e) => e.copyValue()).toList(growable: false);
-
-    return ArrayValue(type.copyValue() as ArrayType, copiedElements);
+    // The element handles will be copied by the constructor.
+    return ArrayValue(type.copyValue() as ArrayType, elements);
   }
 
   @override
-  bool equals(Evaluable other) {
-    var otherValue = other.get();
-
-    if (otherValue.type.conversionTo(type) != TypeConversion.NoConversion) {
+  bool equals(Value other) {
+    if (other.type.conversionTo(type) != TypeConversion.NoConversion) {
       return false;
     }
 
-    var otherArray = otherValue as ArrayValue;
+    var otherArray = other as ArrayValue;
     if (elements.length != otherArray.elements.length) {
       return false;
     }
@@ -374,14 +377,12 @@ class ArrayValue extends Value {
   }
 
   @override
-  bool notEquals(Evaluable other) {
-    var otherValue = other.get();
-
-    if (otherValue.type.conversionTo(type) != TypeConversion.NoConversion) {
+  bool notEquals(Value other) {
+    if (other.type.conversionTo(type) != TypeConversion.NoConversion) {
       return true;
     }
 
-    var otherArray = otherValue as ArrayValue;
+    var otherArray = other as ArrayValue;
     if (elements.length != otherArray.elements.length) {
       return true;
     }
@@ -397,17 +398,17 @@ class ArrayValue extends Value {
 
   // Not sure what to do with these yet.
   @override
-  bool greaterThan(Evaluable other) {
+  bool greaterThan(Value other) {
     throw UnimplementedError();
   }
 
   @override
-  bool lessThan(Evaluable other) {
+  bool lessThan(Value other) {
     throw UnimplementedError();
   }
 
   @override
-  Value at(Value key) {
+  Handle at(Value key) {
     return elements[(key as IntegerValue).rawValue];
   }
 }

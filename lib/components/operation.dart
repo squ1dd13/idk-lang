@@ -42,7 +42,7 @@ class OperatorExpression implements Expression {
   }
 
   @override
-  Value evaluate() {
+  Handle evaluate() {
     return ShuntingYard.evaluate(_tokens);
   }
 }
@@ -52,7 +52,7 @@ class TokenOperator implements Function {
   bool rightAssociative;
   bool isUnary;
   String warning;
-  final Value Function(Iterable<Value> operands) _implementation;
+  final Value Function(Iterable<Handle> operands) _implementation;
 
   TokenOperator(this.precedence, this._implementation,
       {this.rightAssociative = false,
@@ -72,7 +72,7 @@ class TokenOperator implements Function {
     print('Warning: ($line, $column) $warning');
   }
 
-  Value call(Iterable<Value> operands) {
+  Value call(Iterable<Handle> operands) {
     return _implementation(operands);
   }
 }
@@ -80,11 +80,11 @@ class TokenOperator implements Function {
 /// Implements the operators. For many, we can just pass through to Dart's
 /// operators, although there are some where we have to add extra behaviour.
 class _Operations {
-  static dynamic _getRaw<T>(Value v) {
-    var value = v.get();
+  static dynamic _getRaw<T>(Handle v) {
+    var value = v.value;
 
     if (T == bool) {
-      return (_getRaw<int>(value) != 0 ? true : false);
+      return (_getRaw<int>(v) != 0 ? true : false);
     }
 
     if (value.type == PrimitiveType.integer) {
@@ -104,7 +104,7 @@ class _Operations {
 
   /// Take a value of unknown type and convert it to an appropriately typed
   /// [PrimitiveValue].
-  static PrimitiveValue _wrapPrimitive(dynamic value) {
+  static T _wrapPrimitive<T>(dynamic value) {
     var conversion = _wrapConversions[value.runtimeType];
 
     if (conversion == null) {
@@ -112,143 +112,143 @@ class _Operations {
           'in any primitive.');
     }
 
-    return conversion(value);
+    return (T == Handle) ? Handle.create(conversion(value)) : conversion(value);
   }
 
-  static Value exponent(Iterable<Value> operands) {
+  static Handle exponent(Iterable<Handle> operands) {
     return _wrapPrimitive(pow(_getRaw(operands.first), _getRaw(operands.last)));
   }
 
-  static Value increment(Iterable<Value> operands) {
+  static Handle increment(Iterable<Handle> operands) {
     var oldValue = _wrapPrimitive(_getRaw(operands.first));
-    (operands.first as Variable)
-        .set(_wrapPrimitive(_getRaw(operands.first) + 1));
 
-    return oldValue;
+    operands.first.value = _wrapPrimitive(_getRaw(operands.first) + 1);
+
+    return Handle.create(oldValue);
   }
 
   // Handles uses of '[]' for declaring array types and for accessing
   //  values by key/index in collections.
-  static Value squareBrackets(Iterable<Value> operands) {
+  static Handle squareBrackets(Iterable<Handle> operands) {
     // "Type[]" is an array of values of type 'Type'.
-    if (operands.first.get() is ValueType) {
-      return ArrayType(operands.first.get() as ValueType);
+    if (operands.first.value is ValueType) {
+      return Handle.create(ArrayType(operands.first.value as ValueType));
     }
 
     // "something[n]" is an access to the nth item in the 'something'.
-    return operands.first.get().at(operands.last);
+    return operands.first.value.at(operands.last.value);
   }
 
-  static Value not(Iterable<Value> operands) {
+  static Handle not(Iterable<Handle> operands) {
     return _wrapPrimitive(_getRaw<int>(operands.first) != 0 ? 0 : 1);
   }
 
-  static Value bitnot(Iterable<Value> operands) {
+  static Handle bitnot(Iterable<Handle> operands) {
     return _wrapPrimitive(~_getRaw<int>(operands.first));
   }
 
-  static Value inlineDirection(Iterable<Value> operands) {
-    return Reference(operands.first);
+  static Handle inlineDirection(Iterable<Handle> operands) {
+    return Handle.reference(operands.first);
   }
 
-  static Value unaryMinus(Iterable<Value> operands) {
+  static Handle unaryMinus(Iterable<Handle> operands) {
     return _wrapPrimitive(-_getRaw(operands.first));
   }
 
-  static Value referenceTo(Iterable<Value> operands) {
-    return ReferenceType.forReferenceTo(operands.first);
+  static Handle referenceTo(Iterable<Handle> operands) {
+    return Handle.create(ReferenceType.to(operands.first.value as ValueType));
   }
 
-  static Value multiply(Iterable<Value> operands) {
+  static Handle multiply(Iterable<Handle> operands) {
     return _wrapPrimitive(_getRaw(operands.first) * _getRaw(operands.last));
   }
 
-  static Value divide(Iterable<Value> operands) {
+  static Handle divide(Iterable<Handle> operands) {
     return _wrapPrimitive(_getRaw(operands.first) / _getRaw(operands.last));
   }
 
-  static Value modulus(Iterable<Value> operands) {
+  static Handle modulus(Iterable<Handle> operands) {
     return _wrapPrimitive(_getRaw(operands.first) % _getRaw(operands.last));
   }
 
-  static Value add(Iterable<Value> operands) {
+  static Handle add(Iterable<Handle> operands) {
     return _wrapPrimitive(_getRaw(operands.first) + _getRaw(operands.last));
   }
 
-  static Value subtract(Iterable<Value> operands) {
+  static Handle subtract(Iterable<Handle> operands) {
     return _wrapPrimitive(_getRaw(operands.first) - _getRaw(operands.last));
   }
 
-  static Value lessThan(Iterable<Value> operands) {
+  static Handle lessThan(Iterable<Handle> operands) {
     return _wrapPrimitive(operands.first.lessThan(operands.last));
   }
 
-  static Value lessThanOrEqual(Iterable<Value> operands) {
+  static Handle lessThanOrEqual(Iterable<Handle> operands) {
     return _wrapPrimitive(operands.first.lessThanOrEqualTo(operands.last));
   }
 
-  static Value greaterThan(Iterable<Value> operands) {
+  static Handle greaterThan(Iterable<Handle> operands) {
     return _wrapPrimitive(operands.first.greaterThan(operands.last));
   }
 
-  static Value greaterThanEqual(Iterable<Value> operands) {
+  static Handle greaterThanEqual(Iterable<Handle> operands) {
     return _wrapPrimitive(operands.first.greaterThanOrEqualTo(operands.last));
   }
 
-  static Value cast(Iterable<Value> operands) {
-    return operands.first.mustConvertTo(operands.last);
+  static Handle cast(Iterable<Handle> operands) {
+    return operands.first.convertHandleTo(operands.last.value as ValueType);
   }
 
-  static Value equal(Iterable<Value> operands) {
+  static Handle equal(Iterable<Handle> operands) {
     return _wrapPrimitive(operands.first.equals(operands.last));
   }
 
-  static Value notEqual(Iterable<Value> operands) {
+  static Handle notEqual(Iterable<Handle> operands) {
     return _wrapPrimitive(operands.first.notEquals(operands.last));
   }
 
-  static Value bitand(Iterable<Value> operands) {
+  static Handle bitand(Iterable<Handle> operands) {
     return _wrapPrimitive(
         _getRaw<int>(operands.first) & _getRaw<int>(operands.last));
   }
 
-  static Value xor(Iterable<Value> operands) {
+  static Handle xor(Iterable<Handle> operands) {
     return _wrapPrimitive(
         _getRaw<int>(operands.first) ^ _getRaw<int>(operands.last));
   }
 
-  static Value bitor(Iterable<Value> operands) {
+  static Handle bitor(Iterable<Handle> operands) {
     return _wrapPrimitive(
         _getRaw<int>(operands.first) | _getRaw<int>(operands.last));
   }
 
-  static Value and(Iterable<Value> operands) {
+  static Handle and(Iterable<Handle> operands) {
     return _wrapPrimitive(
         _getRaw<bool>(operands.first) && _getRaw<bool>(operands.last));
   }
 
-  static Value or(Iterable<Value> operands) {
+  static Handle or(Iterable<Handle> operands) {
     return _wrapPrimitive(
         _getRaw<bool>(operands.first) || _getRaw<bool>(operands.last));
   }
 
-  static Value addAssign(Iterable<Value> operands) {
-    (operands.first as Variable).set(add(operands));
+  static Handle addAssign(Iterable<Handle> operands) {
+    operands.first.value = add(operands).value;
     return _wrapPrimitive(operands.first);
   }
 
-  static Value subtractAssign(Iterable<Value> operands) {
-    (operands.first as Variable).set(subtract(operands));
+  static Handle subtractAssign(Iterable<Handle> operands) {
+    operands.first.value = subtract(operands).value;
     return _wrapPrimitive(operands.first);
   }
 
-  static Value multiplyAssign(Iterable<Value> operands) {
-    (operands.first as Variable).set(multiply(operands));
+  static Handle multiplyAssign(Iterable<Handle> operands) {
+    operands.first.value = multiply(operands).value;
     return _wrapPrimitive(operands.first);
   }
 
-  static Value divideAssign(Iterable<Value> operands) {
-    (operands.first as Variable).set(divide(operands));
+  static Handle divideAssign(Iterable<Handle> operands) {
+    operands.first.value = divide(operands).value;
     return _wrapPrimitive(operands.first);
   }
 }
@@ -262,7 +262,7 @@ class _Operator {
   final double precedence;
   final int operandCount;
   final _Fix fixity;
-  final Value Function(Iterable<Value> operands) operation;
+  final Handle Function(Iterable<Handle> operands) operation;
 
   _Operator(this.associativity, this.precedence, this.operandCount, this.fixity,
       this.operation);
@@ -373,7 +373,7 @@ class ShuntingYard {
       //  the lexer would pick up the word 'call' as an operator.
       operators['call'] = _Operator(_Side.Left, 18, 2, _Fix.Post, (operands) {
         // Find something to call, then call it.
-        var resolvedValue = operands.first.get();
+        var resolvedValue = operands.first.value;
 
         if (!(resolvedValue is FunctionValue)) {
           throw Exception('Cannot call non-function "$resolvedValue"!');
@@ -384,7 +384,7 @@ class ShuntingYard {
         var functionValue = resolvedValue as FunctionValue;
         var parameters = functionValue.parameters;
 
-        var argumentsArray = (operands.last as InitializerList).contents;
+        var argumentsArray = (operands.last.value as InitializerList).contents;
 
         if (argumentsArray.length != parameters.length) {
           throw Exception(
@@ -393,11 +393,11 @@ class ShuntingYard {
         }
 
         // Map the arguments to their names.
-        var mappedArguments = <String, Value>{};
+        var mappedArguments = <String, Handle>{};
         var parameterNames = parameters.keys.toList();
 
         for (var i = 0; i < argumentsArray.length; ++i) {
-          mappedArguments[parameterNames[i]] = argumentsArray[i].get();
+          mappedArguments[parameterNames[i]] = argumentsArray[i];
         }
 
         return functionValue.call(mappedArguments);
@@ -557,8 +557,8 @@ class ShuntingYard {
     return output;
   }
 
-  static Value evaluate(List<Token> tokens) {
-    var numberStack = <Value>[];
+  static Handle evaluate(List<Token> tokens) {
+    var numberStack = <Handle>[];
 
     // The same as 'tokens' but with group operators (such as '[]') split
     //  into multiple tokens. 'x[0]' would become 'x (0) []', with '0' being
@@ -599,7 +599,7 @@ class ShuntingYard {
       //  it can take either 1 or 2 operands.
       var minOperands = min(operator.operandCount, numberStack.length);
 
-      var operands = List<Value>.filled(minOperands, null);
+      var operands = List<Handle>.filled(minOperands, null);
 
       // Pop each operand off the number stack.
       for (var i = minOperands; i >= 1; --i) {
@@ -613,7 +613,9 @@ class ShuntingYard {
     }
 
     if (numberStack.isEmpty) {
-      return Variable(NoType(), IntegerValue.raw(0));
+      var nullValue = IntegerValue.raw(0);
+      nullValue.type = NoType(name: 'null');
+      return Handle.create(nullValue);
     }
 
     if (numberStack.length > 1) {
