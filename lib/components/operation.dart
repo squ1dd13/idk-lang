@@ -100,7 +100,7 @@ class _Operations {
   static final _wrapConversions = <Type, PrimitiveValue Function(dynamic)>{
     int: (v) => IntegerValue.raw(v),
     String: (v) => StringValue(v),
-    bool: (v) => IntegerValue.raw(v ? 1 : 0),
+    bool: (v) => BooleanValue(v),
     double: (v) => IntegerValue.raw((v as double).truncate()),
   };
 

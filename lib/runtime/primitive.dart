@@ -2,7 +2,7 @@ import 'exception.dart';
 import 'type.dart';
 import 'value.dart';
 
-enum Primitive { Int, String }
+enum Primitive { Int, String, Bool }
 
 class PrimitiveType extends ValueType {
   final Primitive _type;
@@ -10,6 +10,8 @@ class PrimitiveType extends ValueType {
   static PrimitiveType get integer => PrimitiveType(Primitive.Int);
 
   static PrimitiveType get string => PrimitiveType(Primitive.String);
+
+  static PrimitiveType get boolean => PrimitiveType(Primitive.Bool);
 
   PrimitiveType(this._type);
 
@@ -59,7 +61,9 @@ class PrimitiveType extends ValueType {
 
   @override
   String toString() {
-    return _type == Primitive.Int ? 'int' : 'string';
+    return _type == Primitive.Int
+        ? 'int'
+        : (_type == Primitive.String ? 'string' : 'bool');
   }
 }
 
@@ -142,4 +146,25 @@ class StringValue extends PrimitiveValue {
 
   @override
   int get hashCode => value.hashCode;
+}
+
+class BooleanValue extends PrimitiveValue {
+  bool value;
+
+  @override
+  bool get rawValue => value;
+
+  BooleanValue(this.value) {
+    type = PrimitiveType.boolean;
+  }
+
+  @override
+  Value copyValue() {
+    return BooleanValue(value);
+  }
+
+  @override
+  bool equals(Value other) {
+    return other is BooleanValue && other.value == value;
+  }
 }

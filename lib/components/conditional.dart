@@ -72,11 +72,10 @@ class ConditionalClause implements Statable {
         var conditionValue = true;
 
         if (_condition != null) {
-          // TODO: Introduce Boolean type.
-          var convertedToInt =
-              _condition.evaluate().value.mustConvertTo(PrimitiveType.integer);
+          var evaluated = _condition.evaluate();
+          var conditionBool = evaluated.convertValueTo(PrimitiveType.boolean);
 
-          conditionValue = (convertedToInt as IntegerValue).value != 0;
+          conditionValue = (conditionBool.value as BooleanValue).value;
         }
 
         if (!conditionValue) {

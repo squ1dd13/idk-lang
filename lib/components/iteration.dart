@@ -85,7 +85,7 @@ class Loop implements Statable {
 
     // Return true to keep the loop going until the user stops it.
     _check = InlineExpression(() {
-      return IntegerValue.raw(1).createHandle();
+      return BooleanValue(true).createHandle();
     });
 
     // No change.
@@ -134,10 +134,8 @@ class Loop implements Statable {
 
         while (true) {
           var checkResult = _check.evaluate();
-          var checkInteger =
-              checkResult.value.mustConvertTo(PrimitiveType.integer);
 
-          if (checkInteger.equals(IntegerValue.raw(0))) {
+          if (checkResult.value.equals(BooleanValue(false))) {
             break;
           }
 
