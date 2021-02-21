@@ -3,12 +3,14 @@ import 'dart:math';
 import 'package:language/components/util.dart';
 import 'package:language/lexer.dart';
 import 'package:language/parser.dart';
-import 'package:language/runtime/abstract.dart';
-import 'package:language/runtime/concrete.dart';
+import 'package:language/runtime/array.dart';
 import 'package:language/runtime/exception.dart';
 import 'package:language/runtime/expression.dart';
 import 'package:language/runtime/function.dart';
+import 'package:language/runtime/handle.dart';
+import 'package:language/runtime/primitive.dart';
 import 'package:language/runtime/type.dart';
+import 'package:language/runtime/value.dart';
 
 class OperatorExpression implements Expression {
   List<Token> _tokens;
@@ -537,7 +539,7 @@ class ShuntingYard {
         var precedence = stackOperator.precedence;
 
         if (operator.associativity == _Side.Left &&
-            operator.precedence <= precedence ||
+                operator.precedence <= precedence ||
             operator.precedence < precedence) {
           output.add(stack.removeLast());
           continue;

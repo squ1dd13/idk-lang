@@ -1,4 +1,4 @@
-import 'abstract.dart';
+import 'handle.dart';
 
 abstract class Expression {
   // TODO: Side effects for expressions (for exceptions).

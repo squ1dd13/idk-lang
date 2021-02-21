@@ -1,5 +1,5 @@
-import 'abstract.dart';
 import 'exception.dart';
+import 'handle.dart';
 
 class Store {
   final _contents = <String, Handle>{};

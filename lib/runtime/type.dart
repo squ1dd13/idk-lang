@@ -1,7 +1,8 @@
-import 'package:language/runtime/concrete.dart';
-
-import 'abstract.dart';
+import 'array.dart';
 import 'exception.dart';
+import 'handle.dart';
+import 'primitive.dart';
+import 'value.dart';
 
 /// Describes how one type may be converted to another.
 enum TypeConversion {
@@ -199,66 +200,7 @@ class NoType extends ValueType {
   }
 }
 
-enum Primitive { Int, String }
 
-class PrimitiveType extends ValueType {
-  final Primitive _type;
-
-  static PrimitiveType get integer => PrimitiveType(Primitive.Int);
-
-  static PrimitiveType get string => PrimitiveType(Primitive.String);
-
-  PrimitiveType(this._type);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is PrimitiveType &&
-          runtimeType == other.runtimeType &&
-          _type == other._type;
-
-  @override
-  int get hashCode => _type.hashCode;
-
-  @override
-  Value copyValue() {
-    return PrimitiveType(_type);
-  }
-
-  @override
-  TypeConversion conversionTo(ValueType to) {
-    if (this == to || to is AnyType) {
-      return TypeConversion.NoConversion;
-    }
-
-    return TypeConversion.None;
-  }
-
-  @override
-  Value convertObjectTo(Value object, ValueType endType) {
-    assertConvertibleTo(endType);
-    return object;
-  }
-
-  @override
-  Value convertObjectFrom(Value object, ValueType startType) {
-    if (this == startType) {
-      return object;
-    }
-
-    if (_type == Primitive.Int) {
-      throw RuntimeError("Can't use cOF for integers.");
-    }
-
-    // Everything has toString().
-    return StringValue(object.toString());
-  }
-
-  @override
-  String toString() {
-    return _type == Primitive.Int ? 'int' : 'string';
-  }
-}
 
 class ReferenceType extends ValueType {
   final ValueType referencedType;
@@ -322,7 +264,6 @@ class ReferenceType extends ValueType {
       }
 
       throw RuntimeError('no');
-      return null;
     }
   }
 

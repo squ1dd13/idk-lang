@@ -192,19 +192,6 @@ class Lexer {
     return [line, column];
   }
 
-  static final _opChars = <String>{};
-
-  static Set<String> get _operatorChars {
-    if (_opChars.isEmpty) {
-      for (var operator in ShuntingYard.operators.keys) {
-        _opChars.addAll(
-            operator.codeUnits.map((code) => String.fromCharCode(code)));
-      }
-    }
-
-    return _opChars;
-  }
-
   static Set<String> _operatorStarters;
 
   bool _generateOperator() {
@@ -263,49 +250,6 @@ class Lexer {
     }
 
     _addToken(TextToken(TokenType.Symbol, operatorString));
-    return true;
-  }
-
-  bool _genedrateOperator() {
-    // TODO: Improve operator lexing (make it work properly).
-
-    var buffer = StringBuffer();
-    var startLineColumn = _lineAndColumn();
-
-    while (_hasNext() && _operatorChars.contains(_getCharacter())) {
-      buffer.write(_getCharacter(moveAfter: true));
-    }
-
-    if (buffer.isEmpty) {
-      return false;
-    }
-
-    var operatorString = buffer.toString();
-
-    if (!ShuntingYard.operators.containsKey(operatorString)) {
-      // Split into multiple tokens.
-      for (var i = 0; i < operatorString.length; ++i) {
-        var character = String.fromCharCode(operatorString.codeUnitAt(i));
-
-        var token = TextToken(TokenType.Symbol, character);
-        token.line = startLineColumn[0];
-
-        // We only need to add to the column because we know the line won't
-        //  have changed: you can't have a newline character in an operator.
-        token.column = startLineColumn[1] + i;
-
-        generatedTokens.add(token);
-      }
-    } else {
-      if (_hasNext()) {
-        // Go back so we can process the last character on the next lexing
-        //  pass.
-        --_position;
-      }
-
-      _addToken(TextToken(TokenType.Symbol, operatorString));
-    }
-
     return true;
   }
 

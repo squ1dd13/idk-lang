@@ -3,12 +3,12 @@ import 'package:language/lexer.dart';
 import 'package:language/parser.dart';
 import 'package:language/runtime/concrete.dart';
 import 'package:language/runtime/expression.dart';
+import 'package:language/runtime/primitive.dart';
 import 'package:language/runtime/store.dart';
-import 'package:language/runtime/type.dart';
 
 /// Any part of an if..else if..else statement.
 class ConditionalClause implements Statable {
-  /// [null] if there is no condition (for 'else').
+  /// null if there is no condition (for 'else').
   Expression _condition;
   List<Statement> _body;
   ConditionalClause _nextClause;
@@ -35,7 +35,7 @@ class ConditionalClause implements Statable {
     } else {
       throw tokens.createException(
           'Expected "if", "else if" or "else" in conditional, '
-              'got "$clauseKeyword" instead.',
+          'got "$clauseKeyword" instead.',
           2);
     }
 

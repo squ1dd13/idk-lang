@@ -1,4 +1,4 @@
-import 'package:language/runtime/abstract.dart';
+import 'package:language/runtime/handle.dart';
 
 import '../lexer.dart';
 import '../parser.dart';

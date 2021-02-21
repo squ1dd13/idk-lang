@@ -1,8 +1,9 @@
-import 'abstract.dart';
 import 'concrete.dart';
 import 'exception.dart';
+import 'handle.dart';
 import 'store.dart';
 import 'type.dart';
+import 'value.dart';
 
 class FunctionType extends ValueType {
   ValueType returnType;
