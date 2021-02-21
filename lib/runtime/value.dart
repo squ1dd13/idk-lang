@@ -30,6 +30,9 @@ abstract class Value {
     throw RuntimeError('$type does not support "[]".');
   }
 
+  /// Helper method to create a [Handle] for this value.
+  Handle createHandle() => Handle.create(this);
+
   bool equals(Value other);
 
   bool notEquals(Value other) => !equals(other);

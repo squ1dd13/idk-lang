@@ -156,36 +156,36 @@ class AnyType extends ValueType {
   }
 }
 
-class NoType extends ValueType {
+class NullType extends ValueType {
   @override
   Value copyValue() {
-    return NoType();
+    return NullType();
   }
 
-  /// [NoType] is likely to be printed in errors, but 'proc'
+  /// [NullType] is likely to be printed in errors, but 'proc'
   /// doesn't make sense in all errors (e.g. you can't return
   /// 'proc' from a function), so we can specify a different
   /// name to use.
   String _name;
 
-  NoType({String name = 'proc'}) {
+  NullType({String name = 'proc'}) {
     _name = name;
   }
 
   static Value nullValue() {
     var integer = IntegerValue.raw(0);
-    integer.type = NoType(name: 'null');
+    integer.type = NullType(name: 'null');
 
     return integer;
   }
 
   static Handle nullHandle() {
-    return Handle.create(nullValue());
+    return nullValue().createHandle();
   }
 
   @override
   TypeConversion conversionTo(ValueType to) {
-    return to is NoType ? TypeConversion.NoConversion : TypeConversion.None;
+    return to is NullType ? TypeConversion.NoConversion : TypeConversion.None;
   }
 
   @override
@@ -199,8 +199,6 @@ class NoType extends ValueType {
     return _name;
   }
 }
-
-
 
 class ReferenceType extends ValueType {
   final ValueType referencedType;

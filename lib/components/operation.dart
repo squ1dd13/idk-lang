@@ -114,7 +114,7 @@ class _Operations {
           'in any primitive.');
     }
 
-    return (T == Handle) ? Handle.create(conversion(value)) : conversion(value);
+    return (T == Handle) ? conversion(value).createHandle() : conversion(value);
   }
 
   static Handle exponent(Iterable<Handle> operands) {
@@ -122,11 +122,11 @@ class _Operations {
   }
 
   static Handle increment(Iterable<Handle> operands) {
-    var oldValue = _wrapPrimitive(_getRaw(operands.first));
+    var oldValue = _wrapPrimitive<Value>(_getRaw(operands.first));
 
     operands.first.value = _wrapPrimitive(_getRaw(operands.first) + 1);
 
-    return Handle.create(oldValue);
+    return oldValue.createHandle();
   }
 
   // Handles uses of '[]' for declaring array types and for accessing
@@ -134,7 +134,7 @@ class _Operations {
   static Handle squareBrackets(Iterable<Handle> operands) {
     // "Type[]" is an array of values of type 'Type'.
     if (operands.first.value is ValueType) {
-      return Handle.create(ArrayType(operands.first.value as ValueType));
+      return ArrayType(operands.first.value as ValueType).createHandle();
     }
 
     // "something[n]" is an access to the nth item in the 'something'.
@@ -158,7 +158,7 @@ class _Operations {
   }
 
   static Handle referenceTo(Iterable<Handle> operands) {
-    return Handle.create(ReferenceType.to(operands.first.value as ValueType));
+    return ReferenceType.to(operands.first.value as ValueType).createHandle();
   }
 
   static Handle multiply(Iterable<Handle> operands) {
@@ -615,9 +615,7 @@ class ShuntingYard {
     }
 
     if (numberStack.isEmpty) {
-      var nullValue = IntegerValue.raw(0);
-      nullValue.type = NoType(name: 'null');
-      return Handle.create(nullValue);
+      return NullType.nullHandle();
     }
 
     if (numberStack.length > 1) {

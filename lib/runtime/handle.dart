@@ -91,7 +91,7 @@ class Variable extends Handle {
 
   @override
   Handle convertValueTo(ValueType endType) {
-    return Handle.create(value.mustConvertTo(endType));
+    return value.mustConvertTo(endType).createHandle();
   }
 
   @override
@@ -101,7 +101,7 @@ class Variable extends Handle {
   Handle copyHandle() {
     // Variables copy values around with them - two Variables should never share
     //  a Value object.
-    return Handle.create(value.copyValue());
+    return value.copyValue().createHandle();
   }
 
   @override

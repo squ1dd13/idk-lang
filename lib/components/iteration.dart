@@ -1,7 +1,6 @@
 import 'package:language/lexer.dart';
 import 'package:language/runtime/concrete.dart';
 import 'package:language/runtime/expression.dart';
-import 'package:language/runtime/handle.dart';
 import 'package:language/runtime/primitive.dart';
 import 'package:language/runtime/store.dart';
 
@@ -86,7 +85,7 @@ class Loop implements Statable {
 
     // Return true to keep the loop going until the user stops it.
     _check = InlineExpression(() {
-      return Handle.create(IntegerValue.raw(1));
+      return IntegerValue.raw(1).createHandle();
     });
 
     // No change.

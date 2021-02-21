@@ -93,7 +93,7 @@ class FunctionValue extends Value {
   }
 
   Handle call(Map<String, Handle> arguments) {
-    var returnedHandle = NoType.nullHandle();
+    var returnedHandle = NullType.nullHandle();
 
     // Open a new scope for the function body to run inside.
     Store.current().branch((store) {

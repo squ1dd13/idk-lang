@@ -14,7 +14,6 @@ import 'components/iteration.dart';
 import 'components/operation.dart';
 import 'components/reference.dart';
 import 'components/util.dart';
-import 'runtime/handle.dart';
 import 'runtime/primitive.dart';
 
 class Parse {
@@ -120,12 +119,12 @@ class Parse {
     if (tokens.length == 1) {
       if (tokens.first.type == TokenType.String) {
         return InlineExpression(
-            () => Handle.create(StringValue(tokens.first.toString())));
+            () => StringValue(tokens.first.toString()).createHandle());
       }
 
       if (tokens.first.type == TokenType.Number) {
         return InlineExpression(
-            () => Handle.create(IntegerValue(tokens.first.toString())));
+            () => IntegerValue(tokens.first.toString()).createHandle());
       }
 
       if (tokens.first.type == TokenType.Name) {

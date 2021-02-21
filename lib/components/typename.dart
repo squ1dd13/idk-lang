@@ -53,10 +53,8 @@ class TypeName {
 
       return true;
     });
-    // tokens.restoreIndex();
-    // _typeExpression = OperatorExpression(tokens);
-    _typeExpression = OperatorExpression(
-        TokenStream(typeTokens, 0)); //, limit: typeTokens.length);
+
+    _typeExpression = OperatorExpression(TokenStream(typeTokens, 0));
   }
 
   ValueType evaluate() {
