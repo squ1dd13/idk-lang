@@ -165,20 +165,17 @@ proc testOperators() {
         fatal("Failed complex function-based expression.");
     }
 
-    let t = @any;
-
-    @any one -> returnNumber;
-    @any two -> giveMeNumber;
-
+    // Create an array of function references.
     Array(@any) functions = {
-        one, two
+        -> returnNumber,
+        -> giveMeNumber
     };
 
     int result2 = (2 + (functions[0]((((2 + 4) / 1) / (2 + 4)) * 2, 3) * functions[1](1, 1)) + functions[1](1, 3)) / 3;
     if result2 != 6 {
         fatal("Failed complex function/array-based expression.");
     }
-
+    
     print(result2);
 
     print("All operator tests passed.");

@@ -107,6 +107,17 @@ class Lexer {
     while (_moveNext()) {
       var startPos = _position;
 
+      if (_position + 1 < _text.length &&
+          _text[_position] == '/' &&
+          _text[_position + 1] == '/') {
+        // Line comment. Read until we find '\n'.
+        while (_getCharacter(moveAfter: true) != '\n') {
+          continue;
+        }
+
+        continue;
+      }
+
       if (_generateOperator()) {
         continue;
       }
