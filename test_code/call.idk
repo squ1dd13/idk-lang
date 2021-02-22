@@ -8,7 +8,7 @@ let someString = "This is a string.";
 
 for let i = 0; i < theStrings.length; i++ {
     print\"Length of '" + theStrings[i] + "' is:":;
-    print\theStrings[i].length :;
+    print(theStrings[i].length());
 }
 
-let printFunction = theStrings[0].length.getPrint\"hello":;
+let printFunction = theStrings[0].length().getPrint("hello");

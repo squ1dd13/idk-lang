@@ -190,7 +190,7 @@ class _Operations {
 
   // Handles uses of '[]' for declaring array types and for accessing
   //  values by key/index in collections.
-  static Handle squareBrackets(Iterable<Handle> operands) {
+  static Handle subscript(Iterable<Handle> operands) {
     // "Type[]" is an array of values of type 'Type'.
     if (operands.first.value is ValueType) {
       return ArrayType(operands.first.value as ValueType).createHandle();
@@ -364,8 +364,8 @@ class _Operator {
 class ShuntingYard {
   static var operators = <String, _Operator>{
     '.': _Operator(_Side.Left, 18.0, 2, _Fix.In, _Operations.dot),
-    '[]': _Operator(_Side.Left, 18.0, 1, _Fix.Post, _Operations.squareBrackets),
-    '\\:': _Operator(_Side.Left, 18.0, 1, _Fix.In, _Operations.call),
+    '[]': _Operator(_Side.Left, 18.0, 1, _Fix.Post, _Operations.subscript),
+    '\\:': _Operator(_Side.Left, 18.0, 1, _Fix.In, null),
 
     // Only post at the moment, so '++n' doesn't work.
     '++': _Operator(_Side.Left, 16.0, 1, _Fix.Post, _Operations.increment),
@@ -377,7 +377,7 @@ class ShuntingYard {
     '->':
         _Operator(_Side.Right, 15.0, 1, _Fix.Pre, _Operations.inlineDirection),
     '@': _Operator(_Side.Right, 15.0, 1, _Fix.Pre, _Operations.referenceTo),
-    '#': _Operator(_Side.Right, 15.0, 1, _Fix.Pre, _Operations.squareBrackets),
+    '#': _Operator(_Side.Right, 15.0, 1, _Fix.Pre, _Operations.subscript),
 
     '*': _Operator(_Side.Left, 14.0, 2, _Fix.In, _Operations.multiply),
     '/': _Operator(_Side.Left, 14.0, 2, _Fix.In, _Operations.divide),
@@ -441,13 +441,6 @@ class ShuntingYard {
   }
 
   static List<Token> toPostfix(List<Token> infix) {
-    if (!operators.containsKey('call')) {
-      // Add the call operator now. If it was there to start with,
-      //  the lexer would pick up the word 'call' as an operator.
-      operators['call'] =
-          _Operator(_Side.Left, 18, 2, _Fix.Post, _Operations.call);
-    }
-
     var output = <Token>[];
     var stack = <Token>[];
 
@@ -461,20 +454,17 @@ class ShuntingYard {
 
       if (operator == null) {
         if (wasOperand && GroupPattern('(', ')').hasMatch(token)) {
-          // Operand and then parentheses, so this could be a call.
-          output.add(GroupToken(<Token>[TextToken(TokenType.Symbol, '{')] +
-              token.allTokens() +
-              <Token>[TextToken(TokenType.Symbol, '}')]));
+          var group = token as GroupToken;
+          group.children[0] = TextToken(TokenType.Symbol, '\\');
+          group.children.last = TextToken(TokenType.Symbol, ':');
 
-          // Add a 'call' token.
-          output.add(TextToken(TokenType.Symbol, 'call'));
+          operator = getOperator(token);
+        } else {
+          previousWasOperand = true;
+
+          output.add(token);
           continue;
         }
-
-        previousWasOperand = true;
-
-        output.add(token);
-        continue;
       }
 
       // Prefix operators go on the stack.
@@ -487,7 +477,7 @@ class ShuntingYard {
       //  already in RPN (which is pure postfix).
       if (operator.fixity == _Fix.Post) {
         output.add(token);
-        // previousWasOperand = true;
+        previousWasOperand = true;
         continue;
       }
 
@@ -587,33 +577,11 @@ class ShuntingYard {
   static Handle evaluate(List<Token> tokens) {
     var numberStack = <Handle>[];
 
-    // The same as 'tokens' but with group operators (such as '[]') split
-    //  into multiple tokens. 'x[0]' would become 'x (0) []', with '0' being
-    //  the second operand for the '[]' operator.
-    var postfix = <Token>[];
-
     for (var token in tokens) {
-      // if (isOperator(token) &&
-      //     token is GroupToken &&
-      //     token.middle().isNotEmpty) {
-      //   var separatedTokens = <Token>[
-      //     TextToken(TokenType.Symbol, '('),
-      //     TextToken(TokenType.Symbol, ')')
-      //   ];
-      //
-      //   separatedTokens.insertAll(1, token.middle());
-      //
-      //   postfix.add(GroupToken(separatedTokens));
-      //   postfix.add(GroupToken([token.children.first, token.children.last]));
-      // } else {
-      postfix.add(token);
-      // }
-    }
-
-    for (var token in postfix) {
       var operator = getOperator(token);
 
       if (operator == null) {
+        // Allow initialiser lists.
         var isBraceGroup = GroupPattern('{', '}').hasMatch(token);
         var expression =
             Parse.expression(isBraceGroup ? [token] : token.allTokens());
@@ -648,7 +616,7 @@ class ShuntingYard {
     if (numberStack.length > 1) {
       // Location will be approximate.
       throw InvalidSyntaxException('Invalid operator expression.', 1,
-          postfix.first.line, postfix.first.column);
+          tokens.first.line, tokens.first.column);
     }
 
     return numberStack.last;

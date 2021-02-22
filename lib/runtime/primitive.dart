@@ -1,4 +1,6 @@
+import 'concrete.dart';
 import 'exception.dart';
+import 'function.dart';
 import 'handle.dart';
 import 'store.dart';
 import 'type.dart';
@@ -20,9 +22,9 @@ class PrimitiveType extends ValueType {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is PrimitiveType &&
-          runtimeType == other.runtimeType &&
-          _type == other._type;
+          other is PrimitiveType &&
+              runtimeType == other.runtimeType &&
+              _type == other._type;
 
   @override
   int get hashCode => _type.hashCode;
@@ -113,9 +115,9 @@ class IntegerValue extends PrimitiveValue {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is IntegerValue &&
-          runtimeType == other.runtimeType &&
-          value == other.value;
+          other is IntegerValue &&
+              runtimeType == other.runtimeType &&
+              value == other.value;
 
   @override
   int get hashCode => value.hashCode;
@@ -151,9 +153,9 @@ class StringValue extends PrimitiveValue {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is StringValue &&
-          runtimeType == other.runtimeType &&
-          value == other.value;
+          other is StringValue &&
+              runtimeType == other.runtimeType &&
+              value == other.value;
 
   @override
   int get hashCode => value.hashCode;
@@ -161,7 +163,15 @@ class StringValue extends PrimitiveValue {
   @override
   Handle dot(String name) {
     if (name == 'length') {
-      return IntegerValue.raw(value.length).createHandle();
+      var func = FunctionValue('length', PrimitiveType.integer, <Statement>[
+        SideEffectStatement(() {
+          return SideEffect.returns(
+              IntegerValue.raw(value.length).createHandle());
+        })
+      ])
+        ..applyType();
+
+      return func.createHandle();
     }
 
     throw RuntimeError('Unable to find "$name" on type "$type".');
