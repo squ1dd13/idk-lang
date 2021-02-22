@@ -40,7 +40,62 @@ class OperatorExpression implements Expression {
       found.first.throwSyntax('Invalid expression! Found only one symbol.', 1);
     }
 
-    _tokens = ShuntingYard.toPostfix(found);
+    _tokens = found;
+    _preprocess();
+  }
+
+  void _preprocess() {
+    _findHiddenUnaryOperators();
+    _stringifyMemberAccess();
+    _tokens = ShuntingYard.toPostfix(_tokens);
+  }
+
+  void _findHiddenUnaryOperators() {
+    const minusPattern = TokenPattern(string: '-', type: TokenType.Symbol);
+
+    for (var i = 0; i < _tokens.length; ++i) {
+      if (minusPattern.hasMatch(_tokens[i])) {
+        var isUnary = false;
+
+        if (i == 0) {
+          isUnary = true;
+        } else {
+          var previousOperator = ShuntingYard.getOperator(_tokens[i - 1]);
+
+          if (previousOperator != null && previousOperator.fixity == _Fix.In) {
+            isUnary = true;
+          }
+        }
+
+        if (isUnary) {
+          _tokens[i] = TextToken(TokenType.Symbol, '-u');
+        }
+      }
+    }
+  }
+
+  void _stringifyMemberAccess() {
+    var nextIsMember = false;
+    var output = <Token>[];
+
+    const dotPattern = TokenPattern(string: '.', type: TokenType.Symbol);
+
+    for (var token in _tokens) {
+      if (nextIsMember) {
+        if (token.type != TokenType.Name) {
+          token.throwSyntax('"." operator must precede a valid name.', 10);
+        }
+
+        token.type = TokenType.String;
+        nextIsMember = false;
+      } else {
+        nextIsMember = dotPattern.hasMatch(token);
+      }
+
+      output.add(token);
+    }
+
+    _tokens = output;
   }
 
   @override
@@ -129,6 +184,10 @@ class _Operations {
     return oldValue.createHandle();
   }
 
+  static Handle dot(Iterable<Handle> operands) {
+    return operands.first.value.dot(operands.last.value.toString());
+  }
+
   // Handles uses of '[]' for declaring array types and for accessing
   //  values by key/index in collections.
   static Handle squareBrackets(Iterable<Handle> operands) {
@@ -139,6 +198,38 @@ class _Operations {
 
     // "something[n]" is an access to the nth item in the 'something'.
     return operands.first.value.at(operands.last.value);
+  }
+
+  static Handle call(Iterable<Handle> operands) {
+    // Find something to call, then call it.
+    var resolvedValue = operands.first.value;
+
+    if (!(resolvedValue is FunctionValue)) {
+      throw Exception('Cannot call non-function "$resolvedValue"!');
+    }
+
+    // var argumentsArray = (operands.last as ArrayValue).elements;
+
+    var functionValue = resolvedValue as FunctionValue;
+    var parameters = functionValue.parameters;
+
+    var argumentsArray = (operands.last.value as InitializerList).contents;
+
+    if (argumentsArray.length != parameters.length) {
+      throw Exception(
+          'Incorrect number of arguments in call to function "$resolvedValue"! '
+          '(Expected ${parameters.length}, got ${argumentsArray.length}.)');
+    }
+
+    // Map the arguments to their names.
+    var mappedArguments = <String, Handle>{};
+    var parameterNames = parameters.keys.toList();
+
+    for (var i = 0; i < argumentsArray.length; ++i) {
+      mappedArguments[parameterNames[i]] = argumentsArray[i];
+    }
+
+    return functionValue.call(mappedArguments);
   }
 
   static Handle not(Iterable<Handle> operands) {
@@ -272,8 +363,9 @@ class _Operator {
 
 class ShuntingYard {
   static var operators = <String, _Operator>{
-    '.': _Operator(_Side.Left, 18.0, 2, _Fix.In, null),
-    '[]': _Operator(_Side.Left, 18.0, 2, _Fix.Post, _Operations.squareBrackets),
+    '.': _Operator(_Side.Left, 18.0, 2, _Fix.In, _Operations.dot),
+    '[]': _Operator(_Side.Left, 18.0, 1, _Fix.Post, _Operations.squareBrackets),
+    '\\:': _Operator(_Side.Left, 18.0, 1, _Fix.In, _Operations.call),
 
     // Only post at the moment, so '++n' doesn't work.
     '++': _Operator(_Side.Left, 16.0, 1, _Fix.Post, _Operations.increment),
@@ -340,7 +432,7 @@ class ShuntingYard {
         operators.containsKey(token.toString());
   }
 
-  static _Operator _getOperator(Token token) {
+  static _Operator getOperator(Token token) {
     if (isOperator(token)) {
       return operators[token.toString()];
     }
@@ -348,63 +440,12 @@ class ShuntingYard {
     return null;
   }
 
-  static List<Token> toPostfix(List<Token> input) {
-    const minusPattern = TokenPattern(string: '-', type: TokenType.Symbol);
-
-    for (var i = 0; i < input.length; ++i) {
-      if (minusPattern.hasMatch(input[i])) {
-        var isUnary = false;
-
-        if (i == 0) {
-          isUnary = true;
-        } else {
-          var previousOperator = _getOperator(input[i - 1]);
-
-          if (previousOperator != null && previousOperator.fixity == _Fix.In) {
-            isUnary = true;
-          }
-        }
-
-        if (isUnary) {
-          input[i] = TextToken(TokenType.Symbol, '-u');
-        }
-      }
-    }
-
+  static List<Token> toPostfix(List<Token> infix) {
     if (!operators.containsKey('call')) {
       // Add the call operator now. If it was there to start with,
       //  the lexer would pick up the word 'call' as an operator.
-      operators['call'] = _Operator(_Side.Left, 18, 2, _Fix.Post, (operands) {
-        // Find something to call, then call it.
-        var resolvedValue = operands.first.value;
-
-        if (!(resolvedValue is FunctionValue)) {
-          throw Exception('Cannot call non-function "$resolvedValue"!');
-        }
-
-        // var argumentsArray = (operands.last as ArrayValue).elements;
-
-        var functionValue = resolvedValue as FunctionValue;
-        var parameters = functionValue.parameters;
-
-        var argumentsArray = (operands.last.value as InitializerList).contents;
-
-        if (argumentsArray.length != parameters.length) {
-          throw Exception(
-              'Incorrect number of arguments in call to function "$resolvedValue"! '
-              '(Expected ${parameters.length}, got ${argumentsArray.length}.)');
-        }
-
-        // Map the arguments to their names.
-        var mappedArguments = <String, Handle>{};
-        var parameterNames = parameters.keys.toList();
-
-        for (var i = 0; i < argumentsArray.length; ++i) {
-          mappedArguments[parameterNames[i]] = argumentsArray[i];
-        }
-
-        return functionValue.call(mappedArguments);
-      });
+      operators['call'] =
+          _Operator(_Side.Left, 18, 2, _Fix.Post, _Operations.call);
     }
 
     var output = <Token>[];
@@ -412,11 +453,11 @@ class ShuntingYard {
 
     var previousWasOperand = false;
 
-    for (var token in input) {
+    for (var token in infix) {
       var wasOperand = previousWasOperand;
       previousWasOperand = false;
 
-      var operator = _getOperator(token);
+      var operator = getOperator(token);
 
       if (operator == null) {
         if (wasOperand && GroupPattern('(', ')').hasMatch(token)) {
@@ -446,14 +487,14 @@ class ShuntingYard {
       //  already in RPN (which is pure postfix).
       if (operator.fixity == _Fix.Post) {
         output.add(token);
-        previousWasOperand = true;
+        // previousWasOperand = true;
         continue;
       }
 
       // Move from the operator stack to the output until the stack is empty
       //  or until we encounter something that isn't ready to be moved yet.
       while (stack.isNotEmpty) {
-        var stackOperator = _getOperator(stack.last);
+        var stackOperator = getOperator(stack.last);
 
         if (stackOperator == null) {
           break;
@@ -482,82 +523,65 @@ class ShuntingYard {
     return output;
   }
 
-  static List<Token> toPostfixOld(List<Token> input) {
-    var output = <Token>[];
-    var stack = <Token>[];
+  static Handle Function(Iterable<Handle>) _getOperation(Token token) {
+    var callPattern = GroupPattern('\\', ':');
+    var subscriptPattern = GroupPattern('[', ']');
 
-    const minusPattern = TokenPattern(string: '-', type: TokenType.Symbol);
-    for (var i = 0; i < input.length; ++i) {
-      if (minusPattern.hasMatch(input[i])) {
-        var isUnary = false;
-
-        if (i == 0) {
-          isUnary = true;
-        } else {
-          var previousOperator = _getOperator(input[i - 1]);
-
-          if (previousOperator != null && previousOperator.fixity == _Fix.In) {
-            isUnary = true;
-          }
-        }
-
-        if (isUnary) {
-          input[i] = TextToken(TokenType.Symbol, '-u');
-        }
-      }
+    if (callPattern.notMatch(token) && subscriptPattern.notMatch(token)) {
+      return operators[token.toString()].operation;
     }
 
-    for (var token in input) {
-      var operator = _getOperator(token);
+    if (subscriptPattern.hasMatch(token)) {
+      var keyExpression = Parse.expression(token.allTokens());
 
-      if (operator == null) {
-        output.add(token);
-        continue;
-      }
-
-      // Prefix operators go on the stack.
-      if (operator.fixity == _Fix.Pre) {
-        stack.add(token);
-        continue;
-      }
-
-      // Postfix operators go directly to the output, since they are
-      //  already in RPN (which is pure postfix).
-      if (operator.fixity == _Fix.Post) {
-        output.add(token);
-        continue;
-      }
-
-      // Move from the operator stack to the output until the stack is empty
-      //  or until we encounter something that isn't ready to be moved yet.
-      while (stack.isNotEmpty) {
-        var stackOperator = _getOperator(stack.last);
-
-        if (stackOperator == null) {
-          break;
-        }
-
-        var precedence = stackOperator.precedence;
-
-        if (operator.associativity == _Side.Left &&
-                operator.precedence <= precedence ||
-            operator.precedence < precedence) {
-          output.add(stack.removeLast());
-          continue;
-        }
-
-        break;
-      }
-
-      stack.add(token);
+      return (operands) {
+        var key = keyExpression.evaluate();
+        return operands.first.value.at(key.value);
+      };
     }
 
-    while (stack.isNotEmpty) {
-      var token = stack.removeLast();
-      output.add(token);
+    // Call pattern.
+    var argumentGroup = token as GroupToken;
+    var argumentSegments = Parse.split(argumentGroup.contents(),
+        TokenPattern(string: ',', type: TokenType.Symbol));
+
+    var arguments = <Expression>[];
+    for (var segment in argumentSegments) {
+      arguments.add(Parse.expression(segment));
     }
 
-    return output;
+    return (operands) {
+      var value = operands.first.value;
+
+      // We only get one operand, and that's the thing being called.
+      if (!(value is FunctionValue)) {
+        throw Exception('Cannot call non-function "$value"!');
+      }
+
+      var functionValue = value as FunctionValue;
+      var parameters = functionValue.parameters;
+
+      var argumentsArray = <Handle>[];
+      for (var expression in arguments) {
+        argumentsArray.add(expression.evaluate());
+      }
+
+      if (argumentsArray.length != parameters.length) {
+        throw Exception(
+            'Incorrect number of arguments in call to function "$value"! '
+            '(Expected ${parameters.length}, got ${argumentsArray.length}.)');
+      }
+
+      // Map the arguments to their names.
+      var mappedArguments = <String, Handle>{};
+      var parameterNames = parameters.keys.toList();
+
+      for (var i = 0; i < argumentsArray.length; ++i) {
+        mappedArguments[parameterNames[i]] = argumentsArray[i];
+      }
+
+      return functionValue.call(mappedArguments);
+    };
   }
 
   static Handle evaluate(List<Token> tokens) {
@@ -569,25 +593,25 @@ class ShuntingYard {
     var postfix = <Token>[];
 
     for (var token in tokens) {
-      if (isOperator(token) &&
-          token is GroupToken &&
-          token.middle().isNotEmpty) {
-        var separatedTokens = <Token>[
-          TextToken(TokenType.Symbol, '('),
-          TextToken(TokenType.Symbol, ')')
-        ];
-
-        separatedTokens.insertAll(1, token.middle());
-
-        postfix.add(GroupToken(separatedTokens));
-        postfix.add(GroupToken([token.children.first, token.children.last]));
-      } else {
-        postfix.add(token);
-      }
+      // if (isOperator(token) &&
+      //     token is GroupToken &&
+      //     token.middle().isNotEmpty) {
+      //   var separatedTokens = <Token>[
+      //     TextToken(TokenType.Symbol, '('),
+      //     TextToken(TokenType.Symbol, ')')
+      //   ];
+      //
+      //   separatedTokens.insertAll(1, token.middle());
+      //
+      //   postfix.add(GroupToken(separatedTokens));
+      //   postfix.add(GroupToken([token.children.first, token.children.last]));
+      // } else {
+      postfix.add(token);
+      // }
     }
 
     for (var token in postfix) {
-      var operator = _getOperator(token);
+      var operator = getOperator(token);
 
       if (operator == null) {
         var isBraceGroup = GroupPattern('{', '}').hasMatch(token);
@@ -612,7 +636,7 @@ class ShuntingYard {
       }
 
       // Carry out the operation and push the result onto the stack.
-      numberStack.add(operator.operation(operands));
+      numberStack.add(_getOperation(token)(operands));
 
       continue;
     }

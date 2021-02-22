@@ -43,9 +43,9 @@ class TokenStream {
     _savedPositions.removeLast();
   }
 
-  Token current() => _collection[_index];
+  Token current() => _collection[_index].copy();
 
-  Token take() => _collection[_index++];
+  Token take() => _collection[_index++].copy();
 
   void skip() => _index++;
 

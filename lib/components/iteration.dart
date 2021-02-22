@@ -29,8 +29,9 @@ class Loop implements Statable {
     //  number of tokens there are before the next 'in' to the number of
     //  tokens there are before the next braced group. If an 'in' comes
     //  before the braces, we know that this must be a for-each loop.
-    var untilIn = tokens
-        .takeWhile(TokenPattern(string: 'in', type: TokenType.Name).notMatch);
+    var inPattern = TokenPattern(string: 'in', type: TokenType.Name);
+
+    var untilIn = tokens.takeWhile(inPattern.notMatch);
     tokens.restoreIndex();
 
     var untilBraces = tokens.takeWhile(GroupPattern('{', '}').notMatch);
@@ -49,6 +50,13 @@ class Loop implements Statable {
       }
 
       _readClassicHeader(untilBraces);
+    } else {
+      // TODO: Allow multiple loop variables ("for let x, y in something").
+
+      // Skip until 'in' because we already have the tokens up to there.
+      tokens.skipWhile(inPattern.notMatch);
+
+      // TODO: for..in (unimplemented until iterators exist).
     }
 
     _body = Parse.statements(tokens.take().allTokens());

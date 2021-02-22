@@ -31,6 +31,8 @@ abstract class Token {
   void throwSyntax(String message, int stage) {
     throw InvalidSyntaxException(message, stage, line, column);
   }
+
+  Token copy();
 }
 
 class TextToken extends Token {
@@ -43,6 +45,11 @@ class TextToken extends Token {
   @override
   String toString() {
     return _text;
+  }
+
+  @override
+  Token copy() {
+    return TextToken(type, _text);
   }
 }
 
@@ -90,10 +97,15 @@ class GroupToken extends Token {
   String toString() {
     return children.first.toString() + children.last.toString();
   }
+
+  @override
+  Token copy() {
+    return GroupToken(children);
+  }
 }
 
 const _whitespace = ' \t\n\r';
-const _symbols = ',@<>[]{}()+=/?-#~:;|!\$%^&*';
+const _symbols = ',.@<>[]{}()+=/?-#~:;|!\\\$%^&*';
 
 class Lexer {
   var generatedTokens = <Token>[];
@@ -403,6 +415,7 @@ class Lexer {
       '{': '}',
       '(': ')',
       '[': ']',
+      '\\': ':',
     };
 
     // Our token groups. We start with one empty group for top-level tokens.

@@ -134,4 +134,13 @@ class ArrayValue extends Value {
   Handle at(Value key) {
     return elements[(key as IntegerValue).rawValue];
   }
+
+  @override
+  Handle dot(String name) {
+    if (name == 'length') {
+      return IntegerValue.raw(elements.length).createHandle();
+    }
+
+    throw RuntimeError('Unable to find "$name" on type "$type".');
+  }
 }

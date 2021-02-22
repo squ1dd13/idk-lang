@@ -49,4 +49,8 @@ abstract class Value {
   bool operator ==(Object other) {
     throw Exception("Don't compare Evaluables with ==.");
   }
+
+  Handle dot(String name) {
+    throw RuntimeError('Cannot use "." with "$type".');
+  }
 }

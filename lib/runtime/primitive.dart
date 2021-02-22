@@ -1,4 +1,6 @@
 import 'exception.dart';
+import 'handle.dart';
+import 'store.dart';
 import 'type.dart';
 import 'value.dart';
 
@@ -117,6 +119,15 @@ class IntegerValue extends PrimitiveValue {
 
   @override
   int get hashCode => value.hashCode;
+
+  @override
+  Handle dot(String name) {
+    if (name == 'getPrint') {
+      return Store.current().get('print');
+    }
+
+    throw RuntimeError('Unable to find "$name" on type "$type".');
+  }
 }
 
 class StringValue extends PrimitiveValue {
@@ -146,6 +157,20 @@ class StringValue extends PrimitiveValue {
 
   @override
   int get hashCode => value.hashCode;
+
+  @override
+  Handle dot(String name) {
+    if (name == 'length') {
+      return IntegerValue.raw(value.length).createHandle();
+    }
+
+    throw RuntimeError('Unable to find "$name" on type "$type".');
+  }
+
+  @override
+  Handle at(Value key) {
+    return StringValue(value[(key as IntegerValue).value]).createHandle();
+  }
 }
 
 class BooleanValue extends PrimitiveValue {
