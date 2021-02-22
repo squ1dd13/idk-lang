@@ -54,6 +54,14 @@ class TypeName {
       return true;
     });
 
+    const colonPattern = TokenPattern(string: ':', type: TokenType.Symbol);
+    const dotPattern = TokenPattern(string: '.', type: TokenType.Symbol);
+
+    if (colonPattern.hasMatch(typeTokens.last) ||
+        dotPattern.hasMatch(typeTokens.last)) {
+      typeTokens.last.throwSyntax('Invalid ending token.', 1);
+    }
+
     _typeExpression = OperatorExpression(TokenStream(typeTokens, 0));
   }
 

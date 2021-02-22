@@ -1,6 +1,11 @@
+import 'package:language/runtime/function.dart';
+import 'package:language/runtime/store.dart';
+
 import 'array.dart';
+import 'concrete.dart';
 import 'exception.dart';
 import 'handle.dart';
+import 'object.dart';
 import 'primitive.dart';
 import 'value.dart';
 
@@ -88,8 +93,10 @@ class TypeOfType extends ValueType {
 /// A class type. Equality is determined by name.
 class ClassType extends ValueType {
   final String name;
+  final List<Statement> _setupStatements;
+  final Handle superclass;
 
-  ClassType(this.name);
+  ClassType(this.name, this._setupStatements, this.superclass);
 
   @override
   bool operator ==(Object other) =>
@@ -103,7 +110,7 @@ class ClassType extends ValueType {
 
   @override
   Value copyValue() {
-    return ClassType(name);
+    return ClassType(name, _setupStatements, superclass);
   }
 
   @override
@@ -123,6 +130,47 @@ class ClassType extends ValueType {
   Value convertObjectTo(Value object, ValueType endType) {
     assertConvertibleTo(endType);
     return object;
+  }
+
+  Store createObjectStore(ClassObject object, {bool asSuper = false}) {
+    Store store;
+
+    if (superclass != null) {
+      var superInstance = ClassObject(superclass.value as ClassType);
+
+      store = Store(superInstance.store);
+      store.add('super', superInstance.createHandle());
+    }
+
+    // If we don't have one already, create a new store.
+    store ??= Store(Store.global());
+
+    Store.stack.add(store);
+
+    for (var statement in _setupStatements) {
+      // TODO: Handle exceptions in populate().
+      statement.execute();
+    }
+
+    // Wrap all functions. We check handleType because it only gives us real
+    //  functions rather than references to functions, and we know that all the
+    //  actual functions are not references (whereas function variables must be
+    //  references).
+    var functionPredicate = (handle) => handle.handleType is FunctionType;
+
+    var functions = store.matching(functionPredicate);
+
+    for (var i = 0; i < functions.length; ++i) {
+      var functionValue = functions[i].value as FunctionValue;
+      functions[i].value = functionValue.wrappedForStore(store);
+    }
+
+    // Add 'self' so that it may be used in methods.
+    store.add('self', object.createHandle());
+
+    Store.stack.removeLast();
+
+    return store;
   }
 }
 
@@ -326,7 +374,7 @@ class ArrayType extends ValueType {
     var arrayType = endType as ArrayType;
 
     var mapped =
-        array.elements.map((e) => e.convertHandleTo(arrayType.elementType));
+    array.elements.map((e) => e.convertHandleTo(arrayType.elementType));
 
     return ArrayValue(endType, mapped.toList());
   }

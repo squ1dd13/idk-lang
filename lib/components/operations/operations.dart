@@ -236,6 +236,11 @@ class Operations {
         _getRaw<bool>(operands.first) || _getRaw<bool>(operands.last));
   }
 
+  static Handle assign(Iterable<Handle> operands) {
+    operands.first.value = operands.last.value;
+    return NullType.nullHandle();
+  }
+
   static Handle addAssign(Iterable<Handle> operands) {
     operands.first.value = add(operands).value;
     return _wrapPrimitive(operands.first);

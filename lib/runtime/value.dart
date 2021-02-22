@@ -33,6 +33,8 @@ abstract class Value {
   /// Helper method to create a [Handle] for this value.
   Handle createHandle() => Handle.create(this);
 
+  Handle createConstant() => Handle.constant(this);
+
   bool equals(Value other);
 
   bool notEquals(Value other) => !equals(other);

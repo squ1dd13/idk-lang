@@ -106,6 +106,7 @@ class ShuntingYard {
 
     // Ternary here
 
+    '=': _Operator(_Side.Right, 3.0, 2, Fix.In, Operations.assign),
     '+=': _Operator(_Side.Right, 3.0, 2, Fix.In, Operations.addAssign),
     '-=': _Operator(_Side.Right, 3.0, 2, Fix.In, Operations.subtractAssign),
     '*=': _Operator(_Side.Right, 3.0, 2, Fix.In, Operations.multiplyAssign),

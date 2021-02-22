@@ -74,13 +74,42 @@ class FunctionType extends ValueType {
 }
 
 class FunctionValue extends Value {
-  final String name;
-  final ValueType returnType;
-  final Map<String, ValueType> parameters;
-  final List<Statement> _statements;
+  String name;
+  ValueType returnType;
+  Map<String, ValueType> parameters;
+  List<Statement> _statements;
+  Store Function() _getExecutionStore = () => Store.current();
+
+  FunctionValue.empty();
 
   FunctionValue(this.name, this.returnType, this._statements)
       : parameters = <String, ValueType>{};
+
+  FunctionValue.implemented(
+      int parameterCount, SideEffect Function(List<Handle>) implementation,
+      {String named, ValueType returns}) {
+    name = named ?? 'closure_${implementation.hashCode}';
+    returnType = returns ?? AnyType();
+
+    parameters = <String, ValueType>{};
+    for (var i = 0; i < parameterCount; ++i) {
+      parameters['arg$i'] = AnyType();
+    }
+
+    _statements = [
+      SideEffectStatement(() {
+        var arguments = List<Handle>.filled(parameterCount, null);
+
+        for (var i = 0; i < parameterCount; ++i) {
+          arguments[i] = Store.current().get('arg$i');
+        }
+
+        return implementation(arguments);
+      })
+    ];
+
+    applyType();
+  }
 
   void addParameter(String name, ValueType type) {
     parameters[name] = type;
@@ -92,11 +121,27 @@ class FunctionValue extends Value {
     type = FunctionType(this);
   }
 
+  /// Returns a shallow copy of this function value which is always executed
+  /// in a branch of [store] rather than of `Store.current()`.
+  FunctionValue wrappedForStore(Store store) {
+    var wrapped = FunctionValue.empty();
+    wrapped.name = name;
+    wrapped.returnType = returnType;
+    wrapped.type = type;
+    wrapped.parameters = parameters;
+    wrapped._statements = _statements;
+    wrapped._getExecutionStore = () => store;
+
+    return wrapped;
+  }
+
   Handle call(Map<String, Handle> arguments) {
     var returnedHandle = NullType.nullHandle();
 
+    var executionParentStore = _getExecutionStore();
+
     // Open a new scope for the function body to run inside.
-    Store.current().branch((store) {
+    executionParentStore.branch((store) {
       for (var name in arguments.keys) {
         var copied = arguments[name].copyHandle();
         store.add(name, copied.convertHandleTo(parameters[name]));

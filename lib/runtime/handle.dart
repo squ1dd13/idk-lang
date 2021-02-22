@@ -23,6 +23,10 @@ abstract class Handle {
     return Reference(handle);
   }
 
+  factory Handle.constant(Value value) {
+    return Constant(value);
+  }
+
   // Note that we specify "handle" and "value" in many of the identifiers here.
   // This is to make it clear what the user is working with - handles or values.
 

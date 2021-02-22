@@ -11,6 +11,8 @@ class Store {
 
   static Store current() => stack.last;
 
+  static Store global() => stack.first;
+
   void add(String name, Handle item) {
     if (has(name)) {
       throw RuntimeError('$name already exists in this scope.');
@@ -37,6 +39,18 @@ class Store {
 
   bool has(String name) {
     return _contents.containsKey(name);
+  }
+
+  List<Handle> matching(bool Function(Handle) predicate) {
+    var matches = <Handle>[];
+
+    for (var handle in _contents.values) {
+      if (predicate(handle)) {
+        matches.add(handle);
+      }
+    }
+
+    return matches;
   }
 
   /// Branches the current store off into another, and runs a block

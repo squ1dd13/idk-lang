@@ -5,6 +5,7 @@ import 'package:language/runtime/expression.dart';
 import 'package:language/runtime/store.dart';
 
 import 'components/assignment.dart';
+import 'components/class.dart';
 import 'components/collection.dart';
 import 'components/conditional.dart';
 import 'components/declaration.dart';
@@ -25,6 +26,7 @@ class Parse {
     (stream) => Direction.redirection(stream).createStatement(),
     (stream) => FunctionDeclaration(stream).createStatement(),
     (stream) => FlowStatement(stream).createStatement(),
+    (stream) => ClassDeclaration(stream).createStatement(),
 
     (stream) {
       var statement = Statement(OperatorExpression(stream));
