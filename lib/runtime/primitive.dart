@@ -22,9 +22,9 @@ class PrimitiveType extends ValueType {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is PrimitiveType &&
-              runtimeType == other.runtimeType &&
-              _type == other._type;
+      other is PrimitiveType &&
+          runtimeType == other.runtimeType &&
+          _type == other._type;
 
   @override
   int get hashCode => _type.hashCode;
@@ -115,9 +115,9 @@ class IntegerValue extends PrimitiveValue {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is IntegerValue &&
-              runtimeType == other.runtimeType &&
-              value == other.value;
+      other is IntegerValue &&
+          runtimeType == other.runtimeType &&
+          value == other.value;
 
   @override
   int get hashCode => value.hashCode;
@@ -153,9 +153,9 @@ class StringValue extends PrimitiveValue {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is StringValue &&
-              runtimeType == other.runtimeType &&
-              value == other.value;
+      other is StringValue &&
+          runtimeType == other.runtimeType &&
+          value == other.value;
 
   @override
   int get hashCode => value.hashCode;

@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:language/components/util.dart';
 import 'package:language/lexer.dart';
 import 'package:language/parser.dart';
-import 'package:language/runtime/array.dart';
 import 'package:language/runtime/exception.dart';
 import 'package:language/runtime/expression.dart';
 import 'package:language/runtime/function.dart';
@@ -172,10 +171,6 @@ class _Operations {
     return (T == Handle) ? conversion(value).createHandle() : conversion(value);
   }
 
-  static Handle exponent(Iterable<Handle> operands) {
-    return _wrapPrimitive(pow(_getRaw(operands.first), _getRaw(operands.last)));
-  }
-
   static Handle increment(Iterable<Handle> operands) {
     var oldValue = _wrapPrimitive<Value>(_getRaw(operands.first));
 
@@ -198,38 +193,6 @@ class _Operations {
 
     // "something[n]" is an access to the nth item in the 'something'.
     return operands.first.value.at(operands.last.value);
-  }
-
-  static Handle call(Iterable<Handle> operands) {
-    // Find something to call, then call it.
-    var resolvedValue = operands.first.value;
-
-    if (!(resolvedValue is FunctionValue)) {
-      throw Exception('Cannot call non-function "$resolvedValue"!');
-    }
-
-    // var argumentsArray = (operands.last as ArrayValue).elements;
-
-    var functionValue = resolvedValue as FunctionValue;
-    var parameters = functionValue.parameters;
-
-    var argumentsArray = (operands.last.value as InitializerList).contents;
-
-    if (argumentsArray.length != parameters.length) {
-      throw Exception(
-          'Incorrect number of arguments in call to function "$resolvedValue"! '
-          '(Expected ${parameters.length}, got ${argumentsArray.length}.)');
-    }
-
-    // Map the arguments to their names.
-    var mappedArguments = <String, Handle>{};
-    var parameterNames = parameters.keys.toList();
-
-    for (var i = 0; i < argumentsArray.length; ++i) {
-      mappedArguments[parameterNames[i]] = argumentsArray[i];
-    }
-
-    return functionValue.call(mappedArguments);
   }
 
   static Handle not(Iterable<Handle> operands) {
@@ -365,7 +328,6 @@ class ShuntingYard {
   static var operators = <String, _Operator>{
     '.': _Operator(_Side.Left, 18.0, 2, _Fix.In, _Operations.dot),
     '[]': _Operator(_Side.Left, 18.0, 1, _Fix.Post, _Operations.subscript),
-    '\\:': _Operator(_Side.Left, 18.0, 1, _Fix.In, null),
 
     // Only post at the moment, so '++n' doesn't work.
     '++': _Operator(_Side.Left, 16.0, 1, _Fix.Post, _Operations.increment),
@@ -413,7 +375,6 @@ class ShuntingYard {
 
     // Ternary here
 
-    // '->': _Operator(_Side.Right, 3.0, 2, _Fix.In, _Operations.redirect),
     '+=': _Operator(_Side.Right, 3.0, 2, _Fix.In, _Operations.addAssign),
     '-=': _Operator(_Side.Right, 3.0, 2, _Fix.In, _Operations.subtractAssign),
     '*=': _Operator(_Side.Right, 3.0, 2, _Fix.In, _Operations.multiplyAssign),
@@ -423,6 +384,19 @@ class ShuntingYard {
 
     '...': _Operator(_Side.Right, 1.0, 1, _Fix.Pre, null),
   };
+
+  static var _addedHidden = false;
+
+  static void _addHiddenOperators() {
+    if (_addedHidden) {
+      return;
+    }
+
+    // "call" here is actually for the group ("call", "") so we can still
+    //  package arguments but using a different group from "()".
+    operators['call'] = _Operator(_Side.Left, 18.0, 1, _Fix.In, null);
+    _addedHidden = true;
+  }
 
   static bool isOperator(Token token) {
     // We need to check if the token is actually an operator token, because
@@ -441,6 +415,8 @@ class ShuntingYard {
   }
 
   static List<Token> toPostfix(List<Token> infix) {
+    _addHiddenOperators();
+
     var output = <Token>[];
     var stack = <Token>[];
 
@@ -455,8 +431,8 @@ class ShuntingYard {
       if (operator == null) {
         if (wasOperand && GroupPattern('(', ')').hasMatch(token)) {
           var group = token as GroupToken;
-          group.children[0] = TextToken(TokenType.Symbol, '\\');
-          group.children.last = TextToken(TokenType.Symbol, ':');
+          group.children.first = TextToken(TokenType.Symbol, 'call');
+          group.children.last = TextToken(TokenType.Symbol, '');
 
           operator = getOperator(token);
         } else {
@@ -493,7 +469,7 @@ class ShuntingYard {
         var precedence = stackOperator.precedence;
 
         if (operator.associativity == _Side.Left &&
-                operator.precedence <= precedence ||
+            operator.precedence <= precedence ||
             operator.precedence < precedence) {
           output.add(stack.removeLast());
           continue;
@@ -514,7 +490,7 @@ class ShuntingYard {
   }
 
   static Handle Function(Iterable<Handle>) _getOperation(Token token) {
-    var callPattern = GroupPattern('\\', ':');
+    var callPattern = GroupPattern('call', '');
     var subscriptPattern = GroupPattern('[', ']');
 
     if (callPattern.notMatch(token) && subscriptPattern.notMatch(token)) {
