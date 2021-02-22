@@ -415,7 +415,6 @@ class Lexer {
       '{': '}',
       '(': ')',
       '[': ']',
-      '\\': ':',
     };
 
     // Our token groups. We start with one empty group for top-level tokens.

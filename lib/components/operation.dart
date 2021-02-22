@@ -45,7 +45,8 @@ class OperatorExpression implements Expression {
 
   void _preprocess() {
     _findHiddenUnaryOperators();
-    _stringifyMemberAccess();
+    _stringifyMemberAccess('.');
+    _stringifyMemberAccess(':');
     _tokens = ShuntingYard.toPostfix(_tokens);
   }
 
@@ -73,22 +74,25 @@ class OperatorExpression implements Expression {
     }
   }
 
-  void _stringifyMemberAccess() {
+  void _stringifyMemberAccess(String accessOperator) {
     var nextIsMember = false;
     var output = <Token>[];
 
-    const dotPattern = TokenPattern(string: '.', type: TokenType.Symbol);
+    var pattern = TokenPattern(string: accessOperator, type: TokenType.Symbol);
 
     for (var token in _tokens) {
       if (nextIsMember) {
         if (token.type != TokenType.Name) {
-          token.throwSyntax('"." operator must precede a valid name.', 10);
+          token.throwSyntax(
+              '"$accessOperator" operator must precede '
+              'a valid name.',
+              10);
         }
 
         token.type = TokenType.String;
         nextIsMember = false;
       } else {
-        nextIsMember = dotPattern.hasMatch(token);
+        nextIsMember = pattern.hasMatch(token);
       }
 
       output.add(token);
@@ -180,6 +184,12 @@ class _Operations {
   }
 
   static Handle dot(Iterable<Handle> operands) {
+    // TODO: Restrict to dynamic scopes.
+    return operands.first.value.dot(operands.last.value.toString());
+  }
+
+  static Handle colon(Iterable<Handle> operands) {
+    // TODO: Restrict to static scopes.
     return operands.first.value.dot(operands.last.value.toString());
   }
 
@@ -326,6 +336,8 @@ class _Operator {
 
 class ShuntingYard {
   static var operators = <String, _Operator>{
+    ':': _Operator(_Side.Left, 19.0, 2, _Fix.In, _Operations.colon),
+
     '.': _Operator(_Side.Left, 18.0, 2, _Fix.In, _Operations.dot),
     '[]': _Operator(_Side.Left, 18.0, 1, _Fix.Post, _Operations.subscript),
 

@@ -171,6 +171,9 @@ proc testOperators() {
         -> giveMeNumber
     };
 
+    print("We have this many functions:");
+    print(functions.length);
+
     int result2 = (2 + (functions[0]((((2 + 4) / 1) / (2 + 4)) * 2, 3) * functions[1](1, 1)) + functions[1](1, 3)) / 3;
     if result2 != 6 {
         fatal("Failed complex function/array-based expression.");
