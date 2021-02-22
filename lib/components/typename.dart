@@ -1,8 +1,8 @@
-import 'package:language/components/operation.dart';
 import 'package:language/runtime/expression.dart';
 
 import '../lexer.dart';
 import '../runtime/type.dart';
+import 'operations/expression.dart';
 import 'util.dart';
 
 class TypeName {

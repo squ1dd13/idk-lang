@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'components/operation.dart';
+import 'components/operations/parser.dart';
 import 'components/util.dart';
 
 enum TokenType { Name, Symbol, Number, String, Group, None }

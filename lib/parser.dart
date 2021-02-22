@@ -11,7 +11,7 @@ import 'components/declaration.dart';
 import 'components/flow.dart';
 import 'components/function.dart';
 import 'components/iteration.dart';
-import 'components/operation.dart';
+import 'components/operations/expression.dart';
 import 'components/reference.dart';
 import 'components/util.dart';
 import 'runtime/primitive.dart';
