@@ -115,14 +115,22 @@ class ClassType extends ValueType {
   }
 
   @override
+  bool equals(Value other) {
+    // TODO: Prevent classes with same names being equal unless they are actually the same class.
+    return other is ClassType && name == other.name;
+  }
+
+  @override
   TypeConversion conversionTo(ValueType to) {
     // The only 'conversion' that may take place is from this type to
     //  the same type, or to 'any'.
-    if (this == to || to is AnyType) {
+    if (equals(to) || to is AnyType) {
       return TypeConversion.NoConversion;
     }
 
-    // TODO: Allow classes to define casts to arbitrary types.
+    if (superclass != null) {
+      return (superclass.value as ClassType).conversionTo(to);
+    }
 
     return TypeConversion.None;
   }
@@ -186,6 +194,11 @@ class ClassType extends ValueType {
     Store.stack.removeLast();
 
     return store;
+  }
+
+  @override
+  String toString() {
+    return name;
   }
 }
 

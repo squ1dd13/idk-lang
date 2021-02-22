@@ -86,16 +86,6 @@ class ClassDeclaration implements Statable {
         Store.current().add(constructor.name, constructor.createHandle());
       }
 
-      // Register all the components inside a branch.
-      // Store.current().branch((store) {
-      //   // TODO: Give stores a 'staticStore' friend for statics.
-      //   // The static store here would be for the class' type object.
-      //
-      //   for (var statement in _body) {
-      //     statement.execute();
-      //   }
-      // });
-
       return null;
     });
   }
