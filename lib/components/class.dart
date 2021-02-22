@@ -12,11 +12,20 @@ import 'util.dart';
 class ClassDeclaration implements Statable {
   Expression _superclassExpression;
   String _name;
+  bool _isAbstract;
   List<Statement> _body;
 
   ClassDeclaration(TokenStream tokens) {
-    tokens.requireNext('Expected "class".', 1,
-        TokenPattern(string: 'class', type: TokenType.Name));
+    const keywordMessage = 'Expected "class" or "abstract".';
+
+    tokens.requireNext(keywordMessage, 1, TokenPattern.type(TokenType.Name));
+
+    var keyword = tokens.current().toString();
+    if (keyword != 'class' && keyword != 'abstract') {
+      tokens.current().throwSyntax(keywordMessage, 1);
+    }
+
+    _isAbstract = keyword == 'abstract';
 
     tokens.skip();
 
@@ -43,7 +52,8 @@ class ClassDeclaration implements Statable {
   }
 
   ValueType _classType() {
-    var type = ClassType(_name, _body, _superclassExpression?.evaluate());
+    var type =
+        ClassType(_name, _body, _isAbstract, _superclassExpression?.evaluate());
 
     if (!Store.current().has(_name)) {
       Store.current().add(_name, type.createConstant());
@@ -57,6 +67,10 @@ class ClassDeclaration implements Statable {
   /// Create a constructor function. This is only needed until we have real
   /// constructors.
   FunctionValue _generateConstructor() {
+    if (_isAbstract) {
+      return null;
+    }
+
     return FunctionValue.implemented(0, (arguments) {
       var created = ClassObject(_classType()).createHandle();
       return SideEffect.returns(created);
@@ -67,7 +81,10 @@ class ClassDeclaration implements Statable {
   Statement createStatement() {
     return SideEffectStatement(() {
       var constructor = _generateConstructor();
-      Store.current().add(constructor.name, constructor.createHandle());
+
+      if (constructor != null) {
+        Store.current().add(constructor.name, constructor.createHandle());
+      }
 
       // Register all the components inside a branch.
       // Store.current().branch((store) {

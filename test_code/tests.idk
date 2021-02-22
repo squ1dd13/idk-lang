@@ -182,50 +182,39 @@ proc testOperators() {
     print("All operator tests passed.");
 }
 
-class SomeSuperclass {
-    int anotherValue = 10;
-}
-
-class SomeClass of SomeSuperclass {
-    int value = 0;
-
-    proc sayHi() {
-        print("Hello! Value is...");
-        print(value);
-        print("and the superclass' value is...");
-        print(anotherValue);
+class ClassOne {
+    int classNumber() {
+        return 1;
     }
 
-    proc setValue(int value) {
-        self.value = value;
-    }
-
-    proc getValue() {
-        return value;
+    int classNumberAgain() {
+        return classNumber();
     }
 }
 
-class ThirdClass of SomeClass {
-    int myOwnValue = 3;
+class ClassTwo of ClassOne {
+    int classNumber() {
+        return 2;
+    }
+}
 
-    proc sayHi() {
-        print("Hello! Value is...");
-        print(value);
-        print("My own is...");
-        print(myOwnValue);
-        print("and the superclass' value is...");
-        print(anotherValue);
+class ClassThree of ClassTwo {
+    int classNumber() {
+        return 3;
     }
 }
 
 proc testClasses() {
-    let instance = New_SomeClass();
-    instance.setValue(10);
-    instance.sayHi();
+    let classOne = New_ClassOne();
+    let classTwo = New_ClassTwo();
+    let classThree = New_ClassThree();
 
-    let otherInstance = New_ThirdClass();
-    otherInstance.setValue(5);
-    otherInstance.sayHi();
+    print(classOne.classNumber());
+    print(classOne.classNumberAgain());
+    print(classTwo.classNumber());
+    print(classTwo.classNumberAgain());
+    print(classThree.classNumber());
+    print(classThree.classNumberAgain());
 }
 
 testReferenceChanges();

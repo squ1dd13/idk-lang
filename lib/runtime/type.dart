@@ -95,8 +95,9 @@ class ClassType extends ValueType {
   final String name;
   final List<Statement> _setupStatements;
   final Handle superclass;
+  final bool abstract;
 
-  ClassType(this.name, this._setupStatements, this.superclass);
+  ClassType(this.name, this._setupStatements, this.abstract, this.superclass);
 
   @override
   bool operator ==(Object other) =>
@@ -110,7 +111,7 @@ class ClassType extends ValueType {
 
   @override
   Value copyValue() {
-    return ClassType(name, _setupStatements, superclass);
+    return ClassType(name, _setupStatements, abstract, superclass);
   }
 
   @override
@@ -163,6 +164,20 @@ class ClassType extends ValueType {
     for (var i = 0; i < functions.length; ++i) {
       var functionValue = functions[i].value as FunctionValue;
       functions[i].value = functionValue.wrappedForStore(store);
+
+      var functionName = functionValue.name;
+      var current = store.parent;
+
+      // Move up through superclasses and override parent implementations
+      //  for methods we define. If we don't do this, inherited methods will
+      //  only ever call the implementation of a method defined on the same
+      //  level as the level that implements the inherited method.
+      while (current != null && current.has(functionName)) {
+        // Override the parent's implementation for the function.
+        current.set(functionName, functions[i]);
+
+        current = current.parent;
+      }
     }
 
     // Add 'self' so that it may be used in methods.
@@ -374,7 +389,7 @@ class ArrayType extends ValueType {
     var arrayType = endType as ArrayType;
 
     var mapped =
-    array.elements.map((e) => e.convertHandleTo(arrayType.elementType));
+        array.elements.map((e) => e.convertHandleTo(arrayType.elementType));
 
     return ArrayValue(endType, mapped.toList());
   }

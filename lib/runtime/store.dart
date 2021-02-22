@@ -3,11 +3,11 @@ import 'handle.dart';
 
 class Store {
   final _contents = <String, Handle>{};
-  final Store _parent;
+  final Store parent;
 
   static var stack = <Store>[Store(null)];
 
-  Store(this._parent);
+  Store(this.parent);
 
   static Store current() => stack.last;
 
@@ -23,8 +23,8 @@ class Store {
 
   Handle get(String name) {
     if (!has(name)) {
-      if (_parent != null) {
-        return _parent.get(name);
+      if (parent != null) {
+        return parent.get(name);
       }
 
       throw RuntimeError('Undeclared identifier "$name".');
@@ -65,5 +65,13 @@ class Store {
 
     // We're leaving the scope, so remove the child.
     stack.removeLast();
+  }
+
+  void delete(String name) {
+    if (!has(name)) {
+      throw RuntimeError('Undeclared identifier "$name".');
+    }
+
+    _contents.remove(name);
   }
 }
