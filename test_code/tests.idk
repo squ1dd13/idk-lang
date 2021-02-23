@@ -152,7 +152,7 @@ proc testOperators() {
     }
 
     // Create an array of function references.
-    Array(@any) functions = {
+    Array(@Any) functions = {
         -> returnNumber,
         -> giveMeNumber
     };
@@ -166,6 +166,24 @@ proc testOperators() {
 }
 
 Type String = string;
+
+// Linear search maps. Hmmmm...
+class Map {
+    Array(Any) keys = {};
+    Array(Any) values = {};
+
+    new withKeysAndValues(self.keys, self.values);
+
+    Any get(String key) {
+        for let i = 0; i < keys.length; i++ {
+            if keys[i] == key {
+                return values[i];
+            }
+        }
+
+        fatal("Key not found in map!");
+    }
+}
 
 class ClassOne {
     String something = "";
@@ -198,6 +216,15 @@ class ClassThree of ClassTwo {
 }
 
 proc testClasses() {
+    Array(Any) keys = { 1, 2, 3, 4, 5 };
+    Array(Any) values = { "one", "two", "three", "four", "five" };
+
+    let myMap = Map:withKeysAndValues(
+        keys, values
+    );
+
+    print(myMap.get(2));
+
     // The ":" operator gets a static member, which includes constructors.
     let sugary = ClassOne:withString("cool");
     print(sugary.something);

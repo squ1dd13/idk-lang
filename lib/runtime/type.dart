@@ -150,7 +150,7 @@ class ClassType extends ValueType {
   @override
   TypeConversion conversionTo(ValueType to) {
     // The only 'conversion' that may take place is from this type to
-    //  the same type, or to 'any'.
+    //  the same type, or to 'Any'.
     if (equals(to) || to is AnyType) {
       return TypeConversion.NoConversion;
     }
@@ -236,6 +236,11 @@ class AnyType extends ValueType {
   }
 
   @override
+  bool equals(Value other) {
+    return other is AnyType;
+  }
+
+  @override
   TypeConversion conversionTo(ValueType to) {
     // You cannot convert a non-reference value to a reference value.
     // That wouldn't make sense.
@@ -243,8 +248,10 @@ class AnyType extends ValueType {
       return TypeConversion.None;
     }
 
-    // The 'any' type should be casted for clarity of types.
-    return TypeConversion.Explicit;
+    // The 'Any' type should be casted for clarity of types.
+    return to is AnyType
+        ? TypeConversion.NoConversion
+        : TypeConversion.Explicit;
   }
 
   @override
@@ -255,7 +262,7 @@ class AnyType extends ValueType {
 
   @override
   String toString() {
-    return 'any';
+    return 'Any';
   }
 }
 
@@ -374,7 +381,7 @@ class ReferenceType extends ValueType {
   }
 }
 
-/// 'any' but for elements from collection literals. We need
+/// 'Any' but for elements from collection literals. We need
 /// this class because we don't know the collection type
 /// immediately, so we need a type we can convert to the real
 /// element type as soon as we find it out.

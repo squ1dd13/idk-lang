@@ -112,7 +112,8 @@ class ConstructorDeclaration implements Statable {
             if (parameters[i].valueExpression != null) {
               // "super.x" or "self.x" to assign to here.
               var assignmentHandle = parameters[i].valueExpression.evaluate();
-              assignmentHandle.value = arguments[i].value;
+              assignmentHandle.value =
+                  arguments[i].value.mustConvertTo(assignmentHandle.valueType);
             } else {
               constructorLocal.add(parameters[i].name, arguments[i]);
             }

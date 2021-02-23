@@ -36,6 +36,6 @@ void registerCore() {
   Store.current().add('int', PrimitiveType.integer.createHandle());
   Store.current().add('string', PrimitiveType.string.createHandle());
   Store.current().add('proc', NullType().createHandle());
-  Store.current().add('any', AnyType().createHandle());
+  Store.current().add('Any', AnyType().createHandle());
   Store.current().add('Type', TypeOfType.shared.createHandle());
 }

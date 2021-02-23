@@ -110,25 +110,23 @@ const _symbols = ',.@<>[]{}()+=/?-#~:;|!\\\$%^&*';
 class Lexer {
   var generatedTokens = <Token>[];
 
-  final String _text;
+  String _text;
   int _position = -1;
 
   /// Create a new Lexer and lex [type].
   Lexer(this._text) {
+    var split = _text.split('\n').map((line) {
+      var index = line.indexOf('//');
+      return index < 0 ? line : line.substring(0, index);
+    }).toList();
+
+    split.removeWhere((e) => e.isEmpty);
+
+    _text = split.join('\n');
+
     // Generate a bunch of separate tokens.
     while (_moveNext()) {
       var startPos = _position;
-
-      if (_position + 1 < _text.length &&
-          _text[_position] == '/' &&
-          _text[_position + 1] == '/') {
-        // Line comment. Read until we find '\n'.
-        while (_getCharacter(moveAfter: true) != '\n') {
-          continue;
-        }
-
-        continue;
-      }
 
       if (_generateOperator()) {
         continue;

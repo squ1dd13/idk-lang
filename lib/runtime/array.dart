@@ -143,4 +143,13 @@ class ArrayValue extends Value {
 
     throw RuntimeError('Unable to find "$name" on type "$type".');
   }
+
+  @override
+  Value mustConvertTo(ValueType endType) {
+    if (endType is AnyType || type.equals(endType)) {
+      return this;
+    }
+
+    throw RuntimeError('no');
+  }
 }
