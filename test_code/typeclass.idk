@@ -1,0 +1,23 @@
+// Defines the List type, but not the class. This type is used
+//  to specify an element type like so: "List(ElementType)".
+type List {
+    Type elementType = null;
+
+    // A type constructor returns a Type rather than an object.
+    make (Type elementType) {
+        self.elementType = elementType;
+    }
+}
+
+class List {
+    // Array of values of the type type.elementType.
+    #(type.elementType) elements = null;
+
+    make fromArray(#(type.elementType) elements) {
+        self.elements = elements;
+    }
+
+    int length() {
+        return elements.length;
+    }
+}

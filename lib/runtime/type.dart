@@ -96,8 +96,29 @@ class ClassType extends ValueType {
   final List<Statement> _setupStatements;
   final Handle superclass;
   final bool abstract;
+  final Store statics;
 
-  ClassType(this.name, this._setupStatements, this.abstract, this.superclass);
+  ClassType(this.name, this._setupStatements, this.abstract, this.superclass)
+      : statics = Store(Store.current()) {
+    Store.current().add(name, createHandle());
+
+    // Execute static statements so that they affect the static store.
+    for (var statement in _setupStatements) {
+      if (statement.isStatic) {
+        Store.stack.add(statics);
+        statement.execute();
+        Store.stack.removeLast();
+      }
+    }
+
+    // We won't need to execute these again.
+    _setupStatements.removeWhere((element) => element.isStatic);
+  }
+
+  @override
+  Handle staticMember(String name) {
+    return statics.get(name);
+  }
 
   @override
   bool operator ==(Object other) =>

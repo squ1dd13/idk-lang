@@ -95,3 +95,15 @@ let reinterpreted = instance as String;
 //  we are in control.
 let converted = instance to String;
 
+/****** Some sort of compact initialiser ******/
+class Something {
+    int a = 1;
+    int b = 0;
+    int c = 2;
+}
+
+let something = Something {
+    a = 1,
+    b = 2,
+    c = 3
+};

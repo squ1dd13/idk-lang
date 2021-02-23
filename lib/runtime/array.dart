@@ -136,7 +136,7 @@ class ArrayValue extends Value {
   }
 
   @override
-  Handle dot(String name) {
+  Handle instanceMember(String name) {
     if (name == 'length') {
       return IntegerValue.raw(elements.length).createHandle();
     }

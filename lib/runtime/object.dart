@@ -20,7 +20,7 @@ class ClassObject extends Value {
   }
 
   @override
-  Handle dot(String name) {
+  Handle instanceMember(String name) {
     return store.get(name);
   }
 

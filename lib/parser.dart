@@ -113,6 +113,19 @@ class Parse {
     return segments;
   }
 
+  static bool staticKeyword(TokenStream tokens) {
+    const staticPattern = TokenPattern(string: 'static', type: TokenType.Name);
+
+    var isStatic = staticPattern.hasMatch(tokens.current());
+
+    if (isStatic) {
+      // Skip 'static'.
+      tokens.skip();
+    }
+
+    return isStatic;
+  }
+
   static Expression expression(List<Token> tokens) {
     if (tokens.isEmpty) {
       throw InvalidSyntaxException('Empty', 3, -1, -1);

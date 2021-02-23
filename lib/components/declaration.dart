@@ -10,8 +10,10 @@ class VariableDeclaration implements Statable {
   TypeName _typeName;
   String _name;
   Expression _valueExpression;
+  bool _isStatic;
 
   VariableDeclaration(TokenStream tokens) {
+    _isStatic = Parse.staticKeyword(tokens);
     _typeName = TypeName(tokens);
 
     tokens.requireNext('Expected name after type in declaration.', 2,
@@ -52,7 +54,7 @@ class VariableDeclaration implements Statable {
       Store.current().add(_name, variable);
 
       return null;
-    }));
+    }), static: _isStatic);
   }
 
   @override

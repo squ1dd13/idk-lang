@@ -123,7 +123,7 @@ class IntegerValue extends PrimitiveValue {
   int get hashCode => value.hashCode;
 
   @override
-  Handle dot(String name) {
+  Handle instanceMember(String name) {
     if (name == 'getPrint') {
       return Store.current().get('print');
     }
@@ -161,7 +161,7 @@ class StringValue extends PrimitiveValue {
   int get hashCode => value.hashCode;
 
   @override
-  Handle dot(String name) {
+  Handle instanceMember(String name) {
     if (name == 'length') {
       var func = FunctionValue('length', PrimitiveType.integer, <Statement>[
         SideEffectStatement(() {

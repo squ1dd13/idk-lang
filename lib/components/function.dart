@@ -23,14 +23,15 @@ class _Parameter {
 
 class FunctionDeclaration implements Statable {
   // Stays as a TypeName until the declaration is evaluated - this lazy
-  //  loading of types allows the type to be declared after it's first used.
+  //  loading of types allows the type to be declared after its first use.
   TypeName _returnType;
   String _name;
   final _parameters = <_Parameter>[];
   final _body = <Statement>[];
+  bool _isStatic;
 
   FunctionDeclaration(TokenStream tokens) {
-    // This will likely change in the future.
+    _isStatic = Parse.staticKeyword(tokens);
     tokens.requireNext('Functions must declare a return type.', 1,
         TokenPattern.type(TokenType.Name));
 
@@ -41,7 +42,6 @@ class FunctionDeclaration implements Statable {
 
     _name = tokens.take().toString();
 
-    // This /will/ change in the future.
     tokens.requireNext('Expected parameter list after function name.', 3,
         GroupPattern('(', ')'));
 
@@ -83,6 +83,6 @@ class FunctionDeclaration implements Statable {
       Store.current().add(_name, function.createHandle());
 
       return null;
-    }));
+    }), static: _isStatic);
   }
 }

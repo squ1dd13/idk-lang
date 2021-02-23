@@ -52,7 +52,11 @@ abstract class Value {
     throw Exception("Don't compare Evaluables with ==.");
   }
 
-  Handle dot(String name) {
+  Handle instanceMember(String name) {
     throw RuntimeError('Cannot use "." with "$type".');
+  }
+
+  Handle staticMember(String name) {
+    throw RuntimeError('Cannot use ":" with "$type".');
   }
 }

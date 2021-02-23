@@ -57,13 +57,11 @@ class Operations {
   }
 
   static Handle dot(Iterable<Handle> operands) {
-    // TODO: Restrict to dynamic scopes.
-    return operands.first.value.dot(operands.last.value.toString());
+    return operands.first.value.instanceMember(operands.last.value.toString());
   }
 
   static Handle colon(Iterable<Handle> operands) {
-    // TODO: Restrict to static scopes.
-    return operands.first.value.dot(operands.last.value.toString());
+    return operands.first.value.staticMember(operands.last.value.toString());
   }
 
   // Handles uses of '[]' for declaring array types and for accessing
