@@ -169,6 +169,15 @@ Type String = string;
 
 // Linear search maps. Hmmmm...
 class Map {
+    // type {
+    //     Type key;
+    //     Type value;
+
+    //     // You can't have a named type constructor, so overloads for them
+    //     //  might be introduced in the future.
+    //     new (self.key, self.value);
+    // }
+
     Array(Any) keys = {};
     Array(Any) values = {};
 
