@@ -20,54 +20,15 @@ class PrimitiveType extends ValueType {
   PrimitiveType(this._type);
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is PrimitiveType &&
-          runtimeType == other.runtimeType &&
-          _type == other._type;
-
-  @override
-  int get hashCode => _type.hashCode;
-
-  @override
-  Value copyValue() {
-    return PrimitiveType(_type);
-  }
-
-  @override
-  TypeConversion conversionTo(ValueType to) {
-    if (this == to || to is AnyType) {
-      return TypeConversion.NoConversion;
-    }
-
-    return TypeConversion.None;
-  }
-
-  @override
-  Value convertObjectTo(Value object, ValueType endType) {
-    assertConvertibleTo(endType);
-    return object;
-  }
-
-  @override
-  Value convertObjectFrom(Value object, ValueType startType) {
-    if (this == startType) {
-      return object;
-    }
-
-    if (_type == Primitive.Int) {
-      throw RuntimeError("Can't use cOF for integers.");
-    }
-
-    // Everything has toString().
-    return StringValue(object.toString());
-  }
-
-  @override
   String toString() {
     return _type == Primitive.Int
         ? 'int'
         : (_type == Primitive.String ? 'string' : 'bool');
+  }
+
+  @override
+  bool equals(Value other) {
+    return other is PrimitiveType && _type == other._type;
   }
 }
 

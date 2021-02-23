@@ -7,7 +7,6 @@ import 'package:language/runtime/function.dart';
 import 'package:language/runtime/handle.dart';
 import 'package:language/runtime/object.dart';
 import 'package:language/runtime/store.dart';
-import 'package:language/runtime/type.dart';
 
 import 'typename.dart';
 import 'util.dart';

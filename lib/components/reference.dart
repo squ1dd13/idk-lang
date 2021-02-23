@@ -81,8 +81,7 @@ class Direction implements Statable {
       var requiredType =
           _typeName?.evaluate() ?? ReferenceType.to(evaluated.valueType);
 
-      if (storedReference.handleType.conversionTo(requiredType) !=
-          TypeConversion.NoConversion) {
+      if (storedReference.handleType.notEquals(requiredType)) {
         var targetType =
             (storedReference.handleType as ReferenceType).referencedType;
         throw RuntimeError('Cannot direct "$requiredType" to "$targetType".');

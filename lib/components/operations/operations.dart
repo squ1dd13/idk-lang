@@ -20,7 +20,7 @@ class Operations {
       return (_getRaw<int>(v) != 0 ? true : false);
     }
 
-    if (value.type == PrimitiveType.integer) {
+    if (value.type.equals(PrimitiveType.integer)) {
       return (value as IntegerValue).rawValue;
     }
 

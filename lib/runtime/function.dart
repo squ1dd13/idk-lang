@@ -23,43 +23,29 @@ class FunctionType extends ValueType {
   }
 
   @override
-  TypeConversion conversionTo(ValueType to) {
-    if (to is AnyType) {
-      return TypeConversion.NoConversion;
+  bool equals(Value other) {
+    if (!(other is FunctionType)) {
+      return false;
     }
 
-    if (!(to is FunctionType)) {
-      return TypeConversion.None;
+    var otherFunction = other as FunctionType;
+
+    if (!returnType.equals(otherFunction.returnType)) {
+      return false;
     }
 
-    var otherFunction = to as FunctionType;
-
-    // Return types must be compatible.
-    if (!ValueType.isConversionImplicit(
-        otherFunction.returnType.conversionTo(returnType))) {
-      return TypeConversion.None;
-    }
-
-    // Can't match types if the number of parameters is different.
     if (otherFunction.parameterTypes.length != parameterTypes.length) {
-      return TypeConversion.None;
+      return false;
     }
 
     // Check if all the parameters match.
     for (var i = 0; i < parameterTypes.length; ++i) {
-      if (!ValueType.isConversionImplicit(
-          otherFunction.parameterTypes[i].conversionTo(parameterTypes[i]))) {
-        return TypeConversion.None;
+      if (!otherFunction.parameterTypes[i].equals(parameterTypes[i])) {
+        return false;
       }
     }
 
-    // No conversion will take place.
-    return TypeConversion.NoConversion;
-  }
-
-  @override
-  Value convertObjectTo(Value object, ValueType endType) {
-    return object;
+    return true;
   }
 
   @override

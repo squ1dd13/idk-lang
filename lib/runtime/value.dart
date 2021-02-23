@@ -1,5 +1,6 @@
 import 'exception.dart';
 import 'handle.dart';
+import 'object.dart';
 import 'type.dart';
 
 /// Something with a type. Avoid using this directly; prefer [Handle]s,
@@ -16,13 +17,24 @@ abstract class Value {
       return this;
     }
 
-    var conversionType = sourceType.conversionTo(endType);
-    if (!ValueType.isConversionImplicit(conversionType)) {
-      throw RuntimeError('Cannot implicitly convert from '
-          'type "${sourceType}" to type "$endType".');
+    if (endType.equals(ReferenceType.to(type))) {
+      return Reference(createHandle()).value;
     }
 
-    return sourceType.convertObjectTo(this, endType);
+    if (endType.equals(AnyType.any) && !(type is ReferenceType)) {
+      return this;
+    }
+
+    if (sourceType is ClassType && endType is ClassType) {
+      // The conversion is legal if the source type is a subclass of the
+      //  end type.
+      if (sourceType.inheritsFrom(endType)) {
+        return this;
+      }
+    }
+
+    throw RuntimeError('Cannot implicitly convert from '
+        'type "${sourceType}" to type "$endType".');
   }
 
   // TODO: Remove this and generalise.
@@ -49,7 +61,7 @@ abstract class Value {
 
   @override
   bool operator ==(Object other) {
-    throw Exception("Don't compare Evaluables with ==.");
+    throw Exception("Don't compare Values with ==.");
   }
 
   Handle instanceMember(String name) {

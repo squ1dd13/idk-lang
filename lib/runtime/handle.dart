@@ -83,9 +83,7 @@ class Variable extends Handle {
 
   @override
   set value(Value newValue) {
-    var conversion = newValue.type.conversionTo(valueType);
-
-    if (!ValueType.isConversionImplicit(conversion)) {
+    if (newValue.type.notEquals(valueType)) {
       throw RuntimeError('Cannot set value of "${valueType}" variable to '
           '"${newValue.type}"');
     }
@@ -154,9 +152,7 @@ class Reference extends Handle {
   ValueType get handleType => ReferenceType.to(valueType);
 
   void redirect(Handle newTarget) {
-    var conversion = newTarget.valueType.conversionTo(valueType);
-
-    if (!ValueType.isConversionImplicit(conversion)) {
+    if (newTarget.valueType.notEquals(valueType)) {
       throw RuntimeError('Cannot change target from "${valueType}" to '
           '"${newTarget.valueType}"');
     }
@@ -166,9 +162,7 @@ class Reference extends Handle {
 
   @override
   Handle convertValueTo(ValueType endType) {
-    var conversion = valueType.conversionTo(endType);
-
-    if (conversion == TypeConversion.None) {
+    if (valueType.equals(endType)) {
       // We can just return this reference, because there is no conversion
       //  involved.
       return this;
@@ -187,9 +181,7 @@ class Reference extends Handle {
       return _valueHandle.convertHandleTo(endType);
     }
 
-    var conversion = handleType.conversionTo(endType);
-
-    if (conversion == TypeConversion.None) {
+    if (handleType.equals(endType)) {
       return this;
     }
 

@@ -6,19 +6,13 @@ import 'value.dart';
 
 class InitializerListType extends ValueType {
   @override
-  TypeConversion conversionTo(ValueType to) {
-    return TypeConversion.None;
-  }
-
-  @override
-  Value convertObjectTo(Value object, ValueType endType) {
-    return (object as InitializerList)
-        .convertToArray((endType as ArrayType).elementType);
-  }
-
-  @override
   Value copyValue() {
     return this;
+  }
+
+  @override
+  bool equals(Value other) {
+    return other is InitializerListType;
   }
 }
 
@@ -81,7 +75,7 @@ class ArrayValue extends Value {
 
   @override
   bool equals(Value other) {
-    if (other.type.conversionTo(type) != TypeConversion.NoConversion) {
+    if (other.type.notEquals(type)) {
       return false;
     }
 
@@ -101,7 +95,7 @@ class ArrayValue extends Value {
 
   @override
   bool notEquals(Value other) {
-    if (other.type.conversionTo(type) != TypeConversion.NoConversion) {
+    if (other.type.notEquals(type)) {
       return true;
     }
 
