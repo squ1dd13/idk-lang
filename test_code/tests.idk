@@ -170,18 +170,11 @@ Type String = string;
 class ClassOne {
     String something = "";
 
-    static ClassOne empty() {
-        return New_ClassOne();
+    new empty() {
+        something = "empty";
     }
 
-    static ClassOne withString(String someString) {
-        let classOne = ClassOne:empty();
-        classOne.something = someString;
-
-        return classOne;
-    }
-
-    // static ClassOne sweet(self.something) {}
+    new withString(self.something);
 
     int classNumber() {
         return 1;
@@ -193,13 +186,6 @@ class ClassOne {
 }
 
 class ClassTwo of ClassOne {
-    static ClassTwo withString(String someString) {
-        let classOne = super.withString(someString + " from ClassTwo");
-
-        // Bad...
-        return classOne;
-    }
-
     int classNumber() {
         return 2;
     }

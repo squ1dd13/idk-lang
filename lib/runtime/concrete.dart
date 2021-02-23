@@ -59,7 +59,8 @@ class Statement {
 class SideEffectStatement extends Statement {
   final SideEffect Function() _action;
 
-  SideEffectStatement(this._action) : super(null);
+  SideEffectStatement(this._action, {bool static = false})
+      : super(null, static: static);
 
   @override
   SideEffect execute() {

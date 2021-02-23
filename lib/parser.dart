@@ -1,3 +1,4 @@
+import 'package:language/components/constructor.dart';
 import 'package:language/lexer.dart';
 import 'package:language/runtime/concrete.dart';
 import 'package:language/runtime/exception.dart';
@@ -24,6 +25,7 @@ class Parse {
     (stream) => VariableDeclaration(stream).createStatement(),
     (stream) => Direction(stream).createStatement(),
     (stream) => Direction.redirection(stream).createStatement(),
+    (stream) => ConstructorDeclaration(stream).createStatement(),
     (stream) => FunctionDeclaration(stream).createStatement(),
     (stream) => FlowStatement(stream).createStatement(),
     (stream) => ClassDeclaration(stream).createStatement(),
@@ -38,10 +40,10 @@ class Parse {
   ];
 
   static final _expressionPasses = <Expression Function(TokenStream)>[
-    (stream) => CollectionLiteral(stream).createExpression(),
-    (stream) => OperatorExpression(stream),
+        (stream) => CollectionLiteral(stream).createExpression(),
+        (stream) => OperatorExpression(stream),
     // (stream) => FunctionCall(stream).createExpression(),
-    (stream) => InlineDirection(stream).createExpression(),
+        (stream) => InlineDirection(stream).createExpression(),
   ];
 
   static List<ElementType> _parseRepeated<ElementType>(TokenStream stream,
@@ -114,6 +116,8 @@ class Parse {
   }
 
   static bool staticKeyword(TokenStream tokens) {
+    // Using 'type' instead of 'static' reinforces the idea that statics
+    //  are to be associated with the type and not objects.
     const staticPattern = TokenPattern(string: 'static', type: TokenType.Name);
 
     var isStatic = staticPattern.hasMatch(tokens.current());
@@ -134,12 +138,12 @@ class Parse {
     if (tokens.length == 1) {
       if (tokens.first.type == TokenType.String) {
         return InlineExpression(
-            () => StringValue(tokens.first.toString()).createHandle());
+                () => StringValue(tokens.first.toString()).createHandle());
       }
 
       if (tokens.first.type == TokenType.Number) {
         return InlineExpression(
-            () => IntegerValue(tokens.first.toString()).createHandle());
+                () => IntegerValue(tokens.first.toString()).createHandle());
       }
 
       if (tokens.first.type == TokenType.Name) {
@@ -150,7 +154,7 @@ class Parse {
     }
 
     var allParsed =
-        _parseRepeated(TokenStream(tokens, 0), _expressionPasses, 1);
+    _parseRepeated(TokenStream(tokens, 0), _expressionPasses, 1);
 
     if (allParsed.isEmpty) {
       throw RuntimeError('Unparsed!');

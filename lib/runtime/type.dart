@@ -98,18 +98,24 @@ class ClassType extends ValueType {
   final bool abstract;
   final Store statics;
 
+  static var classTypeStack = <ClassType>[];
+
   ClassType(this.name, this._setupStatements, this.abstract, this.superclass)
       : statics = Store(Store.current()) {
     Store.current().add(name, createHandle());
 
+    Store.stack.add(statics);
+    classTypeStack.add(this);
+
     // Execute static statements so that they affect the static store.
     for (var statement in _setupStatements) {
       if (statement.isStatic) {
-        Store.stack.add(statics);
         statement.execute();
-        Store.stack.removeLast();
       }
     }
+
+    classTypeStack.removeLast();
+    Store.stack.removeLast();
 
     // We won't need to execute these again.
     _setupStatements.removeWhere((element) => element.isStatic);

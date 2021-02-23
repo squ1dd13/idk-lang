@@ -135,6 +135,31 @@ class FunctionValue extends Value {
     return wrapped;
   }
 
+  static List<dynamic> runStatement(Statement statement) {
+    var sideEffect = statement.execute();
+
+    // Check the side effects for stuff we need to handle.
+    if (sideEffect != null) {
+      if (sideEffect.isLoopInterrupt) {
+        // Being able to break or continue loops across function boundaries
+        //  seems like a very bad idea, so let's disallow it.
+        var interruptedName = sideEffect.continueName ?? sideEffect.breakName;
+
+        throw RuntimeError(
+            'Interrupting loops across function boundaries is disallowed. '
+            '(No parent loop matching the name "$interruptedName" was '
+            'found.)');
+      }
+
+      if (sideEffect.returned != null) {
+        // Stop executing the statements - we're returning.
+        return [false, sideEffect.returned];
+      }
+    }
+
+    return [true, null];
+  }
+
   Handle call(Map<String, Handle> arguments) {
     var returnedHandle = NullType.nullHandle();
 
@@ -149,29 +174,35 @@ class FunctionValue extends Value {
 
       // Execute the body.
       for (var statement in _statements) {
-        var sideEffect = statement.execute();
+        var result = runStatement(statement);
 
-        // Check the side effects for stuff we need to handle.
-        if (sideEffect != null) {
-          if (sideEffect.isLoopInterrupt) {
-            // Being able to break or continue loops across function boundaries
-            //  seems like a very bad idea, so let's disallow it.
-            var interruptedName =
-                sideEffect.continueName ?? sideEffect.breakName;
-
-            throw RuntimeError(
-                'Interrupting loops across function boundaries is disallowed. '
-                '(No parent loop matching the name "$interruptedName" was '
-                'found.)');
-          }
-
-          if (sideEffect.returned != null) {
-            returnedHandle = sideEffect.returned;
-
-            // Stop executing the statements - we're returning.
-            break;
-          }
+        if (!result[0]) {
+          returnedHandle = result[1];
+          break;
         }
+        // var sideEffect = statement.execute();
+        //
+        // // Check the side effects for stuff we need to handle.
+        // if (sideEffect != null) {
+        //   if (sideEffect.isLoopInterrupt) {
+        //     // Being able to break or continue loops across function boundaries
+        //     //  seems like a very bad idea, so let's disallow it.
+        //     var interruptedName =
+        //         sideEffect.continueName ?? sideEffect.breakName;
+        //
+        //     throw RuntimeError(
+        //         'Interrupting loops across function boundaries is disallowed. '
+        //         '(No parent loop matching the name "$interruptedName" was '
+        //         'found.)');
+        //   }
+        //
+        //   if (sideEffect.returned != null) {
+        //     returnedHandle = sideEffect.returned;
+        //
+        //     // Stop executing the statements - we're returning.
+        //     break;
+        //   }
+        // }
       }
 
       // Cleanup is automatic, because the locals are lost when
