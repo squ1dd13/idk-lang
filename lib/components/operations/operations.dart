@@ -115,7 +115,7 @@ class Operations {
         throw Exception('Cannot call non-function "$value"!');
       }
 
-      var functionValue = value as FunctionValue;
+      var functionValue = value as Callable;
       var parameters = functionValue.parameters;
 
       var argumentsArray = <Handle>[];

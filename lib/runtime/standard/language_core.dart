@@ -30,12 +30,13 @@ void registerCore() {
     ..addParameter('message', AnyType())
     ..applyType();
 
-  Store.current().add('print', printFunction.createHandle());
-  Store.current().add('fatal', fatalError.createHandle());
+  Store.current().add('print', printFunction.createConstant());
+  Store.current().add('fatal', fatalError.createConstant());
 
-  Store.current().add('int', PrimitiveType.integer.createHandle());
-  Store.current().add('string', PrimitiveType.string.createHandle());
-  Store.current().add('proc', NullType().createHandle());
-  Store.current().add('Any', AnyType().createHandle());
-  Store.current().add('Type', TypeOfType.shared.createHandle());
+  Store.current().add('int', PrimitiveType.integer.createConstant());
+  Store.current().add('String', PrimitiveType.string.createConstant());
+  Store.current().add('proc', NullType().createConstant());
+  Store.current().add('Any', AnyType().createConstant());
+  Store.current().add('Type', TypeOfType.shared.createConstant());
+  Store.current().add('null', NullType(name: 'null').createConstant());
 }

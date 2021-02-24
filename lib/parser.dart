@@ -5,7 +5,6 @@ import 'package:language/runtime/exception.dart';
 import 'package:language/runtime/expression.dart';
 import 'package:language/runtime/store.dart';
 
-import 'components/assignment.dart';
 import 'components/class.dart';
 import 'components/collection.dart';
 import 'components/conditional.dart';
@@ -34,7 +33,6 @@ class Parse {
       stream.consumeSemicolon(3);
       return statement;
     },
-    (stream) => Assignment(stream).createStatement(),
   ];
 
   static final _expressionPasses = <Expression Function(TokenStream)>[
@@ -87,8 +85,10 @@ class Parse {
     return created;
   }
 
-  static List<Statement> statements(List<Token> tokens, {int limit = -1}) {
-    return _parseRepeated(TokenStream(tokens, 0), _statementPasses, limit);
+  static List<Statement> statements(List<Token> tokens,
+      {int limit = -1, List<Statement Function(TokenStream)> passes}) {
+    return _parseRepeated(
+        TokenStream(tokens, 0), passes ?? _statementPasses, limit);
   }
 
   static Statement statement(TokenStream tokens) {

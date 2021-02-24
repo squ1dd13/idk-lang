@@ -23,7 +23,7 @@ class PrimitiveType extends ValueType {
   String toString() {
     return _type == Primitive.Int
         ? 'int'
-        : (_type == Primitive.String ? 'string' : 'bool');
+        : (_type == Primitive.String ? 'String' : 'bool');
   }
 
   @override

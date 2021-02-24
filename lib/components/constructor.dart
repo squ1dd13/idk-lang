@@ -56,24 +56,22 @@ class ConstructorDeclaration implements Statable {
   var parameters = <_ConstructorParameter>[];
   final _body = <Statement>[];
 
-  // bool _isStatic;
-
-  ConstructorDeclaration(TokenStream tokens) {
+  ConstructorDeclaration(TokenStream tokens, {bool anonymous = false}) {
     tokens.requireNext('Constructor must start with "new".', 1,
         TokenPattern(string: 'new', type: TokenType.Name));
 
     // "new"
     tokens.skip();
 
-    // "new type" can be used for type constructors (mainly for templates).
-    // TODO: Add "new type" properly.
-    // _isStatic = Parse.staticKeyword(tokens);
-
-    // Stage 10 because if we found 'new' it's very likely to be an attempt
-    //  at declaring a constructor.
-    tokens.requireNext('Constructors may not be anonymous.', 10,
-        TokenPattern.type(TokenType.Name));
-    name = tokens.take().toString();
+    if (!anonymous) {
+      // Stage 10 because if we found 'new' it's very likely to be an attempt
+      //  at declaring a constructor.
+      tokens.requireNext('Constructors may not be anonymous.', 10,
+          TokenPattern.type(TokenType.Name));
+      name = tokens.take().toString();
+    } else {
+      name = '';
+    }
 
     tokens.requireNext('Expected "()" in constructor declaration.', 11,
         GroupPattern('(', ')'));

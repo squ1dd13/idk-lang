@@ -93,7 +93,7 @@ proc testReturnValues() {
 }
 
 proc testIndexedAccess() {
-    #string someStrings = {
+    #String someStrings = {
         "this",
         "is",
         "a",
@@ -165,16 +165,15 @@ proc testOperators() {
     print("All operator tests passed.");
 }
 
-Type String = string;
-
 // Linear search maps. Hmmmm...
 class Map {
     // type {
-    //     Type key;
-    //     Type value;
+    //     Type key = null;
+    //     Type value = null;
 
     //     // You can't have a named type constructor, so overloads for them
-    //     //  might be introduced in the future.
+    //     //  might be introduced in the future to allow for more useful
+    //     //  complex types.
     //     new (self.key, self.value);
     // }
 

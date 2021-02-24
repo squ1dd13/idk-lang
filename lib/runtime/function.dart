@@ -59,17 +59,24 @@ class FunctionType extends ValueType {
   }
 }
 
-class FunctionValue extends Value {
-  String name;
-  ValueType returnType;
+abstract class Callable extends Value {
   Map<String, ValueType> parameters;
+  ValueType returnType;
+
+  Callable([this.parameters, this.returnType]);
+
+  Handle call(Map<String, Handle> arguments);
+}
+
+class FunctionValue extends Callable {
+  String name;
   List<Statement> _statements;
   Store Function() _getExecutionStore = () => Store.current();
 
   FunctionValue.empty();
 
-  FunctionValue(this.name, this.returnType, this._statements)
-      : parameters = <String, ValueType>{};
+  FunctionValue(this.name, ValueType returnType, this._statements)
+      : super(<String, ValueType>{}, returnType);
 
   FunctionValue.implemented(
       int parameterCount, SideEffect Function(List<Handle>) implementation,
@@ -146,6 +153,7 @@ class FunctionValue extends Value {
     return [true, null];
   }
 
+  @override
   Handle call(Map<String, Handle> arguments) {
     var returnedHandle = NullType.nullHandle();
 
@@ -166,29 +174,6 @@ class FunctionValue extends Value {
           returnedHandle = result[1];
           break;
         }
-        // var sideEffect = statement.execute();
-        //
-        // // Check the side effects for stuff we need to handle.
-        // if (sideEffect != null) {
-        //   if (sideEffect.isLoopInterrupt) {
-        //     // Being able to break or continue loops across function boundaries
-        //     //  seems like a very bad idea, so let's disallow it.
-        //     var interruptedName =
-        //         sideEffect.continueName ?? sideEffect.breakName;
-        //
-        //     throw RuntimeError(
-        //         'Interrupting loops across function boundaries is disallowed. '
-        //         '(No parent loop matching the name "$interruptedName" was '
-        //         'found.)');
-        //   }
-        //
-        //   if (sideEffect.returned != null) {
-        //     returnedHandle = sideEffect.returned;
-        //
-        //     // Stop executing the statements - we're returning.
-        //     break;
-        //   }
-        // }
       }
 
       // Cleanup is automatic, because the locals are lost when
