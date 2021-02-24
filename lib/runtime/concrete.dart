@@ -46,9 +46,11 @@ class SideEffect {
 class Statement {
   /// Doesn't return a value.
   final Expression _fullExpression;
-  final bool isStatic;
+  bool isStatic = false;
 
-  Statement(this._fullExpression, {bool static = false}) : isStatic = static;
+  Statement(this._fullExpression, {bool static = false}) {
+    isStatic = static;
+  }
 
   SideEffect execute() {
     _fullExpression.evaluate();

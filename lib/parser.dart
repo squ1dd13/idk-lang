@@ -6,6 +6,7 @@ import 'package:language/runtime/expression.dart';
 import 'package:language/runtime/store.dart';
 
 import 'components/class.dart';
+import 'components/class_type.dart';
 import 'components/collection.dart';
 import 'components/conditional.dart';
 import 'components/declaration.dart';
@@ -18,7 +19,8 @@ import 'components/util.dart';
 import 'runtime/primitive.dart';
 
 class Parse {
-  static final _statementPasses = <Statement Function(TokenStream)>[
+  static final statementPasses = <Statement Function(TokenStream)>[
+    (stream) => CustomClassType(stream).createStatement(),
     (stream) => ConditionalClause(stream).createStatement(),
     (stream) => Loop(stream).createStatement(),
     (stream) => VariableDeclaration(stream).createStatement(),
@@ -88,11 +90,11 @@ class Parse {
   static List<Statement> statements(List<Token> tokens,
       {int limit = -1, List<Statement Function(TokenStream)> passes}) {
     return _parseRepeated(
-        TokenStream(tokens, 0), passes ?? _statementPasses, limit);
+        TokenStream(tokens, 0), passes ?? statementPasses, limit);
   }
 
   static Statement statement(TokenStream tokens) {
-    return _parseRepeated(tokens, _statementPasses, 1)[0];
+    return _parseRepeated(tokens, statementPasses, 1)[0];
   }
 
   static List<List<Token>> split(TokenStream tokens, TokenPattern pattern) {

@@ -2,6 +2,7 @@ import 'package:language/lexer.dart';
 import 'package:language/parser.dart';
 import 'package:language/runtime/concrete.dart';
 
+import 'constructor.dart';
 import 'util.dart';
 
 /// A `type` block. Used to implement templates and other complex type
@@ -18,14 +19,25 @@ class CustomClassType implements Statable {
     tokens.requireNext(
         'Expected braces after "type" keyword.', 2, GroupPattern('{', '}'));
 
-    _body = Parse.statements(tokens.take().allTokens());
+    var anonymousConstructor = (TokenStream stream) =>
+        ConstructorDeclaration(stream, anonymous: true).createStatement();
 
-    // #error anonymous type constructor (how?) and other stuff
+    // Parse the body, but with a pass for an anonymous constructor as well.
+    var passes = [anonymousConstructor] + Parse.statementPasses;
+
+    _body = Parse.statements(tokens.take().allTokens(), passes: passes);
   }
 
   @override
   Statement createStatement() {
-    // TODO: implement createStatement
-    throw UnimplementedError();
+    return SideEffectStatement(() {
+      // var classType = ClassType.classTypeStack.last;
+
+      for (var statement in _body) {
+        statement.execute();
+      }
+
+      return SideEffect.nothing();
+    }, static: true);
   }
 }

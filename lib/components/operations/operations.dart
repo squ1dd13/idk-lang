@@ -111,7 +111,7 @@ class Operations {
       var value = operands.first.value;
 
       // We only get one operand, and that's the thing being called.
-      if (!(value is FunctionValue)) {
+      if (!(value is Callable)) {
         throw Exception('Cannot call non-function "$value"!');
       }
 

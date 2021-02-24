@@ -118,6 +118,8 @@ Type Array(Type someType) {
 }
 
 proc testOperators() {
+    print(-> Array);
+
     if (1 + 2) != 3 {
         fatal("Failed basic test.");
     }
@@ -167,6 +169,13 @@ proc testOperators() {
 
 // Linear search maps. Hmmmm...
 class Map {
+    // class MapType of Type {
+    //     Type key = null;
+    //     Type value = null;
+
+    //     new create(self.key, self.value);
+    // }
+
     // type {
     //     Type key = null;
     //     Type value = null;

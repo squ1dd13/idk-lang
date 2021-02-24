@@ -1,7 +1,6 @@
 import 'package:language/runtime/expression.dart';
 
 import '../lexer.dart';
-import '../runtime/type.dart';
 import 'operations/expression.dart';
 import 'util.dart';
 
@@ -18,54 +17,10 @@ class TypeName {
       return;
     }
 
-    // Once we find '[]' in the type, we only read more '[]' tokens. If we find
-    //  something else, it isn't part of the type.
-    var foundBrackets = false;
-    var foundNonModifierWord = false;
-    var bracketPattern = GroupPattern('[', ']');
-
-    bool isModifier(Token token) {
-      return false;
-    }
-
-    // tokens.saveIndex();
-    var typeTokens = tokens.takeWhile((token) {
-      if (bracketPattern.hasMatch(token)) {
-        return foundBrackets = true;
-      }
-
-      if (foundBrackets) {
-        // We don't want this token because it is a non-bracket token
-        //  that comes after the point where we only read bracket tokens.
-        return false;
-      }
-
-      if (token.type == TokenType.Name) {
-        if (foundNonModifierWord) {
-          // Only one non-modifier word is allowed.
-          return false;
-        }
-
-        if (!isModifier(token)) {
-          foundNonModifierWord = true;
-        }
-      }
-
-      return true;
-    });
-
-    const colonPattern = TokenPattern(string: ':', type: TokenType.Symbol);
-    const dotPattern = TokenPattern(string: '.', type: TokenType.Symbol);
-
-    if (colonPattern.hasMatch(typeTokens.last) ||
-        dotPattern.hasMatch(typeTokens.last)) {
-      typeTokens.last.throwSyntax('Invalid ending token.', 1);
-    }
-
-    _typeExpression = OperatorExpression(TokenStream(typeTokens, 0));
+    _typeExpression = OperatorExpression(tokens);
   }
 
-  ValueType evaluate() {
+  dynamic evaluate() {
     return _typeExpression?.evaluate()?.value;
   }
 }

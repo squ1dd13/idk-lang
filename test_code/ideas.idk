@@ -107,3 +107,37 @@ let something = Something {
     b = 2,
     c = 3
 };
+
+/****** Models, of which a class (or another model) may fit multiple ******/
+// This multiple inheritance of models should make up for the lack of multiple inheritance
+//  of classes.
+
+model Stringable {
+    String toString();
+}
+
+model Inspectable {
+    InspectionData inspect();
+}
+
+model Debuggable fits Stringable, Inspectable {
+    // Debuggable inherits from Stringable and Inspectable, so anything
+    //  which fits Debuggable must also fit Stringable and Inspectable.
+    //
+    // Define some other things...
+    //
+}
+
+class DebugObject fits Debuggable {
+    String toString() {
+        return "something useful";
+    }
+
+    InspectionData inspect() {
+        return InspectionData:fromString(toString());
+    }
+
+    InspectionData inspectSomethingElse(Inspectable other) {
+        return other.inspect();
+    }
+}

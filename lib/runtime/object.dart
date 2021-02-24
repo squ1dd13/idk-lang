@@ -6,7 +6,7 @@ import 'type.dart';
 import 'value.dart';
 
 /// A class type. Equality is determined by name.
-class ClassType extends ValueType {
+class ClassType extends ValueType implements Callable {
   final String name;
   final List<Statement> _setupStatements;
   final Handle superclass;
@@ -120,6 +120,30 @@ class ClassType extends ValueType {
     }
 
     return false;
+  }
+
+  @override
+  Map<String, ValueType> get parameters =>
+      (staticMember('').value as Callable).parameters;
+
+  @override
+  ValueType get returnType => this;
+
+  @override
+  Handle call(Map<String, Handle> arguments) {
+    return (staticMember('').value as Callable)(arguments);
+  }
+
+  @override
+  set parameters(Map<String, ValueType> _parameters) {
+    // TODO: implement parameters
+    throw UnimplementedError();
+  }
+
+  @override
+  set returnType(ValueType _returnType) {
+    // TODO: implement returnType
+    throw UnimplementedError();
   }
 }
 

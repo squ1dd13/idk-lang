@@ -86,7 +86,7 @@ class ClassDeclaration implements Statable {
         Store.current().add(constructor.name, constructor.createHandle());
       }
 
-      return null;
-    });
+      return SideEffect.nothing();
+    }, static: true);
   }
 }
