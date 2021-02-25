@@ -2,8 +2,8 @@ import 'concrete.dart';
 import 'exception.dart';
 import 'function.dart';
 import 'handle.dart';
+import 'scope.dart';
 import 'statements.dart';
-import 'store.dart';
 import 'type.dart';
 import 'value.dart';
 
@@ -87,7 +87,7 @@ class IntegerValue extends PrimitiveValue {
   @override
   Handle instanceMember(String name) {
     if (name == 'getPrint') {
-      return Store.current().get('print');
+      return Scope.current().get('print');
     }
 
     throw RuntimeError('Unable to find "$name" on type "$type".');

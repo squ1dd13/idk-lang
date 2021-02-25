@@ -5,13 +5,13 @@ import 'package:language/runtime/primitive.dart';
 import 'package:language/runtime/statements.dart';
 
 import '../function.dart';
-import '../store.dart';
+import '../scope.dart';
 import '../type.dart';
 
 void registerCore() {
   var printFunction = FunctionValue('print', NullType(), <Statement>[
     DartStatement(() {
-      var argument = Store.current().get('value').value;
+      var argument = Scope.current().get('value').value;
       print(argument);
 
       return null;
@@ -22,20 +22,20 @@ void registerCore() {
 
   var fatalError = FunctionValue('fatal', NullType(), <Statement>[
     DartStatement(() {
-      var argument = Store.current().get('message').value;
+      var argument = Scope.current().get('message').value;
       throw RuntimeError(argument.toString());
     }, false)
   ])
     ..addParameter('message', AnyType())
     ..applyType();
 
-  Store.current().add('print', printFunction.createConstant());
-  Store.current().add('fatal', fatalError.createConstant());
+  Scope.current().add('print', printFunction.createConstant());
+  Scope.current().add('fatal', fatalError.createConstant());
 
-  Store.current().add('int', PrimitiveType.integer.createConstant());
-  Store.current().add('String', PrimitiveType.string.createConstant());
-  Store.current().add('proc', NullType().createConstant());
-  Store.current().add('Any', AnyType().createConstant());
-  Store.current().add('Type', TypeOfType.shared.createConstant());
-  Store.current().add('null', NullType(name: 'null').createConstant());
+  Scope.current().add('int', PrimitiveType.integer.createConstant());
+  Scope.current().add('String', PrimitiveType.string.createConstant());
+  Scope.current().add('proc', NullType().createConstant());
+  Scope.current().add('Any', AnyType().createConstant());
+  Scope.current().add('Type', TypeOfType.shared.createConstant());
+  Scope.current().add('null', NullType(name: 'null').createConstant());
 }

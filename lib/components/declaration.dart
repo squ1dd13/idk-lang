@@ -5,7 +5,7 @@ import '../lexer.dart';
 import '../parser.dart';
 import '../runtime/concrete.dart';
 import '../runtime/expression.dart';
-import '../runtime/store.dart';
+import '../runtime/scope.dart';
 import 'typename.dart';
 import 'util.dart';
 
@@ -29,7 +29,7 @@ class DeclarationStatement extends Statement
     var endType = declaredType is ValueType ? declaredType : declaredType.type;
     var variable = sourceValue.convertHandleTo(endType);
 
-    Store.current().add(name, variable);
+    Scope.current().add(name, variable);
 
     return SideEffect.nothing();
   }

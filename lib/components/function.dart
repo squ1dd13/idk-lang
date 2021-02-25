@@ -4,7 +4,7 @@ import '../lexer.dart';
 import '../parser.dart';
 import '../runtime/concrete.dart';
 import '../runtime/function.dart';
-import '../runtime/store.dart';
+import '../runtime/scope.dart';
 import 'typename.dart';
 import 'util.dart';
 
@@ -34,7 +34,7 @@ class FunctionStatement extends Statement
   @override
   SideEffect execute() {
     // When the function declaration 'executes', it just means we need to
-    //  add the variable to the current store.
+    //  add the variable to the current scope.
 
     var function = FunctionValue(name, returnType.evaluate(), body);
 
@@ -44,7 +44,7 @@ class FunctionStatement extends Statement
     }
 
     function.applyType();
-    Store.current().add(name, function.createHandle());
+    Scope.current().add(name, function.createHandle());
 
     return SideEffect.nothing();
   }

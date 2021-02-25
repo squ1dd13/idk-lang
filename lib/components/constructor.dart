@@ -6,8 +6,8 @@ import 'package:language/runtime/expression.dart';
 import 'package:language/runtime/function.dart';
 import 'package:language/runtime/handle.dart';
 import 'package:language/runtime/object.dart';
+import 'package:language/runtime/scope.dart';
 import 'package:language/runtime/statements.dart';
-import 'package:language/runtime/store.dart';
 
 import 'typename.dart';
 import 'util.dart';
@@ -63,7 +63,7 @@ class ConstructorStatement extends StaticStatement implements ClassChild {
     var function = FunctionValue.implemented(parameters.length, (arguments) {
       var createdObject = ClassObject(classType);
 
-      createdObject.store.branch((constructorLocal) {
+      createdObject.scope.branch((constructorLocal) {
         for (var i = 0; i < parameters.length; ++i) {
           if (parameters[i].valueExpression != null) {
             // "super.x" or "self.x" to assign to here.
@@ -95,7 +95,7 @@ class ConstructorStatement extends StaticStatement implements ClassChild {
     });
 
     // Register the constructor with the class.
-    Store.current().add(name, function.createHandle());
+    Scope.current().add(name, function.createHandle());
 
     return SideEffect.nothing();
   }

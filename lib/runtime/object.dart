@@ -1,7 +1,7 @@
 import 'function.dart';
 import 'handle.dart';
+import 'scope.dart';
 import 'statements.dart';
-import 'store.dart';
 import 'type.dart';
 import 'value.dart';
 
@@ -11,16 +11,16 @@ class ClassType extends ValueType implements Callable {
   final List<Statement> _setupStatements;
   final Handle superclass;
   final bool abstract;
-  final Store statics;
+  final Scope statics;
 
   static var classTypeStack = <ClassType>[];
 
   ClassType(this.name, this._setupStatements, this.abstract, this.superclass)
-      : statics = Store(Store.current()) {
-    Store.stack.add(statics);
+      : statics = Scope(Scope.current()) {
+    Scope.stack.add(statics);
     classTypeStack.add(this);
 
-    // Execute static statements so that they affect the static store.
+    // Execute static statements so that they affect the static scope.
     for (var statement in _setupStatements) {
       if (statement.isStatic) {
         statement.execute();
@@ -28,7 +28,7 @@ class ClassType extends ValueType implements Callable {
     }
 
     classTypeStack.removeLast();
-    Store.stack.removeLast();
+    Scope.stack.removeLast();
 
     // We won't need to execute these again.
     _setupStatements.removeWhere((element) => element.isStatic);
@@ -45,20 +45,20 @@ class ClassType extends ValueType implements Callable {
     return other is ClassType && name == other.name;
   }
 
-  Store createObjectStore(ClassObject object, {bool asSuper = false}) {
-    Store store;
+  Scope createObjectScope(ClassObject object, {bool asSuper = false}) {
+    Scope scope;
 
     if (superclass != null) {
       var superInstance = ClassObject(superclass.value as ClassType);
 
-      store = Store(superInstance.store);
-      store.add('super', superInstance.createHandle());
+      scope = Scope(superInstance.scope);
+      scope.add('super', superInstance.createHandle());
     }
 
-    // If we don't have one already, create a new store.
-    store ??= Store(Store.global());
+    // If we don't have one already, create a new scope.
+    scope ??= Scope(Scope.global());
 
-    Store.stack.add(store);
+    Scope.stack.add(scope);
 
     for (var statement in _setupStatements) {
       // TODO: Handle exceptions in populate().
@@ -71,14 +71,14 @@ class ClassType extends ValueType implements Callable {
     //  references).
     var functionPredicate = (handle) => handle.handleType is FunctionType;
 
-    var functions = store.matching(functionPredicate);
+    var functions = scope.matching(functionPredicate);
 
     for (var i = 0; i < functions.length; ++i) {
       var functionValue = functions[i].value as FunctionValue;
-      functions[i].value = functionValue.wrappedForStore(store);
+      functions[i].value = functionValue.wrappedForScope(scope);
 
       var functionName = functionValue.name;
-      var current = store.parent;
+      var current = scope.parent;
 
       // Move up through superclasses and override parent implementations
       //  for methods we define. If we don't do this, inherited methods will
@@ -93,11 +93,11 @@ class ClassType extends ValueType implements Callable {
     }
 
     // Add 'self' so that it may be used in methods.
-    store.add('self', object.createHandle());
+    scope.add('self', object.createHandle());
 
-    Store.stack.removeLast();
+    Scope.stack.removeLast();
 
-    return store;
+    return scope;
   }
 
   @override
@@ -147,23 +147,23 @@ class ClassType extends ValueType implements Callable {
 
 class ClassObject extends Value {
   // Manages fields and methods.
-  Store store;
+  Scope scope;
 
   ClassObject(ClassType classType) {
     type = classType;
-    store = classType.createObjectStore(this);
+    scope = classType.createObjectScope(this);
   }
 
   ClassObject.from(ClassObject other) {
     type = other.type;
 
     // TODO: Clone object internal storage on copy.
-    store = other.store;
+    scope = other.scope;
   }
 
   @override
   Handle instanceMember(String name) {
-    return store.get(name);
+    return scope.get(name);
   }
 
   @override

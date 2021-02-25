@@ -2,8 +2,8 @@ import 'package:language/lexer.dart';
 import 'package:language/runtime/concrete.dart';
 import 'package:language/runtime/expression.dart';
 import 'package:language/runtime/primitive.dart';
+import 'package:language/runtime/scope.dart';
 import 'package:language/runtime/statements.dart';
-import 'package:language/runtime/store.dart';
 
 import '../parser.dart';
 import 'util.dart';
@@ -22,7 +22,7 @@ class LoopStatement extends DynamicStatement
   SideEffect execute() {
     var sideEffect = SideEffect.nothing();
 
-    Store.current().branch((_) {
+    Scope.current().branch((_) {
       var setupEffect = setup.execute();
 
       // Handle interrupts in the setup (probably exceptions).

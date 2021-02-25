@@ -6,7 +6,7 @@ import '../parser.dart';
 import '../runtime/concrete.dart';
 import '../runtime/exception.dart';
 import '../runtime/expression.dart';
-import '../runtime/store.dart';
+import '../runtime/scope.dart';
 import '../runtime/type.dart';
 import 'typename.dart';
 import 'util.dart';
@@ -26,7 +26,7 @@ class DirectionStatement extends DynamicStatement
     var reference = Reference(evaluated);
 
     if (typeName == null) {
-      var handle = Store.current().get(name);
+      var handle = Scope.current().get(name);
 
       if (!(handle is Reference)) {
         throw RuntimeError('Cannot redirect non-reference.');
@@ -34,10 +34,10 @@ class DirectionStatement extends DynamicStatement
 
       (handle as Reference).redirect(evaluated);
     } else {
-      Store.current().add(name, reference);
+      Scope.current().add(name, reference);
     }
 
-    var storedReference = Store.current().get(name) as Reference;
+    var storedReference = Scope.current().get(name) as Reference;
     var requiredType =
         typeName?.evaluate() ?? ReferenceType.to(evaluated.valueType);
 

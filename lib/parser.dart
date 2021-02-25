@@ -3,7 +3,7 @@ import 'package:language/lexer.dart';
 import 'package:language/runtime/concrete.dart';
 import 'package:language/runtime/exception.dart';
 import 'package:language/runtime/expression.dart';
-import 'package:language/runtime/store.dart';
+import 'package:language/runtime/scope.dart';
 
 import 'components/class.dart';
 import 'components/class_type.dart';
@@ -149,7 +149,7 @@ class Parse {
 
       if (tokens.first.type == TokenType.Name) {
         return InlineExpression(() {
-          return Store.current().get(tokens.first.toString());
+          return Scope.current().get(tokens.first.toString());
         });
       }
     }

@@ -3,8 +3,8 @@ import 'package:language/parser.dart';
 import 'package:language/runtime/concrete.dart';
 import 'package:language/runtime/expression.dart';
 import 'package:language/runtime/object.dart';
+import 'package:language/runtime/scope.dart';
 import 'package:language/runtime/statements.dart';
-import 'package:language/runtime/store.dart';
 
 import 'util.dart';
 
@@ -16,12 +16,12 @@ class ClassStatement extends StaticStatement implements ClassChild {
 
   @override
   SideEffect execute() {
-    if (!Store.current().has(className)) {
+    if (!Scope.current().has(className)) {
       // Register the type.
       var type =
           ClassType(className, body, abstract, parentExpression?.evaluate());
 
-      Store.current().add(className, type.createConstant());
+      Scope.current().add(className, type.createConstant());
     }
 
     return SideEffect.nothing();

@@ -1,8 +1,8 @@
 import 'concrete.dart';
 import 'exception.dart';
 import 'handle.dart';
+import 'scope.dart';
 import 'statements.dart';
-import 'store.dart';
 import 'type.dart';
 import 'value.dart';
 
@@ -72,7 +72,7 @@ abstract class Callable extends Value {
 class FunctionValue extends Callable {
   String name;
   List<Statement> _statements;
-  Store Function() _getExecutionStore = () => Store.current();
+  Scope Function() _getExecutionScope = () => Scope.current();
 
   FunctionValue.empty();
 
@@ -95,7 +95,7 @@ class FunctionValue extends Callable {
         var arguments = List<Handle>.filled(parameterCount, null);
 
         for (var i = 0; i < parameterCount; ++i) {
-          arguments[i] = Store.current().get('arg$i');
+          arguments[i] = Scope.current().get('arg$i');
         }
 
         return implementation(arguments);
@@ -116,15 +116,15 @@ class FunctionValue extends Callable {
   }
 
   /// Returns a shallow copy of this function value which is always executed
-  /// in a branch of [store] rather than of `Store.current()`.
-  FunctionValue wrappedForStore(Store store) {
+  /// in a branch of [scope] rather than of `Scope.current()`.
+  FunctionValue wrappedForScope(Scope scope) {
     var wrapped = FunctionValue.empty();
     wrapped.name = name;
     wrapped.returnType = returnType;
     wrapped.type = type;
     wrapped.parameters = parameters;
     wrapped._statements = _statements;
-    wrapped._getExecutionStore = () => store;
+    wrapped._getExecutionScope = () => scope;
 
     return wrapped;
   }
@@ -158,13 +158,13 @@ class FunctionValue extends Callable {
   Handle call(Map<String, Handle> arguments) {
     var returnedHandle = NullType.nullHandle();
 
-    var executionParentStore = _getExecutionStore();
+    var executionParentScope = _getExecutionScope();
 
     // Open a new scope for the function body to run inside.
-    executionParentStore.branch((store) {
+    executionParentScope.branch((scope) {
       for (var name in arguments.keys) {
         var copied = arguments[name].copyHandle();
-        store.add(name, copied.convertHandleTo(parameters[name]));
+        scope.add(name, copied.convertHandleTo(parameters[name]));
       }
 
       // Execute the body.

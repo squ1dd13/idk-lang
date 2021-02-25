@@ -1,6 +1,6 @@
 import 'package:language/runtime/exception.dart';
 import 'package:language/runtime/object.dart';
-import 'package:language/runtime/store.dart';
+import 'package:language/runtime/scope.dart';
 
 import 'handle.dart';
 import 'primitive.dart';
@@ -51,8 +51,8 @@ class TypeOfType extends ValueType implements ClassType {
   }
 
   @override
-  Store createObjectStore(ClassObject object, {bool asSuper = false}) {
-    return Store(Store.global());
+  Scope createObjectScope(ClassObject object, {bool asSuper = false}) {
+    return Scope(Scope.global());
   }
 
   @override
@@ -64,7 +64,7 @@ class TypeOfType extends ValueType implements ClassType {
   String get name => 'Type';
 
   @override
-  Store get statics => Store(Store.global());
+  Scope get statics => Scope(Scope.global());
 
   @override
   Handle get superclass => null;

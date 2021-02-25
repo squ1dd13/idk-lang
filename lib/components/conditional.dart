@@ -4,8 +4,8 @@ import 'package:language/parser.dart';
 import 'package:language/runtime/concrete.dart';
 import 'package:language/runtime/expression.dart';
 import 'package:language/runtime/primitive.dart';
+import 'package:language/runtime/scope.dart';
 import 'package:language/runtime/statements.dart';
-import 'package:language/runtime/store.dart';
 
 class ConditionalStatement extends DynamicStatement
     implements FunctionChild, LoopChild {
@@ -18,7 +18,7 @@ class ConditionalStatement extends DynamicStatement
   SideEffect execute() {
     var sideEffect = SideEffect.nothing();
 
-    Store.current().branch((_) {
+    Scope.current().branch((_) {
       var conditionValue = true;
 
       if (condition != null) {

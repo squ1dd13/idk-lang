@@ -1,17 +1,17 @@
 import 'exception.dart';
 import 'handle.dart';
 
-class Store {
+class Scope {
   final _contents = <String, Handle>{};
-  final Store parent;
+  final Scope parent;
 
-  static var stack = <Store>[Store(null)];
+  static var stack = <Scope>[Scope(null)];
 
-  Store(this.parent);
+  Scope(this.parent);
 
-  static Store current() => stack.last;
+  static Scope current() => stack.last;
 
-  static Store global() => stack.first;
+  static Scope global() => stack.first;
 
   void add(String name, Handle item) {
     if (has(name)) {
@@ -53,11 +53,11 @@ class Store {
     return matches;
   }
 
-  /// Branches the current store off into another, and runs a block
-  /// of code in the context of the new store. Nothing can be added to
-  /// or removed from the parent store (although values may change).
-  void branch(void Function(Store) toRun) {
-    var child = Store(this);
+  /// Branches the current scope off into another, and runs a block
+  /// of code in the context of the new scope. Nothing can be added to
+  /// or removed from the parent scope (although values may change).
+  void branch(void Function(Scope) toRun) {
+    var child = Scope(this);
 
     // Make current() return the child.
     stack.add(child);
