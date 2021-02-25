@@ -2,18 +2,39 @@ import 'package:language/lexer.dart';
 import 'package:language/parser.dart';
 import 'package:language/runtime/concrete.dart';
 import 'package:language/runtime/expression.dart';
-import 'package:language/runtime/function.dart';
 import 'package:language/runtime/object.dart';
+import 'package:language/runtime/statements.dart';
 import 'package:language/runtime/store.dart';
-import 'package:language/runtime/type.dart';
 
 import 'util.dart';
 
+class ClassStatement extends StaticStatement implements ClassChild {
+  String className;
+  bool abstract;
+  Expression parentExpression;
+  List<ClassChild> body;
+
+  @override
+  SideEffect execute() {
+    if (!Store.current().has(className)) {
+      // Register the type.
+      var type =
+          ClassType(className, body, abstract, parentExpression?.evaluate());
+
+      // Store.current().add(className, type.createConstant());
+    }
+
+    return SideEffect.nothing();
+  }
+}
+
 class ClassDeclaration implements Statable {
-  Expression _superclassExpression;
-  String _name;
-  bool _isAbstract;
-  List<Statement> _body;
+  final _statement = ClassStatement();
+
+  // Expression _superclassExpression;
+  // String _name;
+  // bool _isAbstract;
+  // List<Statement> _body;
 
   ClassDeclaration(TokenStream tokens) {
     const keywordMessage = 'Expected "class" or "abstract".';
@@ -25,14 +46,14 @@ class ClassDeclaration implements Statable {
       tokens.current().throwSyntax(keywordMessage, 1);
     }
 
-    _isAbstract = keyword == 'abstract';
+    _statement.abstract = keyword == 'abstract';
 
     tokens.skip();
 
     tokens.requireNext('Expected class name after "class" keyword.', 2,
         TokenPattern.type(TokenType.Name));
 
-    _name = tokens.take().toString();
+    _statement.className = tokens.take().toString();
 
     const ofPattern = TokenPattern(string: 'of', type: TokenType.Name);
     var bracePattern = GroupPattern('{', '}');
@@ -42,51 +63,39 @@ class ClassDeclaration implements Statable {
       tokens.skip();
 
       var untilBraces = tokens.takeWhile(bracePattern.notMatch);
-      _superclassExpression = Parse.expression(untilBraces);
+      _statement.parentExpression = Parse.expression(untilBraces);
     }
 
     tokens.requireNext(
         'Expected braces after class or superclass name.', 3, bracePattern);
 
-    _body = Parse.statements(tokens.take().allTokens());
-  }
-
-  ValueType _classType() {
-    var type =
-        ClassType(_name, _body, _isAbstract, _superclassExpression?.evaluate());
-
-    if (!Store.current().has(_name)) {
-      Store.current().add(_name, type.createConstant());
-    } else {
-      return Store.current().get(_name).value;
-    }
-
-    return type;
+    _statement.body = Parse.statements(tokens.take().allTokens()).cast();
   }
 
   /// Create a constructor function. This is only needed until we have real
   /// constructors.
-  FunctionValue _generateConstructor() {
-    if (_isAbstract) {
-      return null;
-    }
-
-    return FunctionValue.implemented(0, (arguments) {
-      var created = ClassObject(_classType()).createHandle();
-      return SideEffect.returns(created);
-    }, named: 'New_$_name', returns: _classType());
-  }
+  // FunctionValue _generateConstructor() {
+  //   if (_isAbstract) {
+  //     return null;
+  //   }
+  //
+  //   return FunctionValue.implemented(0, (arguments) {
+  //     var created = ClassObject(_classType()).createHandle();
+  //     return SideEffect.returns(created);
+  //   }, named: 'New_$_name', returns: _classType());
+  // }
 
   @override
   Statement createStatement() {
-    return SideEffectStatement(() {
-      var constructor = _generateConstructor();
-
-      if (constructor != null) {
-        Store.current().add(constructor.name, constructor.createHandle());
-      }
-
-      return SideEffect.nothing();
-    }, static: true);
+    return _statement;
+    // return SideEffectStatement(() {
+    //   var constructor = _generateConstructor();
+    //
+    //   if (constructor != null) {
+    //     Store.current().add(constructor.name, constructor.createHandle());
+    //   }
+    //
+    //   return SideEffect.nothing();
+    // }, static: true);
   }
 }

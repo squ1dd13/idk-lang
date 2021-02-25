@@ -1,3 +1,5 @@
+import 'package:language/runtime/statements.dart';
+
 import 'expression.dart';
 import 'handle.dart';
 
@@ -36,9 +38,9 @@ class SideEffect {
 
   bool get isInterrupt =>
       breakName != null ||
-      continueName != null ||
-      returned != null ||
-      thrown != null;
+          continueName != null ||
+          returned != null ||
+          thrown != null;
 }
 
 /// A single unit of code which affects the program without
@@ -52,6 +54,20 @@ class Statement {
     isStatic = static;
   }
 
+  SideEffect execute() {
+    _fullExpression.evaluate();
+    return SideEffect.nothing();
+  }
+}
+
+class GenericStatement extends NewStatement
+    implements FunctionChild, LoopChild {
+  @override
+  final Expression _fullExpression;
+
+  GenericStatement(this._fullExpression, bool isStatic) : super(isStatic);
+
+  @override
   SideEffect execute() {
     _fullExpression.evaluate();
     return SideEffect.nothing();

@@ -1,3 +1,4 @@
+import 'package:language/runtime/statements.dart';
 import 'package:language/runtime/type.dart';
 
 import '../lexer.dart';
@@ -8,16 +9,46 @@ import '../runtime/store.dart';
 import 'typename.dart';
 import 'util.dart';
 
+class DeclarationStatement extends NewStatement
+    implements ClassChild, FunctionChild, LoopChild {
+  TypeName typeName;
+  String name;
+  Expression valueExpression;
+
+  DeclarationStatement(bool isStatic) : super(isStatic);
+
+  @override
+  SideEffect execute() {
+    // Evaluate the expression and then create a variable with the type.
+    var sourceValue = valueExpression.evaluate();
+
+    // If typeName evaluates to 'null', this is a 'let' declaration.
+    // We take the type from the value.
+    var declaredType = typeName.evaluate() ?? sourceValue.handleType;
+
+    var endType = declaredType is ValueType ? declaredType : declaredType.type;
+    var variable = sourceValue.convertHandleTo(endType);
+
+    Store.current().add(name, variable);
+
+    return SideEffect.nothing();
+  }
+}
+
 class VariableDeclaration implements Statable {
-  TypeName _typeName;
-  String _name;
-  Expression _valueExpression;
-  bool _isStatic = false;
+  // TODO: Add back statics declarations.
+  final _statement = DeclarationStatement(false);
+
+  // TypeName _typeName;
+  // String _name;
+  // Expression _valueExpression;
 
   VariableDeclaration(TokenStream tokens) {
     // Find the location of the "=", then work backwards to find the name
     //  and the type.
     // TODO: Work out if there is any way a type could contain a top-level "=".
+
+    // TODO: Dart-style valueless declarations with null value.
 
     // Read the whole statement.
     var statementTokens = tokens.takeUntilSemicolon();
@@ -44,7 +75,7 @@ class VariableDeclaration implements Statable {
       nameToken.throwSyntax('Expected name in declaration.', 2);
     }
 
-    _name = nameToken.toString();
+    _statement.name = nameToken.toString();
 
     // The type tokens are all of the tokens that appear before the name.
     var typeTokens = statementTokens.sublist(0, equalsIndex - 1);
@@ -54,7 +85,7 @@ class VariableDeclaration implements Statable {
       statementTokens.first.throwSyntax('Expected type in declaration.', 3);
     }
 
-    _typeName = TypeName(typeStream);
+    _statement.typeName = TypeName(typeStream);
 
     if (typeStream.hasCurrent()) {
       typeStream.current().throwSyntax('Unexpected token.', 4);
@@ -68,7 +99,7 @@ class VariableDeclaration implements Statable {
           'Declaration value expression may not be empty.', 5);
     }
 
-    _valueExpression = Parse.expression(expressionTokens);
+    _statement.valueExpression = Parse.expression(expressionTokens);
     //
     // _isStatic = Parse.staticKeyword(tokens);
     // _typeName = TypeName(tokens);
@@ -98,25 +129,13 @@ class VariableDeclaration implements Statable {
 
   @override
   Statement createStatement() {
-    return Statement(InlineExpression(() {
-      // Evaluate the expression and then create a variable with the type.
-      var sourceValue = _valueExpression.evaluate();
-
-      // If _typeName evaluates to 'null', this is a 'let' declaration.
-      // We take the type from the value.
-      var declaredType = _typeName.evaluate() ?? sourceValue.handleType;
-
-      var variable = sourceValue.convertHandleTo(
-          declaredType is ValueType ? declaredType : declaredType.type);
-
-      Store.current().add(_name, variable);
-
-      return null;
-    }), static: _isStatic);
+    return _statement;
   }
 
   @override
   String toString() {
-    return 'type ${_typeName.toString()} set ${_name} as ${_valueExpression}';
+    return 'type ${_statement.typeName.toString()} '
+        'set ${_statement.name} '
+        'as ${_statement.valueExpression}';
   }
 }

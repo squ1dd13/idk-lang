@@ -1,7 +1,8 @@
+import 'package:language/runtime/statements.dart';
+
 import '../lexer.dart';
 import '../parser.dart';
 import '../runtime/concrete.dart';
-import '../runtime/expression.dart';
 import '../runtime/function.dart';
 import '../runtime/store.dart';
 import 'typename.dart';
@@ -21,26 +22,56 @@ class _Parameter {
   }
 }
 
+class FunctionStatement extends NewStatement
+    implements ClassChild, FunctionChild, LoopChild {
+  TypeName returnType;
+  String name;
+  final parameters = <_Parameter>[];
+  final body = <FunctionChild>[];
+
+  FunctionStatement(bool isStatic) : super(isStatic);
+
+  @override
+  SideEffect execute() {
+    // When the function declaration 'executes', it just means we need to
+    //  add the variable to the current store.
+
+    var function = FunctionValue(name, returnType.evaluate(), body);
+
+    // Add the parameters.
+    for (var parameter in parameters) {
+      function.addParameter(parameter.name, parameter.type.evaluate());
+    }
+
+    function.applyType();
+    Store.current().add(name, function.createHandle());
+
+    return SideEffect.nothing();
+  }
+}
+
 class FunctionDeclaration implements Statable {
   // Stays as a TypeName until the declaration is evaluated - this lazy
   //  loading of types allows the type to be declared after its first use.
-  TypeName _returnType;
-  String _name;
-  final _parameters = <_Parameter>[];
-  final _body = <Statement>[];
-  bool _isStatic;
+  // TypeName _returnType;
+  // String _name;
+  // final _parameters = <_Parameter>[];
+  // final _body = <Statement>[];
+  // bool _isStatic;
+
+  FunctionStatement _statement;
 
   FunctionDeclaration(TokenStream tokens) {
-    _isStatic = Parse.staticKeyword(tokens);
+    _statement = FunctionStatement(Parse.staticKeyword(tokens));
     tokens.requireNext('Functions must declare a return type.', 1,
         TokenPattern.type(TokenType.Name));
 
-    _returnType = TypeName(tokens);
+    _statement.returnType = TypeName(tokens);
 
     tokens.requireNext(
         'Function must have a name.', 2, TokenPattern.type(TokenType.Name));
 
-    _name = tokens.take().toString();
+    _statement.name = tokens.take().toString();
 
     tokens.requireNext('Expected parameter list after function name.', 3,
         GroupPattern('(', ')'));
@@ -57,32 +88,34 @@ class FunctionDeclaration implements Statable {
     // Parse all of the parameters.
     for (var segment in segments) {
       // Create a _Parameter from each segment's tokens.
-      _parameters.add(_Parameter(TokenStream(segment, 0)));
+      _statement.parameters.add(_Parameter(TokenStream(segment, 0)));
     }
 
     tokens.requireNext('Expected function body after parameter list.', 4,
         GroupPattern('{', '}'));
 
     var bodyTokens = tokens.take() as GroupToken;
-    _body.addAll(Parse.statements(bodyTokens.middle()));
+    _statement.body
+        .addAll(Parse.statements<FunctionChild>(bodyTokens.middle()));
   }
 
   @override
   Statement createStatement() {
+    return _statement;
     // When the function declaration 'executes', it just means we need to
     //  add the variable to the current store.
-    return Statement(InlineExpression(() {
-      var function = FunctionValue(_name, _returnType.evaluate(), _body);
-
-      // Add the parameters.
-      for (var parameter in _parameters) {
-        function.addParameter(parameter.name, parameter.type.evaluate());
-      }
-
-      function.applyType();
-      Store.current().add(_name, function.createHandle());
-
-      return null;
-    }), static: _isStatic);
+    // return Statement(InlineExpression(() {
+    //   var function = FunctionValue(_name, _returnType.evaluate(), _body);
+    //
+    //   // Add the parameters.
+    //   for (var parameter in _parameters) {
+    //     function.addParameter(parameter.name, parameter.type.evaluate());
+    //   }
+    //
+    //   function.applyType();
+    //   Store.current().add(_name, function.createHandle());
+    //
+    //   return null;
+    // }), static: _isStatic);
   }
 }

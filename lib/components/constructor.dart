@@ -6,6 +6,7 @@ import 'package:language/runtime/expression.dart';
 import 'package:language/runtime/function.dart';
 import 'package:language/runtime/handle.dart';
 import 'package:language/runtime/object.dart';
+import 'package:language/runtime/statements.dart';
 import 'package:language/runtime/store.dart';
 
 import 'typename.dart';
@@ -50,11 +51,63 @@ class _ConstructorParameter {
   }
 }
 
-/// A constructor declaration.
-class ConstructorDeclaration implements Statable {
+class ConstructorStatement extends StaticStatement implements ClassChild {
   String name;
   var parameters = <_ConstructorParameter>[];
-  final _body = <Statement>[];
+  final body = <FunctionChild>[];
+
+  @override
+  SideEffect execute() {
+    var classType = ClassType.classTypeStack.last;
+
+    var function = FunctionValue.implemented(parameters.length, (arguments) {
+      var createdObject = ClassObject(classType);
+
+      createdObject.store.branch((constructorLocal) {
+        for (var i = 0; i < parameters.length; ++i) {
+          if (parameters[i].valueExpression != null) {
+            // "super.x" or "self.x" to assign to here.
+            var assignmentHandle = parameters[i].valueExpression.evaluate();
+            assignmentHandle.value =
+                arguments[i].value.mustConvertTo(assignmentHandle.valueType);
+          } else {
+            constructorLocal.add(parameters[i].name, arguments[i]);
+          }
+        }
+
+        Handle returnHandle;
+
+        for (var statement in body) {
+          var result = FunctionValue.runStatement(statement);
+
+          if (!result[0]) {
+            returnHandle = result[1];
+            break;
+          }
+        }
+
+        if (returnHandle != null) {
+          throw RuntimeError('Constructors may not return values.');
+        }
+      });
+
+      return SideEffect.returns(createdObject.createHandle());
+    });
+
+    // Register the constructor with the class.
+    Store.current().add(name, function.createHandle());
+
+    return SideEffect.nothing();
+  }
+}
+
+/// A constructor declaration.
+class ConstructorDeclaration implements Statable {
+  // String name;
+  // var parameters = <_ConstructorParameter>[];
+  // final _body = <Statement>[];
+
+  final _statement = ConstructorStatement();
 
   ConstructorDeclaration(TokenStream tokens, {bool anonymous = false}) {
     tokens.requireNext('Constructor must start with "new".', 1,
@@ -68,9 +121,9 @@ class ConstructorDeclaration implements Statable {
       //  at declaring a constructor.
       tokens.requireNext('Constructors may not be anonymous.', 10,
           TokenPattern.type(TokenType.Name));
-      name = tokens.take().toString();
+      _statement.name = tokens.take().toString();
     } else {
-      name = '';
+      _statement.name = '';
     }
 
     tokens.requireNext('Expected "()" in constructor declaration.', 11,
@@ -80,14 +133,14 @@ class ConstructorDeclaration implements Statable {
 
     // Read parameters until there are no tokens left.
     while (parameterStream.hasCurrent()) {
-      parameters.add(_ConstructorParameter(parameterStream));
+      _statement.parameters.add(_ConstructorParameter(parameterStream));
     }
 
     var bodyToken = tokens.take();
     var bracesPattern = GroupPattern('{', '}');
 
     if (bracesPattern.hasMatch(bodyToken)) {
-      _body.addAll(Parse.statements(bodyToken.allTokens()));
+      _statement.body.addAll(Parse.statements(bodyToken.allTokens()));
     } else if (!TokenPattern.semicolon.hasMatch(bodyToken)) {
       // A semicolon is fine, because it means there is no constructor body.
       // If there is no semicolon or braces, there's something off.
@@ -98,47 +151,48 @@ class ConstructorDeclaration implements Statable {
 
   @override
   Statement createStatement() {
-    return SideEffectStatement(() {
-      var classType = ClassType.classTypeStack.last;
-
-      var function = FunctionValue.implemented(parameters.length, (arguments) {
-        var createdObject = ClassObject(classType);
-
-        createdObject.store.branch((constructorLocal) {
-          for (var i = 0; i < parameters.length; ++i) {
-            if (parameters[i].valueExpression != null) {
-              // "super.x" or "self.x" to assign to here.
-              var assignmentHandle = parameters[i].valueExpression.evaluate();
-              assignmentHandle.value =
-                  arguments[i].value.mustConvertTo(assignmentHandle.valueType);
-            } else {
-              constructorLocal.add(parameters[i].name, arguments[i]);
-            }
-          }
-
-          Handle returnHandle;
-
-          for (var statement in _body) {
-            var result = FunctionValue.runStatement(statement);
-
-            if (!result[0]) {
-              returnHandle = result[1];
-              break;
-            }
-          }
-
-          if (returnHandle != null) {
-            throw RuntimeError('Constructors may not return values.');
-          }
-        });
-
-        return SideEffect.returns(createdObject.createHandle());
-      });
-
-      // Register the constructor with the class.
-      Store.current().add(name, function.createHandle());
-
-      return SideEffect.nothing();
-    }, static: true);
+    return _statement;
+    // return SideEffectStatement(() {
+    //   var classType = ClassType.classTypeStack.last;
+    //
+    //   var function = FunctionValue.implemented(parameters.length, (arguments) {
+    //     var createdObject = ClassObject(classType);
+    //
+    //     createdObject.store.branch((constructorLocal) {
+    //       for (var i = 0; i < parameters.length; ++i) {
+    //         if (parameters[i].valueExpression != null) {
+    //           // "super.x" or "self.x" to assign to here.
+    //           var assignmentHandle = parameters[i].valueExpression.evaluate();
+    //           assignmentHandle.value =
+    //               arguments[i].value.mustConvertTo(assignmentHandle.valueType);
+    //         } else {
+    //           constructorLocal.add(parameters[i].name, arguments[i]);
+    //         }
+    //       }
+    //
+    //       Handle returnHandle;
+    //
+    //       for (var statement in _body) {
+    //         var result = FunctionValue.runStatement(statement);
+    //
+    //         if (!result[0]) {
+    //           returnHandle = result[1];
+    //           break;
+    //         }
+    //       }
+    //
+    //       if (returnHandle != null) {
+    //         throw RuntimeError('Constructors may not return values.');
+    //       }
+    //     });
+    //
+    //     return SideEffect.returns(createdObject.createHandle());
+    //   });
+    //
+    //   // Register the constructor with the class.
+    //   Store.current().add(name, function.createHandle());
+    //
+    //   return SideEffect.nothing();
+    // }, static: true);
   }
 }

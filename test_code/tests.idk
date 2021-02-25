@@ -209,6 +209,8 @@ class ClassOne {
         something = "empty";
     }
 
+    new new();
+
     new withString(self.something);
 
     int classNumber() {
@@ -224,12 +226,16 @@ class ClassTwo of ClassOne {
     int classNumber() {
         return 2;
     }
+
+    new new();
 }
 
 class ClassThree of ClassTwo {
     int classNumber() {
         return 3;
     }
+
+    new new();
 }
 
 proc testClasses() {
@@ -246,9 +252,9 @@ proc testClasses() {
     let sugary = ClassOne:withString("cool");
     print(sugary.something);
 
-    let classOne = New_ClassOne();
-    let classTwo = New_ClassTwo();
-    let classThree = New_ClassThree();
+    let classOne = ClassOne:new();
+    let classTwo = ClassTwo:new();
+    let classThree = ClassThree:new();
 
     int combinedNumbers(ClassOne instance) {
         return instance.classNumber() + instance.classNumberAgain();

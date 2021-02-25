@@ -1,4 +1,5 @@
 import 'package:language/runtime/handle.dart';
+import 'package:language/runtime/statements.dart';
 
 import '../lexer.dart';
 import '../parser.dart';
@@ -10,14 +11,58 @@ import '../runtime/type.dart';
 import 'typename.dart';
 import 'util.dart';
 
+// TODO: Should directions be allowed in classes?
+class DirectionStatement extends DynamicStatement
+    implements FunctionChild, LoopChild {
+  TypeName typeName;
+  String name;
+  Expression targetExpression;
+
+  @override
+  SideEffect execute() {
+    // Evaluate the expression and then create a variable with the type.
+    var evaluated = targetExpression.evaluate();
+
+    var reference = Reference(evaluated);
+
+    if (typeName == null) {
+      var handle = Store.current().get(name);
+
+      if (!(handle is Reference)) {
+        throw RuntimeError('Cannot redirect non-reference.');
+      }
+
+      (handle as Reference).redirect(evaluated);
+    } else {
+      Store.current().add(name, reference);
+    }
+
+    var storedReference = Store.current().get(name) as Reference;
+    var requiredType =
+        typeName?.evaluate() ?? ReferenceType.to(evaluated.valueType);
+
+    if (storedReference.handleType.notEquals(requiredType)) {
+      var targetType =
+          (storedReference.handleType as ReferenceType).referencedType;
+      throw RuntimeError('Cannot direct "$requiredType" to "$targetType".');
+    }
+
+    storedReference.value = storedReference.convertValueTo(requiredType).value;
+    // throw UnimplementedError();
+    return SideEffect.nothing();
+  }
+}
+
 /// The initial direction of a reference, such as:
 /// ```
 /// @int myReference -> someVariable;
 /// ```
 class Direction implements Statable {
-  TypeName _typeName;
-  String _name;
-  Expression _targetExpression;
+  // TypeName _typeName;
+  // String _name;
+  // Expression _targetExpression;
+
+  final _statement = DirectionStatement();
 
   /// Parses the part of the direction which is common between directions
   /// and redirections.
@@ -25,7 +70,7 @@ class Direction implements Statable {
     tokens.requireNext(
         'Expected name in direction.', 1, TokenPattern.type(TokenType.Name));
 
-    _name = tokens.take().toString();
+    _statement.name = tokens.take().toString();
 
     tokens.requireNext('Expected "->" in direction.', 2,
         TokenPattern(string: '->', type: TokenType.Symbol));
@@ -38,7 +83,7 @@ class Direction implements Statable {
           'Direction target expression may not be empty.', 3);
     }
 
-    _targetExpression = Parse.expression(expressionTokens);
+    _statement.targetExpression = Parse.expression(expressionTokens);
 
     tokens.consumeSemicolon(4);
   }
@@ -52,46 +97,14 @@ class Direction implements Statable {
     var typeName = TypeName(tokens);
 
     var common = Direction._common(tokens);
-    common._typeName = typeName;
+    common._statement.typeName = typeName;
 
     return common;
   }
 
   @override
   Statement createStatement() {
-    return Statement(InlineExpression(() {
-      // Evaluate the expression and then create a variable with the type.
-      var evaluated = _targetExpression.evaluate();
-
-      var reference = Reference(evaluated);
-
-      if (_typeName == null) {
-        var handle = Store.current().get(_name);
-
-        if (!(handle is Reference)) {
-          throw RuntimeError('Cannot redirect non-reference.');
-        }
-
-        (handle as Reference).redirect(evaluated);
-      } else {
-        Store.current().add(_name, reference);
-      }
-
-      var storedReference = Store.current().get(_name) as Reference;
-      var requiredType =
-          _typeName?.evaluate() ?? ReferenceType.to(evaluated.valueType);
-
-      if (storedReference.handleType.notEquals(requiredType)) {
-        var targetType =
-            (storedReference.handleType as ReferenceType).referencedType;
-        throw RuntimeError('Cannot direct "$requiredType" to "$targetType".');
-      }
-
-      storedReference.value =
-          storedReference.convertValueTo(requiredType).value;
-      // throw UnimplementedError();
-      return null;
-    }));
+    return _statement;
   }
 }
 

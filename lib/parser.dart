@@ -31,7 +31,7 @@ class Parse {
     (stream) => FlowStatement(stream).createStatement(),
     (stream) => ClassDeclaration(stream).createStatement(),
     (stream) {
-      var statement = Statement(OperatorExpression(stream));
+      var statement = GenericStatement(OperatorExpression(stream), false);
       stream.consumeSemicolon(3);
       return statement;
     },
@@ -87,10 +87,11 @@ class Parse {
     return created;
   }
 
-  static List<Statement> statements(List<Token> tokens,
+  static List<StatementType> statements<StatementType>(List<Token> tokens,
       {int limit = -1, List<Statement Function(TokenStream)> passes}) {
     return _parseRepeated(
-        TokenStream(tokens, 0), passes ?? statementPasses, limit);
+            TokenStream(tokens, 0), passes ?? statementPasses, limit)
+        .cast();
   }
 
   static Statement statement(TokenStream tokens) {

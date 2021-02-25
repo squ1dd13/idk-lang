@@ -4,14 +4,60 @@ import 'package:language/parser.dart';
 import 'package:language/runtime/concrete.dart';
 import 'package:language/runtime/expression.dart';
 import 'package:language/runtime/primitive.dart';
+import 'package:language/runtime/statements.dart';
 import 'package:language/runtime/store.dart';
+
+class ConditionalStatement extends DynamicStatement
+    implements FunctionChild, LoopChild {
+  /// null if there is no condition (for 'else').
+  Expression condition;
+  List<Statement> body;
+  ConditionalClause nextClause;
+
+  @override
+  SideEffect execute() {
+    var sideEffect = SideEffect.nothing();
+
+    Store.current().branch((_) {
+      var conditionValue = true;
+
+      if (condition != null) {
+        var evaluated = condition.evaluate();
+        var conditionBool = evaluated.convertValueTo(PrimitiveType.boolean);
+
+        conditionValue = (conditionBool.value as BooleanValue).value;
+      }
+
+      if (!conditionValue) {
+        // Run the subsequent clause, or return an empty side effect if there
+        //  isn't another clause to run.
+        sideEffect =
+            nextClause?.createStatement()?.execute() ?? SideEffect.nothing();
+        return;
+      }
+
+      for (var bodyStatement in body) {
+        var statementEffect = bodyStatement.execute();
+
+        if (statementEffect.isInterrupt) {
+          sideEffect = statementEffect;
+          return;
+        }
+      }
+    });
+
+    return sideEffect;
+  }
+}
 
 /// Any part of an if..else if..else statement.
 class ConditionalClause implements Statable {
   /// null if there is no condition (for 'else').
-  Expression _condition;
-  List<Statement> _body;
-  ConditionalClause _nextClause;
+  // Expression _condition;
+  // List<Statement> _body;
+  // ConditionalClause _nextClause;
+
+  final _statement = ConditionalStatement();
 
   ConditionalClause(TokenStream tokens) {
     tokens.requireNext(
@@ -44,7 +90,7 @@ class ConditionalClause implements Statable {
     if (shouldReadCondition) {
       var conditionTokens = tokens.takeWhile(bodyPattern.notMatch);
 
-      _condition = Parse.expression(conditionTokens);
+      _statement.condition = Parse.expression(conditionTokens);
     }
 
     if (bodyPattern.notMatch(tokens.current())) {
@@ -53,50 +99,19 @@ class ConditionalClause implements Statable {
     }
 
     // Parse the body into a list of statements.
-    _body = Parse.statements(tokens.take().allTokens());
+    _statement.body =
+        Parse.statements<DynamicStatement>(tokens.take().allTokens());
 
     // Check if there's a chained clause after this.
     if (tokens.hasCurrent() &&
         TokenPattern(string: 'else', type: TokenType.Name)
             .hasMatch(tokens.current())) {
-      _nextClause = ConditionalClause(tokens);
+      _statement.nextClause = ConditionalClause(tokens);
     }
   }
 
   @override
   Statement createStatement() {
-    return SideEffectStatement(() {
-      var sideEffect = SideEffect.nothing();
-
-      Store.current().branch((_) {
-        var conditionValue = true;
-
-        if (_condition != null) {
-          var evaluated = _condition.evaluate();
-          var conditionBool = evaluated.convertValueTo(PrimitiveType.boolean);
-
-          conditionValue = (conditionBool.value as BooleanValue).value;
-        }
-
-        if (!conditionValue) {
-          // Run the subsequent clause, or return an empty side effect if there
-          //  isn't another clause to run.
-          sideEffect =
-              _nextClause?.createStatement()?.execute() ?? SideEffect.nothing();
-          return;
-        }
-
-        for (var bodyStatement in _body) {
-          var statementEffect = bodyStatement.execute();
-
-          if (statementEffect.isInterrupt) {
-            sideEffect = statementEffect;
-            return;
-          }
-        }
-      });
-
-      return sideEffect;
-    });
+    return _statement;
   }
 }

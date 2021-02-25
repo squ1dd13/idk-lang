@@ -2,19 +2,86 @@ import 'package:language/lexer.dart';
 import 'package:language/runtime/concrete.dart';
 import 'package:language/runtime/expression.dart';
 import 'package:language/runtime/primitive.dart';
+import 'package:language/runtime/statements.dart';
 import 'package:language/runtime/store.dart';
 
 import '../parser.dart';
 import 'util.dart';
 
+class LoopStatement extends DynamicStatement
+    implements FunctionChild, LoopChild {
+  /// For specifying a loop to do something with, such as "break outer".
+  String name;
+
+  Statement setup;
+  Expression check;
+  Expression change;
+  List<Statement> body;
+
+  @override
+  SideEffect execute() {
+    var sideEffect = SideEffect.nothing();
+
+    Store.current().branch((_) {
+      var setupEffect = setup.execute();
+
+      // Handle interrupts in the setup (probably exceptions).
+      if (setupEffect.isInterrupt) {
+        sideEffect = setupEffect;
+        return;
+      }
+
+      while (true) {
+        var checkResult = check.evaluate();
+
+        if (checkResult.value.equals(BooleanValue(false))) {
+          break;
+        }
+
+        for (var statement in body) {
+          var statementEffect = statement.execute();
+
+          if (!statementEffect.isInterrupt) {
+            continue;
+          }
+
+          if (statementEffect.breaksLoopName(name)) {
+            // We return from the branch closure to break the loop.
+            return;
+          }
+
+          if (statementEffect.continuesLoopName(name)) {
+            // We break to continue, because we're inside the statement
+            //  loop as well as the actual loop.
+            break;
+          }
+
+          // This effect will be handled by something else (another loop
+          //  or possibly a function).
+          sideEffect = statementEffect;
+          return;
+        }
+
+        change.evaluate();
+      }
+
+      sideEffect = SideEffect.nothing();
+    });
+
+    return sideEffect;
+  }
+}
+
 class Loop implements Statable {
   /// For specifying a loop to do something with, such as "break outer".
-  String _name;
+  // String _name;
+  //
+  // Statement _setup;
+  // Expression _check;
+  // Expression _change;
+  // List<Statement> _body;
 
-  Statement _setup;
-  Expression _check;
-  Expression _change;
-  List<Statement> _body;
+  final _statement = LoopStatement();
 
   Loop(TokenStream tokens) {
     tokens.requireNext('Expected "for" in loop statement.', 1,
@@ -59,7 +126,7 @@ class Loop implements Statable {
       // TODO: for..in (unimplemented until iterators exist).
     }
 
-    _body = Parse.statements(tokens.take().allTokens());
+    _statement.body = Parse.statements(tokens.take().allTokens());
 
     // Save the index because there may not be a name.
     tokens.saveIndex();
@@ -81,23 +148,23 @@ class Loop implements Statable {
       return;
     }
 
-    _name = nameToken.toString();
+    _statement.name = nameToken.toString();
   }
 
   /// Read the header of a classic three-part for loop.
   void _readClassicHeader(List<Token> tokens) {
     // Fallbacks in case the user omits parts.
-    _setup = SideEffectStatement(() {
+    _statement.setup = SideEffectStatement(() {
       return SideEffect.nothing();
     });
 
     // Return true to keep the loop going until the user stops it.
-    _check = InlineExpression(() {
+    _statement.check = InlineExpression(() {
       return BooleanValue(true).createHandle();
     });
 
     // No change.
-    _change = InlineExpression(() {
+    _statement.change = InlineExpression(() {
       return null;
     });
 
@@ -107,14 +174,14 @@ class Loop implements Statable {
       return;
     }
 
-    _setup = Parse.statement(headerStream);
+    _statement.setup = Parse.statement(headerStream);
 
     if (!headerStream.hasCurrent()) {
       return;
     }
 
     var checkTokens = headerStream.takeUntilSemicolon();
-    _check = Parse.expression(checkTokens);
+    _statement.check = Parse.expression(checkTokens);
 
     headerStream.consumeSemicolon(2);
 
@@ -123,61 +190,11 @@ class Loop implements Statable {
     }
 
     var changeTokens = headerStream.takeUntilSemicolon();
-    _change = Parse.expression(changeTokens);
+    _statement.change = Parse.expression(changeTokens);
   }
 
   @override
   Statement createStatement() {
-    return SideEffectStatement(() {
-      var sideEffect = SideEffect.nothing();
-
-      Store.current().branch((_) {
-        var setupEffect = _setup.execute();
-
-        // Handle interrupts in the setup (probably exceptions).
-        if (setupEffect.isInterrupt) {
-          sideEffect = setupEffect;
-          return;
-        }
-
-        while (true) {
-          var checkResult = _check.evaluate();
-
-          if (checkResult.value.equals(BooleanValue(false))) {
-            break;
-          }
-
-          for (var statement in _body) {
-            var statementEffect = statement.execute();
-
-            if (!statementEffect.isInterrupt) {
-              continue;
-            }
-
-            if (statementEffect.breaksLoopName(_name)) {
-              // We return from the branch closure to break the loop.
-              return;
-            }
-
-            if (statementEffect.continuesLoopName(_name)) {
-              // We break to continue, because we're inside the statement
-              //  loop as well as the actual loop.
-              break;
-            }
-
-            // This effect will be handled by something else (another loop
-            //  or possibly a function).
-            sideEffect = statementEffect;
-            return;
-          }
-
-          _change.evaluate();
-        }
-
-        sideEffect = SideEffect.nothing();
-      });
-
-      return sideEffect;
-    });
+    return _statement;
   }
 }
