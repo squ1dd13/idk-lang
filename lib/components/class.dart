@@ -21,7 +21,7 @@ class ClassStatement extends StaticStatement implements ClassChild {
       var type =
           ClassType(className, body, abstract, parentExpression?.evaluate());
 
-      // Store.current().add(className, type.createConstant());
+      Store.current().add(className, type.createConstant());
     }
 
     return SideEffect.nothing();
@@ -30,11 +30,6 @@ class ClassStatement extends StaticStatement implements ClassChild {
 
 class ClassDeclaration implements Statable {
   final _statement = ClassStatement();
-
-  // Expression _superclassExpression;
-  // String _name;
-  // bool _isAbstract;
-  // List<Statement> _body;
 
   ClassDeclaration(TokenStream tokens) {
     const keywordMessage = 'Expected "class" or "abstract".';
@@ -72,30 +67,8 @@ class ClassDeclaration implements Statable {
     _statement.body = Parse.statements(tokens.take().allTokens()).cast();
   }
 
-  /// Create a constructor function. This is only needed until we have real
-  /// constructors.
-  // FunctionValue _generateConstructor() {
-  //   if (_isAbstract) {
-  //     return null;
-  //   }
-  //
-  //   return FunctionValue.implemented(0, (arguments) {
-  //     var created = ClassObject(_classType()).createHandle();
-  //     return SideEffect.returns(created);
-  //   }, named: 'New_$_name', returns: _classType());
-  // }
-
   @override
   Statement createStatement() {
     return _statement;
-    // return SideEffectStatement(() {
-    //   var constructor = _generateConstructor();
-    //
-    //   if (constructor != null) {
-    //     Store.current().add(constructor.name, constructor.createHandle());
-    //   }
-    //
-    //   return SideEffect.nothing();
-    // }, static: true);
   }
 }

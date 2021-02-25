@@ -9,7 +9,7 @@ import '../runtime/store.dart';
 import 'typename.dart';
 import 'util.dart';
 
-class DeclarationStatement extends NewStatement
+class DeclarationStatement extends Statement
     implements ClassChild, FunctionChild, LoopChild {
   TypeName typeName;
   String name;
@@ -38,10 +38,6 @@ class DeclarationStatement extends NewStatement
 class VariableDeclaration implements Statable {
   // TODO: Add back statics declarations.
   final _statement = DeclarationStatement(false);
-
-  // TypeName _typeName;
-  // String _name;
-  // Expression _valueExpression;
 
   VariableDeclaration(TokenStream tokens) {
     // Find the location of the "=", then work backwards to find the name
@@ -100,31 +96,6 @@ class VariableDeclaration implements Statable {
     }
 
     _statement.valueExpression = Parse.expression(expressionTokens);
-    //
-    // _isStatic = Parse.staticKeyword(tokens);
-    // _typeName = TypeName(tokens);
-    //
-    // tokens.requireNext('Expected name after type in declaration.', 2,
-    //     TokenPattern.type(TokenType.Name));
-    //
-    // _name = tokens.take().toString();
-    //
-    // tokens.requireNext('Expected "=" in declaration.', 3,
-    //     TokenPattern(string: '=', type: TokenType.Symbol));
-    //
-    // // We don't need to keep the '=' token.
-    // tokens.skip();
-    //
-    // var expressionTokens = tokens.takeUntilSemicolon();
-    // if (expressionTokens.isEmpty) {
-    //   throw tokens.createException(
-    //       'Declaration value expression may not be empty.', 4);
-    // }
-    //
-    // _valueExpression = Parse.expression(expressionTokens);
-    //
-    // // Ensure we have a semicolon at the end.
-    // tokens.consumeSemicolon(5);
   }
 
   @override

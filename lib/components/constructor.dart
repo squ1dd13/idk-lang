@@ -103,10 +103,6 @@ class ConstructorStatement extends StaticStatement implements ClassChild {
 
 /// A constructor declaration.
 class ConstructorDeclaration implements Statable {
-  // String name;
-  // var parameters = <_ConstructorParameter>[];
-  // final _body = <Statement>[];
-
   final _statement = ConstructorStatement();
 
   ConstructorDeclaration(TokenStream tokens, {bool anonymous = false}) {
@@ -152,47 +148,5 @@ class ConstructorDeclaration implements Statable {
   @override
   Statement createStatement() {
     return _statement;
-    // return SideEffectStatement(() {
-    //   var classType = ClassType.classTypeStack.last;
-    //
-    //   var function = FunctionValue.implemented(parameters.length, (arguments) {
-    //     var createdObject = ClassObject(classType);
-    //
-    //     createdObject.store.branch((constructorLocal) {
-    //       for (var i = 0; i < parameters.length; ++i) {
-    //         if (parameters[i].valueExpression != null) {
-    //           // "super.x" or "self.x" to assign to here.
-    //           var assignmentHandle = parameters[i].valueExpression.evaluate();
-    //           assignmentHandle.value =
-    //               arguments[i].value.mustConvertTo(assignmentHandle.valueType);
-    //         } else {
-    //           constructorLocal.add(parameters[i].name, arguments[i]);
-    //         }
-    //       }
-    //
-    //       Handle returnHandle;
-    //
-    //       for (var statement in _body) {
-    //         var result = FunctionValue.runStatement(statement);
-    //
-    //         if (!result[0]) {
-    //           returnHandle = result[1];
-    //           break;
-    //         }
-    //       }
-    //
-    //       if (returnHandle != null) {
-    //         throw RuntimeError('Constructors may not return values.');
-    //       }
-    //     });
-    //
-    //     return SideEffect.returns(createdObject.createHandle());
-    //   });
-    //
-    //   // Register the constructor with the class.
-    //   Store.current().add(name, function.createHandle());
-    //
-    //   return SideEffect.nothing();
-    // }, static: true);
   }
 }

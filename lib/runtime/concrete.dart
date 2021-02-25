@@ -38,30 +38,12 @@ class SideEffect {
 
   bool get isInterrupt =>
       breakName != null ||
-          continueName != null ||
-          returned != null ||
-          thrown != null;
+      continueName != null ||
+      returned != null ||
+      thrown != null;
 }
 
-/// A single unit of code which affects the program without
-/// producing a value when finished.
-class Statement {
-  /// Doesn't return a value.
-  final Expression _fullExpression;
-  bool isStatic = false;
-
-  Statement(this._fullExpression, {bool static = false}) {
-    isStatic = static;
-  }
-
-  SideEffect execute() {
-    _fullExpression.evaluate();
-    return SideEffect.nothing();
-  }
-}
-
-class GenericStatement extends NewStatement
-    implements FunctionChild, LoopChild {
+class GenericStatement extends Statement implements FunctionChild, LoopChild {
   @override
   final Expression _fullExpression;
 
@@ -71,17 +53,5 @@ class GenericStatement extends NewStatement
   SideEffect execute() {
     _fullExpression.evaluate();
     return SideEffect.nothing();
-  }
-}
-
-class SideEffectStatement extends Statement {
-  final SideEffect Function() _action;
-
-  SideEffectStatement(this._action, {bool static = false})
-      : super(null, static: static);
-
-  @override
-  SideEffect execute() {
-    return _action();
   }
 }

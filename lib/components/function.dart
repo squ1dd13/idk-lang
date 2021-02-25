@@ -22,7 +22,7 @@ class _Parameter {
   }
 }
 
-class FunctionStatement extends NewStatement
+class FunctionStatement extends Statement
     implements ClassChild, FunctionChild, LoopChild {
   TypeName returnType;
   String name;
@@ -51,14 +51,6 @@ class FunctionStatement extends NewStatement
 }
 
 class FunctionDeclaration implements Statable {
-  // Stays as a TypeName until the declaration is evaluated - this lazy
-  //  loading of types allows the type to be declared after its first use.
-  // TypeName _returnType;
-  // String _name;
-  // final _parameters = <_Parameter>[];
-  // final _body = <Statement>[];
-  // bool _isStatic;
-
   FunctionStatement _statement;
 
   FunctionDeclaration(TokenStream tokens) {
@@ -102,20 +94,5 @@ class FunctionDeclaration implements Statable {
   @override
   Statement createStatement() {
     return _statement;
-    // When the function declaration 'executes', it just means we need to
-    //  add the variable to the current store.
-    // return Statement(InlineExpression(() {
-    //   var function = FunctionValue(_name, _returnType.evaluate(), _body);
-    //
-    //   // Add the parameters.
-    //   for (var parameter in _parameters) {
-    //     function.addParameter(parameter.name, parameter.type.evaluate());
-    //   }
-    //
-    //   function.applyType();
-    //   Store.current().add(_name, function.createHandle());
-    //
-    //   return null;
-    // }), static: _isStatic);
   }
 }

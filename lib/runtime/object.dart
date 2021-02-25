@@ -1,6 +1,6 @@
-import 'concrete.dart';
 import 'function.dart';
 import 'handle.dart';
+import 'statements.dart';
 import 'store.dart';
 import 'type.dart';
 import 'value.dart';
@@ -17,8 +17,6 @@ class ClassType extends ValueType implements Callable {
 
   ClassType(this.name, this._setupStatements, this.abstract, this.superclass)
       : statics = Store(Store.current()) {
-    Store.current().add(name, createHandle());
-
     Store.stack.add(statics);
     classTypeStack.add(this);
 

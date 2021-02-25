@@ -1,6 +1,7 @@
 import 'concrete.dart';
 import 'exception.dart';
 import 'handle.dart';
+import 'statements.dart';
 import 'store.dart';
 import 'type.dart';
 import 'value.dart';
@@ -90,7 +91,7 @@ class FunctionValue extends Callable {
     }
 
     _statements = [
-      SideEffectStatement(() {
+      DartStatement(() {
         var arguments = List<Handle>.filled(parameterCount, null);
 
         for (var i = 0; i < parameterCount; ++i) {
@@ -98,7 +99,7 @@ class FunctionValue extends Callable {
         }
 
         return implementation(arguments);
-      })
+      }, false)
     ];
 
     applyType();

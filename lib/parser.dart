@@ -17,6 +17,7 @@ import 'components/operations/expression.dart';
 import 'components/reference.dart';
 import 'components/util.dart';
 import 'runtime/primitive.dart';
+import 'runtime/statements.dart';
 
 class Parse {
   static final statementPasses = <Statement Function(TokenStream)>[

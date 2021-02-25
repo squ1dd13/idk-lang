@@ -73,14 +73,6 @@ class LoopStatement extends DynamicStatement
 }
 
 class Loop implements Statable {
-  /// For specifying a loop to do something with, such as "break outer".
-  // String _name;
-  //
-  // Statement _setup;
-  // Expression _check;
-  // Expression _change;
-  // List<Statement> _body;
-
   final _statement = LoopStatement();
 
   Loop(TokenStream tokens) {
@@ -154,9 +146,9 @@ class Loop implements Statable {
   /// Read the header of a classic three-part for loop.
   void _readClassicHeader(List<Token> tokens) {
     // Fallbacks in case the user omits parts.
-    _statement.setup = SideEffectStatement(() {
+    _statement.setup = DartStatement(() {
       return SideEffect.nothing();
-    });
+    }, false);
 
     // Return true to keep the loop going until the user stops it.
     _statement.check = InlineExpression(() {

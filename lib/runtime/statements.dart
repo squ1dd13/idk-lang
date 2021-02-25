@@ -2,18 +2,30 @@ import 'package:language/runtime/exception.dart';
 
 import 'concrete.dart';
 
-abstract class NewStatement implements Statement {
-  @override
+abstract class Statement {
   bool isStatic;
 
-  NewStatement(this.isStatic);
+  Statement(this.isStatic);
 
-  @override
   SideEffect execute();
 }
 
+class DartStatement implements Statement {
+  @override
+  bool isStatic;
+
+  final SideEffect Function() _action;
+
+  DartStatement(this._action, this.isStatic);
+
+  @override
+  SideEffect execute() {
+    return _action();
+  }
+}
+
 /// A statement which is always dynamic (may never be static).
-abstract class DynamicStatement extends NewStatement {
+abstract class DynamicStatement extends Statement {
   DynamicStatement() : super(false);
 
   @override
@@ -24,7 +36,7 @@ abstract class DynamicStatement extends NewStatement {
   }
 }
 
-abstract class StaticStatement extends NewStatement {
+abstract class StaticStatement extends Statement {
   StaticStatement() : super(true);
 
   @override
@@ -35,7 +47,7 @@ abstract class StaticStatement extends NewStatement {
   }
 }
 
-abstract class ClassChild extends NewStatement {
+abstract class ClassChild extends Statement {
   ClassChild(bool isStatic) : super(isStatic);
 }
 

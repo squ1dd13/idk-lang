@@ -58,10 +58,6 @@ class DirectionStatement extends DynamicStatement
 /// @int myReference -> someVariable;
 /// ```
 class Direction implements Statable {
-  // TypeName _typeName;
-  // String _name;
-  // Expression _targetExpression;
-
   final _statement = DirectionStatement();
 
   /// Parses the part of the direction which is common between directions

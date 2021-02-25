@@ -52,11 +52,6 @@ class ConditionalStatement extends DynamicStatement
 
 /// Any part of an if..else if..else statement.
 class ConditionalClause implements Statable {
-  /// null if there is no condition (for 'else').
-  // Expression _condition;
-  // List<Statement> _body;
-  // ConditionalClause _nextClause;
-
   final _statement = ConditionalStatement();
 
   ConditionalClause(TokenStream tokens) {

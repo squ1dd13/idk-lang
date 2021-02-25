@@ -2,30 +2,29 @@ library standard;
 
 import 'package:language/runtime/exception.dart';
 import 'package:language/runtime/primitive.dart';
+import 'package:language/runtime/statements.dart';
 
-import '../concrete.dart';
-import '../expression.dart';
 import '../function.dart';
 import '../store.dart';
 import '../type.dart';
 
 void registerCore() {
   var printFunction = FunctionValue('print', NullType(), <Statement>[
-    Statement(InlineExpression(() {
+    DartStatement(() {
       var argument = Store.current().get('value').value;
       print(argument);
 
       return null;
-    }))
+    }, false)
   ])
     ..addParameter('value', AnyType())
     ..applyType();
 
   var fatalError = FunctionValue('fatal', NullType(), <Statement>[
-    Statement(InlineExpression(() {
+    DartStatement(() {
       var argument = Store.current().get('message').value;
       throw RuntimeError(argument.toString());
-    }))
+    }, false)
   ])
     ..addParameter('message', AnyType())
     ..applyType();

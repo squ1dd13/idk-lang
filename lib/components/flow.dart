@@ -36,8 +36,6 @@ class ReturnStatement extends DynamicStatement
 }
 
 class FlowStatement implements Statable {
-  // final _statement = LoopFlowStatement();
-
   DynamicStatement _statement;
 
   FlowStatement(TokenStream tokens) {

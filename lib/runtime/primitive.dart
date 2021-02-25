@@ -2,6 +2,7 @@ import 'concrete.dart';
 import 'exception.dart';
 import 'function.dart';
 import 'handle.dart';
+import 'statements.dart';
 import 'store.dart';
 import 'type.dart';
 import 'value.dart';
@@ -125,10 +126,10 @@ class StringValue extends PrimitiveValue {
   Handle instanceMember(String name) {
     if (name == 'length') {
       var func = FunctionValue('length', PrimitiveType.integer, <Statement>[
-        SideEffectStatement(() {
+        DartStatement(() {
           return SideEffect.returns(
               IntegerValue.raw(value.length).createHandle());
-        })
+        }, false)
       ])
         ..applyType();
 
