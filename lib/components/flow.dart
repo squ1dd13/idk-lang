@@ -27,11 +27,21 @@ class LoopFlowStatement extends DynamicStatement
 
 class ReturnStatement extends DynamicStatement
     implements FunctionChild, LoopChild {
-  Expression returnExpression;
+  Expression expression;
 
   @override
   SideEffect execute() {
-    return SideEffect.returns(returnExpression.evaluate());
+    return SideEffect.returns(expression.evaluate());
+  }
+}
+
+class ThrowStatement extends DynamicStatement
+    implements FunctionChild, LoopChild {
+  Expression expression;
+
+  @override
+  SideEffect execute() {
+    return SideEffect.throws(expression.evaluate());
   }
 }
 
@@ -40,15 +50,23 @@ class FlowStatement implements Statable {
 
   FlowStatement(TokenStream tokens) {
     tokens.requireNext(
-        'Flow statement must start with "break", "return" or "continue".',
+        'Flow statement must start with "break", "return", "throw" or "continue".',
         1,
         TokenPattern.type(TokenType.Name));
 
     var keyword = tokens.take().toString();
 
-    if (keyword != 'break' && keyword != 'continue' && keyword != 'return') {
+    const keywords = <String>{
+      'break',
+      'continue',
+      'throw',
+      'return',
+    };
+
+    if (!keywords.contains(keyword)) {
       throw tokens.createException(
-          'Flow statement must start with "break", "return" or "continue".', 2);
+          'Flow statement must start with "break", "return", "throw" or "continue".',
+          2);
     }
 
     if (TokenPattern.semicolon.hasMatch(tokens.current())) {
@@ -62,16 +80,17 @@ class FlowStatement implements Statable {
       return;
     }
 
-    if (keyword == 'return') {
-      var returnStatement = ReturnStatement();
+    if (keyword == 'return' || keyword == 'throw') {
+      dynamic statement =
+          keyword == 'return' ? ReturnStatement() : ThrowStatement();
 
       // There must be a value if there wasn't a semicolon.
       var untilSemicolon = tokens.takeUntilSemicolon();
       tokens.consumeSemicolon(3);
 
-      returnStatement.returnExpression = Parse.expression(untilSemicolon);
+      statement.expression = Parse.expression(untilSemicolon);
 
-      _statement = returnStatement;
+      _statement = statement;
       return;
     }
 

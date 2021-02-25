@@ -4,7 +4,6 @@ import 'package:language/runtime/concrete.dart';
 import 'package:language/runtime/exception.dart';
 import 'package:language/runtime/expression.dart';
 import 'package:language/runtime/function.dart';
-import 'package:language/runtime/handle.dart';
 import 'package:language/runtime/object.dart';
 import 'package:language/runtime/scope.dart';
 import 'package:language/runtime/statements.dart';
@@ -63,6 +62,7 @@ class ConstructorStatement extends StaticStatement implements ClassChild {
     var function = FunctionValue.implemented(parameters.length, (arguments) {
       var createdObject = ClassObject(classType);
 
+      var returnEffect = SideEffect.nothing();
       createdObject.scope.branch((constructorLocal) {
         for (var i = 0; i < parameters.length; ++i) {
           if (parameters[i].valueExpression != null) {
@@ -74,21 +74,25 @@ class ConstructorStatement extends StaticStatement implements ClassChild {
           }
         }
 
-        Handle returnHandle;
+        // Handle returnHandle;
 
         for (var statement in body) {
           var result = FunctionValue.runStatement(statement);
 
-          if (!result[0]) {
-            returnHandle = result[1];
+          if (result.isInterrupt) {
+            returnEffect = result;
             break;
           }
         }
 
-        if (returnHandle != null) {
+        if (returnEffect.returned != null) {
           throw RuntimeError('Constructors may not return values.');
         }
       });
+
+      if (returnEffect.thrown != null) {
+        return returnEffect;
+      }
 
       return SideEffect.returns(createdObject.createHandle());
     });

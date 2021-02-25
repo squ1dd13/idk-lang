@@ -66,7 +66,7 @@ abstract class Callable extends Value {
 
   Callable([this.parameters, this.returnType]);
 
-  Handle call(Map<String, Handle> arguments);
+  SideEffect call(Map<String, Handle> arguments);
 }
 
 class FunctionValue extends Callable {
@@ -132,7 +132,7 @@ class FunctionValue extends Callable {
     return wrapped;
   }
 
-  static List<dynamic> runStatement(Statement statement) {
+  static SideEffect runStatement(Statement statement) {
     var sideEffect = statement.execute();
 
     // Check the side effects for stuff we need to handle.
@@ -148,18 +148,19 @@ class FunctionValue extends Callable {
             'found.)');
       }
 
-      if (sideEffect.returned != null) {
-        // Stop executing the statements - we're returning.
-        return [false, sideEffect.returned];
+      if (sideEffect.isInterrupt) {
+        // Stop executing the statements - we're returning or throwing.
+        return sideEffect; //[false, sideEffect.returned, null];
       }
     }
 
-    return [true, null];
+    return SideEffect.nothing();
   }
 
   @override
-  Handle call(Map<String, Handle> arguments) {
-    var returnedHandle = NullType.nullHandle();
+  SideEffect call(Map<String, Handle> arguments) {
+    // var returnedHandle = NullType.nullHandle();
+    var returnEffect = SideEffect.nothing();
 
     var executionParentScope = _getExecutionScope();
 
@@ -174,17 +175,27 @@ class FunctionValue extends Callable {
       for (var statement in _statements) {
         var result = runStatement(statement);
 
-        if (!result[0]) {
-          returnedHandle = result[1];
+        if (result.isInterrupt) {
+          returnEffect = result;
           break;
         }
+        // if (!result[0]) {
+        //   returnedHandle = result[1];
+        //   break;
+        // }
       }
 
       // Cleanup is automatic, because the locals are lost when
       //  the scope is closed.
     });
 
-    return returnedHandle.convertHandleTo(returnType);
+    var returned = returnEffect.returned;
+    if (returned != null) {
+      return SideEffect.returns(returned.convertHandleTo(returnType));
+    }
+
+    return returnEffect;
+    // return returnedHandle.convertHandleTo(returnType);
   }
 
   @override

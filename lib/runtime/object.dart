@@ -1,3 +1,4 @@
+import 'package:language/runtime/concrete.dart';
 import 'package:language/runtime/exception.dart';
 
 import 'function.dart';
@@ -138,7 +139,7 @@ class ClassType extends ValueType implements Callable {
   ValueType get returnType => this;
 
   @override
-  Handle call(Map<String, Handle> arguments) {
+  SideEffect call(Map<String, Handle> arguments) {
     return (staticMember('').value as Callable)(arguments);
   }
 

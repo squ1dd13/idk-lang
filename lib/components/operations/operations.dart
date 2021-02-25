@@ -2,6 +2,7 @@ import 'package:language/components/operations/parser.dart';
 import 'package:language/components/util.dart';
 import 'package:language/lexer.dart';
 import 'package:language/parser.dart';
+import 'package:language/runtime/concrete.dart';
 import 'package:language/runtime/exception.dart';
 import 'package:language/runtime/expression.dart';
 import 'package:language/runtime/function.dart';
@@ -103,10 +104,12 @@ class Operations {
       arguments.add(Parse.expression(segment));
     }
 
-    return _createCall(arguments);
+    // TODO: Allow operators to throw exceptions.
+    return (a) => _createCall(arguments)(a).returned;
   }
 
-  static Handle Function(Iterable<Handle>) _createCall(List<Expression> args) {
+  static SideEffect Function(Iterable<Handle>) _createCall(
+      List<Expression> args) {
     return (operands) {
       var value = operands.first.value;
 

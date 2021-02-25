@@ -241,6 +241,10 @@ class ClassThree of ClassTwo {
 }
 
 space core {
+    abstract Stringable {
+        String toString() {}
+    }
+
     space io {
         class DummyFile {
             String path = null;
@@ -254,9 +258,43 @@ space core {
     }
 }
 
+space runtime {
+    class Exception of core:Stringable {
+        String message = "<nothing>";
+
+        new from(self.message);
+
+        String toString!() {
+            return "Exception: " + message;
+        }
+    }
+
+    class RuntimeException of Exception {
+        new from(super.message);
+
+        String toString!() {
+            return "Runtime exception: " + message;
+        }
+    }
+}
+
 proc testClasses() {
     let file = core:io:DummyFile:open("/path/to/something.txt");
     finally file.close();
+
+    let exception = runtime:Exception:from("Something bad happened!");
+    let runtimeException = runtime:RuntimeException:from("Something bad happened at runtime!");
+
+    throw exception;
+    
+    print(exception.toString());
+    print(runtimeException.toString());
+
+    // try {
+    //     somethingUnsafe();
+    // } catch exception {
+    //     print(exception);
+    // }
 
     Array(Any) keys = { 1, 2, 3, 4, 5 };
     Array(Any) values = { "one", "two", "three", "four", "five" };
