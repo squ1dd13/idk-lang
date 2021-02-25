@@ -33,6 +33,10 @@ abstract class Value {
       }
     }
 
+    if (sourceType is NullType) {
+      return endType.nullValue();
+    }
+
     throw RuntimeError('Cannot implicitly convert from '
         'type "${sourceType}" to type "$endType".');
   }
@@ -70,5 +74,38 @@ abstract class Value {
 
   Handle staticMember(String name) {
     throw RuntimeError('Cannot use ":" with "$type".');
+  }
+}
+
+class NulledValue extends Value {
+  NulledValue(ValueType type) {
+    super.type = type;
+  }
+
+  @override
+  Value copyValue() {
+    return this;
+  }
+
+  @override
+  bool equals(Value other) {
+    return other is NulledValue && type.equals(other.type);
+  }
+
+  @override
+  bool greaterThan(Value other) {
+    // TODO: implement greaterThan
+    throw UnimplementedError();
+  }
+
+  @override
+  bool lessThan(Value other) {
+    // TODO: implement lessThan
+    throw UnimplementedError();
+  }
+
+  @override
+  String toString() {
+    return 'null';
   }
 }

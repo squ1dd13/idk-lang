@@ -91,7 +91,7 @@ class FunctionValue extends Callable {
     }
 
     _statements = [
-      DartStatement(() {
+      DartDynamicStatement(() {
         var arguments = List<Handle>.filled(parameterCount, null);
 
         for (var i = 0; i < parameterCount; ++i) {

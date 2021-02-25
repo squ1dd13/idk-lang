@@ -1,5 +1,4 @@
 import 'handle.dart';
-import 'primitive.dart';
 import 'value.dart';
 
 abstract class ValueType extends Value {
@@ -17,6 +16,10 @@ abstract class ValueType extends Value {
   @override
   bool lessThan(Value other) {
     return hashCode < other.hashCode;
+  }
+
+  Value nullValue() {
+    return NulledValue(this);
   }
 }
 
@@ -63,15 +66,12 @@ class NullType extends ValueType {
     _name = name;
   }
 
-  static Value nullValue() {
-    var integer = IntegerValue.raw(0);
-    integer.type = NullType(name: 'null');
-
-    return integer;
+  static Value untypedNull() {
+    return NulledValue(NullType(name: 'null'));
   }
 
   static Handle nullHandle() {
-    return nullValue().createHandle();
+    return untypedNull().createHandle();
   }
 
   @override

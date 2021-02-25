@@ -10,13 +10,13 @@ abstract class Statement {
   SideEffect execute();
 }
 
-class DartStatement implements Statement {
+class DartDynamicStatement implements DynamicStatement {
   @override
   bool isStatic;
 
   final SideEffect Function() _action;
 
-  DartStatement(this._action, this.isStatic);
+  DartDynamicStatement(this._action, this.isStatic);
 
   @override
   SideEffect execute() {

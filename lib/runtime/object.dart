@@ -18,7 +18,7 @@ class ClassType extends ValueType implements Callable {
 
   ClassType(this.name, this._setupStatements, this.abstract, this.superclass)
       : statics = Scope(Scope.current()) {
-    Scope.stack.add(statics);
+    statics.enter();
     classTypeStack.add(this);
 
     // Execute static statements so that they affect the static scope.
@@ -29,7 +29,7 @@ class ClassType extends ValueType implements Callable {
     }
 
     classTypeStack.removeLast();
-    Scope.stack.removeLast();
+    statics.leave();
 
     // We won't need to execute these again.
     _setupStatements.removeWhere((element) => element.isStatic);
@@ -59,7 +59,7 @@ class ClassType extends ValueType implements Callable {
     // If we don't have one already, create a new scope.
     scope ??= Scope(Scope.global());
 
-    Scope.stack.add(scope);
+    scope.enter();
 
     for (var statement in _setupStatements) {
       // TODO: Handle exceptions in populate().
@@ -96,7 +96,7 @@ class ClassType extends ValueType implements Callable {
     // Add 'self' so that it may be used in methods.
     scope.add('self', object.createHandle());
 
-    Scope.stack.removeLast();
+    scope.leave();
 
     return scope;
   }

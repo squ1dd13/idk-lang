@@ -1,17 +1,21 @@
+import 'package:language/runtime/concrete.dart';
+
 import 'exception.dart';
 import 'handle.dart';
 
 class Scope {
   final _contents = <String, Handle>{};
+  final _deferred = <dynamic Function()>[];
+  var _open = false;
   final Scope parent;
 
-  static var stack = <Scope>[Scope(null)];
+  static final _stack = <Scope>[Scope(null)];
 
   Scope(this.parent);
 
-  static Scope current() => stack.last;
+  static Scope current() => _stack.last;
 
-  static Scope global() => stack.first;
+  static Scope global() => _stack.first;
 
   void add(String name, Handle item) {
     if (has(name)) {
@@ -60,11 +64,11 @@ class Scope {
     var child = Scope(this);
 
     // Make current() return the child.
-    stack.add(child);
+    child.enter();
+
     toRun(child);
 
-    // We're leaving the scope, so remove the child.
-    stack.removeLast();
+    child.leave();
   }
 
   void delete(String name) {
@@ -73,5 +77,46 @@ class Scope {
     }
 
     _contents.remove(name);
+  }
+
+  void defer(dynamic Function() action) {
+    _deferred.add(action);
+  }
+
+  void enter() {
+    if (_open) {
+      throw InternalException('Cannot enter scope twice.');
+    }
+
+    _open = true;
+    _stack.add(this);
+  }
+
+  void leave() {
+    if (!_open) {
+      throw InternalException('Attempted to leave closed scope!');
+    }
+
+    if (_stack.last != this) {
+      throw InternalException('Cannot leave() non-last scope.');
+    }
+
+    for (var action in _deferred) {
+      var returnValue = action();
+
+      if (returnValue is SideEffect) {
+        if (returnValue.isInterrupt) {
+          if (returnValue.thrown != null) {
+            throw RuntimeError(
+                'Exception thrown on exiting scope: ${returnValue.thrown}.');
+          }
+
+          throw RuntimeError('Cannot modify control flow on scope exit!');
+        }
+      }
+    }
+
+    _open = false;
+    _stack.removeLast();
   }
 }

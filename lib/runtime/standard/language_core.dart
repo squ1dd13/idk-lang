@@ -10,7 +10,7 @@ import '../type.dart';
 
 void registerCore() {
   var printFunction = FunctionValue('print', NullType(), <Statement>[
-    DartStatement(() {
+    DartDynamicStatement(() {
       var argument = Scope.current().get('value').value;
       print(argument);
 
@@ -21,7 +21,7 @@ void registerCore() {
     ..applyType();
 
   var fatalError = FunctionValue('fatal', NullType(), <Statement>[
-    DartStatement(() {
+    DartDynamicStatement(() {
       var argument = Scope.current().get('message').value;
       throw RuntimeError(argument.toString());
     }, false)
@@ -37,5 +37,5 @@ void registerCore() {
   Scope.current().add('proc', NullType().createConstant());
   Scope.current().add('Any', AnyType().createConstant());
   Scope.current().add('Type', TypeOfType.shared.createConstant());
-  Scope.current().add('null', NullType(name: 'null').createConstant());
+  Scope.current().add('null', NullType.nullHandle().value.createConstant());
 }

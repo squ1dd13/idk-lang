@@ -126,7 +126,7 @@ class StringValue extends PrimitiveValue {
   Handle instanceMember(String name) {
     if (name == 'length') {
       var func = FunctionValue('length', PrimitiveType.integer, <Statement>[
-        DartStatement(() {
+        DartDynamicStatement(() {
           return SideEffect.returns(
               IntegerValue.raw(value.length).createHandle());
         }, false)

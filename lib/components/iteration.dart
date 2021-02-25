@@ -146,7 +146,7 @@ class Loop implements Statable {
   /// Read the header of a classic three-part for loop.
   void _readClassicHeader(List<Token> tokens) {
     // Fallbacks in case the user omits parts.
-    _statement.setup = DartStatement(() {
+    _statement.setup = DartDynamicStatement(() {
       return SideEffect.nothing();
     }, false);
 

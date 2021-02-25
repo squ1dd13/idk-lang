@@ -1,4 +1,5 @@
 import 'package:language/components/constructor.dart';
+import 'package:language/components/finally.dart';
 import 'package:language/lexer.dart';
 import 'package:language/runtime/concrete.dart';
 import 'package:language/runtime/exception.dart';
@@ -31,6 +32,32 @@ class Parse {
     (stream) => FunctionDeclaration(stream).createStatement(),
     (stream) => FlowStatement(stream).createStatement(),
     (stream) => ClassDeclaration(stream).createStatement(),
+    (stream) => Finally(stream).createStatement(),
+    (stream) {
+      // Braces form a statement within a temporary scope.
+      stream.requireNext('Expected "{}".', 1, GroupPattern('{', '}'));
+
+      var body = Parse.statements<DynamicStatement>(stream.take().allTokens());
+
+      // Execute the body in a new scope.
+      return DartDynamicStatement(() {
+        var scope = Scope(Scope.current());
+        scope.enter();
+
+        for (var statement in body) {
+          var effect = statement.execute();
+
+          // Any interrupting effects go directly through to the parent scope.
+          if (effect.isInterrupt) {
+            scope.leave();
+            return effect;
+          }
+        }
+
+        scope.leave();
+        return SideEffect.nothing();
+      }, false);
+    },
     (stream) {
       var statement = GenericStatement(OperatorExpression(stream), false);
       stream.consumeSemicolon(3);

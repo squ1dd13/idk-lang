@@ -68,8 +68,7 @@ class ConstructorStatement extends StaticStatement implements ClassChild {
           if (parameters[i].valueExpression != null) {
             // "super.x" or "self.x" to assign to here.
             var assignmentHandle = parameters[i].valueExpression.evaluate();
-            assignmentHandle.value =
-                arguments[i].value.mustConvertTo(assignmentHandle.valueType);
+            assignmentHandle.value = arguments[i].value;
           } else {
             constructorLocal.add(parameters[i].name, arguments[i]);
           }
