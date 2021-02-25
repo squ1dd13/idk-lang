@@ -12,6 +12,7 @@ class ClassType extends ValueType implements Callable {
   final Handle superclass;
   final bool abstract;
   final Scope statics;
+  ClassType _complex;
 
   static var classTypeStack = <ClassType>[];
 
@@ -143,13 +144,28 @@ class ClassType extends ValueType implements Callable {
     // TODO: implement returnType
     throw UnimplementedError();
   }
+
+  @override
+  Handle createHandle() {
+    // If we have a complex type, return a handle to that. Otherwise, just
+    //  return a handle to this object.
+    return _complex?.createHandle() ?? super.createHandle();
+  }
+
+  @override
+  Handle createConstant() {
+    return _complex?.createConstant() ?? super.createConstant();
+  }
 }
 
 class ClassObject extends Value {
   // Manages fields and methods.
   Scope scope;
+  Handle complexType;
 
   ClassObject(ClassType classType) {
+    complexType = classType.createHandle();
+
     type = classType;
     scope = classType.createObjectScope(this);
   }

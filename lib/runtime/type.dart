@@ -1,7 +1,3 @@
-import 'package:language/runtime/exception.dart';
-import 'package:language/runtime/object.dart';
-import 'package:language/runtime/scope.dart';
-
 import 'handle.dart';
 import 'primitive.dart';
 import 'value.dart';
@@ -25,7 +21,7 @@ abstract class ValueType extends Value {
 }
 
 /// The type of value types.
-class TypeOfType extends ValueType implements ClassType {
+class TypeOfType extends ValueType {
   static TypeOfType shared = TypeOfType();
 
   @override
@@ -35,39 +31,6 @@ class TypeOfType extends ValueType implements ClassType {
 
   @override
   String toString() => 'Type';
-
-  @override
-  Map<String, ValueType> parameters;
-
-  @override
-  ValueType returnType;
-
-  @override
-  bool abstract = true;
-
-  @override
-  Handle call(Map<String, Handle> arguments) {
-    throw RuntimeError('"$this" is abstract.');
-  }
-
-  @override
-  Scope createObjectScope(ClassObject object, {bool asSuper = false}) {
-    return Scope(Scope.global());
-  }
-
-  @override
-  bool inheritsFrom(ClassType other) {
-    return false;
-  }
-
-  @override
-  String get name => 'Type';
-
-  @override
-  Scope get statics => Scope(Scope.global());
-
-  @override
-  Handle get superclass => null;
 }
 
 class AnyType extends ValueType {
