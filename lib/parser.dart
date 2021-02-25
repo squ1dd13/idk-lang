@@ -16,6 +16,7 @@ import 'components/function.dart';
 import 'components/iteration.dart';
 import 'components/operations/expression.dart';
 import 'components/reference.dart';
+import 'components/space.dart';
 import 'components/util.dart';
 import 'runtime/primitive.dart';
 import 'runtime/statements.dart';
@@ -33,6 +34,7 @@ class Parse {
     (stream) => FlowStatement(stream).createStatement(),
     (stream) => ClassDeclaration(stream).createStatement(),
     (stream) => Finally(stream).createStatement(),
+    (stream) => SpaceDeclaration(stream).createStatement(),
     (stream) {
       // Braces form a statement within a temporary scope.
       stream.requireNext('Expected "{}".', 1, GroupPattern('{', '}'));

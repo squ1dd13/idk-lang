@@ -240,18 +240,22 @@ class ClassThree of ClassTwo {
     new new();
 }
 
-class DummyFile {
-    String path = null;
-
-    new open(self.path);
-
-    proc close() {
-        print("Closing file: " + path);
+space core {
+    space io {
+        class DummyFile {
+            String path = null;
+        
+            new open(self.path);
+        
+            proc close() {
+                print("Closing file: " + path);
+            }
+        }
     }
 }
 
 proc testClasses() {
-    let file = DummyFile:open("/path/to/something.txt");
+    let file = core:io:DummyFile:open("/path/to/something.txt");
     finally file.close();
 
     Array(Any) keys = { 1, 2, 3, 4, 5 };

@@ -39,7 +39,7 @@ class ClassType extends ValueType implements Callable {
 
   @override
   Handle staticMember(String name) {
-    return statics.get(name);
+    return statics.getOwn(name);
   }
 
   @override

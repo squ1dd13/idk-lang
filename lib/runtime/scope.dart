@@ -37,6 +37,14 @@ class Scope {
     return _contents[name];
   }
 
+  Handle getOwn(String name) {
+    if (!has(name)) {
+      throw RuntimeError('Undeclared identifier "$name".');
+    }
+
+    return _contents[name];
+  }
+
   void set(String name, Handle handle) {
     get(name).value = handle.value;
   }
