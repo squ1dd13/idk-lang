@@ -28,6 +28,7 @@ class FunctionStatement extends Statement
   String name;
   final parameters = <_Parameter>[];
   final body = <FunctionChild>[];
+  var isOverride = false;
 
   FunctionStatement(bool isStatic) : super(isStatic);
 
@@ -36,7 +37,7 @@ class FunctionStatement extends Statement
     // When the function declaration 'executes', it just means we need to
     //  add the variable to the current scope.
 
-    var function = FunctionValue(name, returnType.evaluate(), body);
+    var function = FunctionValue(name, returnType.evaluate(), body, isOverride);
 
     // Add the parameters.
     for (var parameter in parameters) {
@@ -65,8 +66,16 @@ class FunctionDeclaration implements Statable {
 
     _statement.name = tokens.take().toString();
 
-    tokens.requireNext('Expected parameter list after function name.', 3,
-        GroupPattern('(', ')'));
+    // An exclamation mark ("!") after the function name means that it overrides
+    //  a method in a parent class.
+    const overridePattern = TokenPattern(string: '!', type: TokenType.Symbol);
+
+    if (overridePattern.hasMatch(tokens.current())) {
+      _statement.isOverride = true;
+      tokens.skip();
+    }
+
+    tokens.requireNext('Expected parameter list.', 3, GroupPattern('(', ')'));
 
     var parameterGroup = tokens.take() as GroupToken;
 

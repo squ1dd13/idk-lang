@@ -1,3 +1,5 @@
+import 'package:language/runtime/exception.dart';
+
 import 'function.dart';
 import 'handle.dart';
 import 'scope.dart';
@@ -86,6 +88,13 @@ class ClassType extends ValueType implements Callable {
       //  only ever call the implementation of a method defined on the same
       //  level as the level that implements the inherited method.
       while (current != null && current.has(functionName)) {
+        if (!functionValue.isOverride) {
+          throw RuntimeError('$name.$functionName has the same name as '
+              '$superclass.$functionName, which is illegal. Change one name or '
+              "add an '!' after $name.$functionName's name to override "
+              "$superclass.$functionName's implementation.");
+        }
+
         // Override the parent's implementation for the function.
         current.set(functionName, functions[i]);
 

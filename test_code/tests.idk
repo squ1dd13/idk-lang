@@ -225,7 +225,7 @@ class ClassOne {
 }
 
 class ClassTwo of ClassOne {
-    int classNumber() {
+    int classNumber!() {
         return 2;
     }
 
@@ -233,7 +233,7 @@ class ClassTwo of ClassOne {
 }
 
 class ClassThree of ClassTwo {
-    int classNumber() {
+    int classNumber!() {
         return 3;
     }
 

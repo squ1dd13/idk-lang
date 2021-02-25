@@ -74,9 +74,12 @@ class FunctionValue extends Callable {
   List<Statement> _statements;
   Scope Function() _getExecutionScope = () => Scope.current();
 
+  var isOverride = false;
+
   FunctionValue.empty();
 
-  FunctionValue(this.name, ValueType returnType, this._statements)
+  FunctionValue(this.name, ValueType returnType, this._statements,
+      [this.isOverride = false])
       : super(<String, ValueType>{}, returnType);
 
   FunctionValue.implemented(

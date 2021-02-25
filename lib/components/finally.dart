@@ -16,8 +16,8 @@ class FinallyStatement extends DynamicStatement
   SideEffect execute() {
     Scope.current().defer(() {
       // Return the side effect even though we don't need to return anything at
-      //  all. This causes an exception to be thrown when something is thrown
-      //  from inside a deferred statement.
+      //  all. This causes a runtime exception to be thrown when something is
+      //  thrown from inside a deferred statement.
       return _statement.execute();
     });
 
