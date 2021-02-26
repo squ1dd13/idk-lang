@@ -285,7 +285,15 @@ proc testClasses() {
     let exception = runtime:Exception:from("Something bad happened!");
     let runtimeException = runtime:RuntimeException:from("Something bad happened at runtime!");
 
-    throw exception;
+    let dartString = makeDart("Hello, world!");
+    print(dartString);
+    print(dartString.length);
+    print(dartString.isEmpty);
+    print(dartString.isNotEmpty);
+    print(dartString.codeUnits);
+    print(dartString.contains);
+
+    // throw exception;
     
     print(exception.toString());
     print(runtimeException.toString());

@@ -10,7 +10,7 @@ import 'value.dart';
 enum Primitive { Int, String, Bool }
 
 class PrimitiveType extends ValueType {
-  final Primitive _type;
+  final Primitive primitive;
 
   static PrimitiveType get integer => PrimitiveType(Primitive.Int);
 
@@ -18,18 +18,18 @@ class PrimitiveType extends ValueType {
 
   static PrimitiveType get boolean => PrimitiveType(Primitive.Bool);
 
-  PrimitiveType(this._type);
+  PrimitiveType(this.primitive);
 
   @override
   String toString() {
-    return _type == Primitive.Int
+    return primitive == Primitive.Int
         ? 'int'
-        : (_type == Primitive.String ? 'String' : 'bool');
+        : (primitive == Primitive.String ? 'String' : 'bool');
   }
 
   @override
   bool equals(Value other) {
-    return other is PrimitiveType && _type == other._type;
+    return other is PrimitiveType && primitive == other.primitive;
   }
 }
 

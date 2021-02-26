@@ -77,10 +77,10 @@ class OperatorExpression implements Expression {
     for (var token in _tokens) {
       if (nextIsMember) {
         if (token.type != TokenType.Name) {
-          // token.throwSyntax(
-          //     '"$accessOperator" operator must precede '
-          //     'a valid name.',
-          //     10);
+          token.throwSyntax(
+              '"$accessOperator" operator must precede '
+              'a valid name.',
+              10);
         }
 
         token.type = TokenType.String;

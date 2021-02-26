@@ -37,7 +37,7 @@ abstract class Value {
       return endType.nullValue();
     }
 
-    throw RuntimeError('Cannot implicitly convert from '
+    throw RuntimeError('Cannot convert from '
         'type "${sourceType}" to type "$endType".');
   }
 

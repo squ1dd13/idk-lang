@@ -2,6 +2,7 @@ library standard;
 
 import 'package:language/runtime/exception.dart';
 import 'package:language/runtime/primitive.dart';
+import 'package:language/runtime/standard/interop.dart';
 import 'package:language/runtime/statements.dart';
 
 import '../function.dart';
@@ -38,4 +39,6 @@ void registerCore() {
   Scope.current().add('Any', AnyType().createConstant());
   Scope.current().add('Type', TypeOfType.shared.createConstant());
   Scope.current().add('null', NullType.nullHandle().value.createConstant());
+
+  registerInteropFunctions();
 }
