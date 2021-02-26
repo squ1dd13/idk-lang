@@ -26,20 +26,20 @@ class DartType extends ValueType {
   }
 }
 
-ValueType _dartToLanguageType(dynamic value) {
-  if (value is String) {
+ValueType _dartToLanguageType(Type type) {
+  if (type == String) {
     return PrimitiveType.string;
   }
 
-  if (value is int) {
+  if (type == int) {
     return PrimitiveType.integer;
   }
 
-  if (value is bool) {
+  if (type == bool) {
     return PrimitiveType.boolean;
   }
 
-  return DartType(value.runtimeType);
+  return DartType(type);
 }
 
 Handle _dartToLanguageHandle(Handle handle, ValueType endType) {
@@ -97,7 +97,8 @@ class FieldHandle extends Handle {
 
   @override
   Value get value {
-    return DartObject(_parent._mirror.getField(_name).reflectee);
+    return _dartToLanguageValue(
+        _parent._mirror.getField(_name).reflectee, _parent._mirror);
   }
 
   @override
@@ -127,6 +128,53 @@ class FieldHandle extends Handle {
 
   @override
   ValueType get valueType => handleType;
+}
+
+Value _dartToLanguageValue(dynamic dartThing, [dynamic parent]) {
+  var mirror = reflect(dartThing);
+
+  if (mirror is ClosureMirror) {
+    print('clos');
+
+    var function = mirror.function;
+
+    // var functionValue = FunctionValue.empty();
+    var name = function.simpleName;
+    var returnType = _dartToLanguageType(function.returnType.reflectedType);
+
+    var parameters = <String, ValueType>{};
+
+    for (var i = 0; i < function.parameters.length; ++i) {
+      var type = _dartToLanguageType(function.parameters[i].type.reflectedType);
+      parameters['arg$i'] = type;
+    }
+
+    // var statements = <Statement>[DartDynamicStatement(() {}, false)];
+
+    var functionValue =
+        FunctionValue.implemented(function.parameters.length, (argHandles) {
+      var arguments = List<dynamic>.filled(parameters.length, null);
+
+      for (var i = 0; i < parameters.length; ++i) {
+        var handle = argHandles[i];
+
+        var dartValue = DartObject.from(handle)._dartInstance;
+
+        arguments[i] = dartValue;
+      }
+
+      var owner = parent as ObjectMirror; //function.owner as ObjectMirror;
+      var returnValue = owner.invoke(name, arguments);
+
+      return SideEffect.returns(
+          _dartToLanguageValue(returnValue.reflectee).createHandle());
+    }, named: name.toString(), returns: returnType);
+
+    functionValue.parameters = parameters;
+    return functionValue;
+  }
+
+  return DartObject(dartThing);
 }
 
 class DartObject extends Value {
@@ -202,7 +250,9 @@ void registerInteropFunctions() {
   Scope.current().add(
       'makeDart',
       FunctionValue.implemented(1, (arguments) {
-        return SideEffect.returns(DartObject.from(arguments[0]).createHandle());
+        return SideEffect.returns(
+            _dartToLanguageValue(DartObject.from(arguments[0])._dartInstance)
+                .createHandle());
       }, named: 'makeDart')
           .createHandle());
 }

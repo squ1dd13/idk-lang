@@ -1,3 +1,5 @@
+import 'package:language/runtime/standard/interop.dart';
+
 import 'exception.dart';
 import 'handle.dart';
 import 'object.dart';
@@ -35,6 +37,10 @@ abstract class Value {
 
     if (sourceType is NullType) {
       return endType.nullValue();
+    }
+
+    if (endType is DartType) {
+      return DartObject.from(createHandle());
     }
 
     throw RuntimeError('Cannot convert from '

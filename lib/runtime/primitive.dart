@@ -164,4 +164,9 @@ class BooleanValue extends PrimitiveValue {
   bool equals(Value other) {
     return other is BooleanValue && other.value == value;
   }
+
+  @override
+  String toString() {
+    return value.toString();
+  }
 }

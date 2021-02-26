@@ -291,7 +291,7 @@ proc testClasses() {
     print(dartString.isEmpty);
     print(dartString.isNotEmpty);
     print(dartString.codeUnits);
-    print(dartString.contains);
+    print(dartString.contains("world", 0));
 
     // throw exception;
     
