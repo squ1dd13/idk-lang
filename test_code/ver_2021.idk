@@ -1,0 +1,37 @@
+class Object {
+    class Message {
+        publ recv Object
+        publ name String
+        priv args Array(any)
+        publ done Bool
+    }
+
+    priv messageQueue Queue(Message) = Queue:new()
+
+    def (Return Type) func msg(name String, args Array(any)) Return {
+        var message = Message with {
+            .recv = self,
+            .name = name,
+            .args = args,
+            .done = false,
+        }
+
+        return runtime:msg:sendAndWait(self.messageQueue, message)
+    }
+}
+
+def (Element Type) class Array {
+    priv repr DartObject
+
+    stat func new() Array(Element) {
+        return Array with {
+            // Messaging an object adds that message to its queue.
+            // The send won't complete until the object has handled all other messages.
+            repr = runtime:dart:arrayNew()
+        }
+    }
+
+    func add(item Element) {
+        runtime:dart:arrayAdd(self.repr, item)
+    }
+}

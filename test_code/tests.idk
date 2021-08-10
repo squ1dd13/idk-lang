@@ -292,6 +292,14 @@ proc testClasses() {
     print(dartString.isNotEmpty);
     print(dartString.codeUnits);
     print(dartString.contains("world", 0));
+    print(dartString.toUpperCase());
+
+    // Return values are translated if possible, so we have to convert them 
+    //  back to Dart objects if we need to use them as such. This will not
+    //  change; it shouldn't be an issue because there should be as little
+    //  reliance on Dart interoperability as possible.
+    print(makeDart(dartString.toUpperCase()).contains("WORLD", 0));
+    print(makeDart(dartString.toUpperCase()).contains("WORLd", 0));
 
     // throw exception;
     

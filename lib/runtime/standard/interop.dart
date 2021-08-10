@@ -133,12 +133,10 @@ class FieldHandle extends Handle {
 Value _dartToLanguageValue(dynamic dartThing, [dynamic parent]) {
   var mirror = reflect(dartThing);
 
+  // Convert functions into something we can call.
   if (mirror is ClosureMirror) {
-    print('clos');
-
     var function = mirror.function;
 
-    // var functionValue = FunctionValue.empty();
     var name = function.simpleName;
     var returnType = _dartToLanguageType(function.returnType.reflectedType);
 
@@ -148,8 +146,6 @@ Value _dartToLanguageValue(dynamic dartThing, [dynamic parent]) {
       var type = _dartToLanguageType(function.parameters[i].type.reflectedType);
       parameters['arg$i'] = type;
     }
-
-    // var statements = <Statement>[DartDynamicStatement(() {}, false)];
 
     var functionValue =
         FunctionValue.implemented(function.parameters.length, (argHandles) {
@@ -171,6 +167,8 @@ Value _dartToLanguageValue(dynamic dartThing, [dynamic parent]) {
     }, named: name.toString(), returns: returnType);
 
     functionValue.parameters = parameters;
+    functionValue.applyType();
+
     return functionValue;
   }
 
