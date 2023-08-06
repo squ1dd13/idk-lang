@@ -14,9 +14,9 @@ import 'util.dart';
 // TODO: Should directions be allowed in classes?
 class DirectionStatement extends DynamicStatement
     implements FunctionChild, LoopChild {
-  TypeName typeName;
-  String name;
-  Expression targetExpression;
+  TypeName? typeName;
+  String? name;
+  late Expression targetExpression;
 
   @override
   SideEffect execute() {
@@ -32,14 +32,14 @@ class DirectionStatement extends DynamicStatement
         throw RuntimeError('Cannot redirect non-reference.');
       }
 
-      (handle as Reference).redirect(evaluated);
+      handle.redirect(evaluated!);
     } else {
       Scope.current().add(name, reference);
     }
 
     var storedReference = Scope.current().get(name) as Reference;
     var requiredType =
-        typeName?.evaluate() ?? ReferenceType.to(evaluated.valueType);
+        typeName?.evaluate() ?? ReferenceType.to(evaluated!.valueType);
 
     if (storedReference.handleType.notEquals(requiredType)) {
       var targetType =
@@ -109,7 +109,7 @@ class Direction implements Statable {
 /// someFunction(-> target);
 /// ```
 class InlineDirection implements Expressible {
-  Expression _targetExpression;
+  late Expression _targetExpression;
 
   InlineDirection(TokenStream tokens) {
     tokens.requireNext('Token direction must begin with "->".', 1,

@@ -9,8 +9,8 @@ import 'typename.dart';
 import 'util.dart';
 
 class _Parameter {
-  TypeName type;
-  String name;
+  late TypeName type;
+  String? name;
 
   _Parameter(TokenStream tokens) {
     type = TypeName(tokens);
@@ -24,8 +24,8 @@ class _Parameter {
 
 class FunctionStatement extends Statement
     implements ClassChild, FunctionChild, LoopChild {
-  TypeName returnType;
-  String name;
+  late TypeName returnType;
+  String? name;
   final parameters = <_Parameter>[];
   final body = <FunctionChild>[];
   var isOverride = false;
@@ -52,26 +52,26 @@ class FunctionStatement extends Statement
 }
 
 class FunctionDeclaration implements Statable {
-  FunctionStatement _statement;
+  FunctionStatement? _statement;
 
   FunctionDeclaration(TokenStream tokens) {
     _statement = FunctionStatement(Parse.staticKeyword(tokens));
     tokens.requireNext('Functions must declare a return type.', 1,
         TokenPattern.type(TokenType.Name));
 
-    _statement.returnType = TypeName(tokens);
+    _statement!.returnType = TypeName(tokens);
 
     tokens.requireNext(
         'Function must have a name.', 2, TokenPattern.type(TokenType.Name));
 
-    _statement.name = tokens.take().toString();
+    _statement!.name = tokens.take().toString();
 
     // An exclamation mark ("!") after the function name means that it overrides
     //  a method in a parent class.
     const overridePattern = TokenPattern(string: '!', type: TokenType.Symbol);
 
     if (overridePattern.hasMatch(tokens.current())) {
-      _statement.isOverride = true;
+      _statement!.isOverride = true;
       tokens.skip();
     }
 
@@ -89,19 +89,19 @@ class FunctionDeclaration implements Statable {
     // Parse all of the parameters.
     for (var segment in segments) {
       // Create a _Parameter from each segment's tokens.
-      _statement.parameters.add(_Parameter(TokenStream(segment, 0)));
+      _statement!.parameters.add(_Parameter(TokenStream(segment, 0)));
     }
 
     tokens.requireNext('Expected function body after parameter list.', 4,
         GroupPattern('{', '}'));
 
     var bodyTokens = tokens.take() as GroupToken;
-    _statement.body
+    _statement!.body
         .addAll(Parse.statements<FunctionChild>(bodyTokens.middle()));
   }
 
   @override
-  Statement createStatement() {
+  Statement? createStatement() {
     return _statement;
   }
 }

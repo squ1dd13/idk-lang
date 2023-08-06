@@ -1,10 +1,10 @@
-if 5 == 5 and 1 == 1 {
-    print("5 equals 5");
-} else {
-    print("5 does not equal 5");
-}
+// if 5 == 5 and 1 == 1 {
+//     print("5 equals 5");
+// } else {
+//     print("5 does not equal 5");
+// }
 
-string x = "Hello, world!";
+String x = "Hello, world!";
 int y = 10;
 
 int a = 15;
@@ -27,26 +27,26 @@ print(a);
 print("printing b...");
 print(b);
 
-string basicFunction(string arg) {
+String basicFunction(String arg) {
     arg = "haha";
     print(arg);
 
     return "nothing here";
 }
 
-proc takesAny(@any couldBeAnything) {
+proc takesAny(@Any couldBeAnything) {
     print("*** generic ***");
     print(couldBeAnything);
     print("*** generic ***");
 }
 
-proc printWrapper(string something) {
+proc printWrapper(String something) {
     print(something);
 }
 
 printWrapper("print this through the wrapper");
 
-string myVar = "this is a string variable";
+String myVar = "this is a String variable";
 basicFunction(myVar);
 print(myVar);
 
@@ -95,10 +95,10 @@ takesAny(someRef);
 takesAny(-> myNumber);
 takesAny(-> myVar);
 
-proc interestingProcedure(any yah) {
+proc interestingProcedure(Any yah) {
     print(yah);
     print("yeah i'm a cool thing");
 }
 
-@any theProcedure -> interestingProcedure;
+@Any theProcedure -> interestingProcedure;
 theProcedure("wat");

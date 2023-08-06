@@ -8,7 +8,7 @@ import 'util.dart';
 
 class FinallyStatement extends DynamicStatement
     implements FunctionChild, LoopChild {
-  final DynamicStatement _statement;
+  final DynamicStatement? _statement;
 
   FinallyStatement(this._statement);
 
@@ -18,7 +18,7 @@ class FinallyStatement extends DynamicStatement
       // Return the side effect even though we don't need to return anything at
       //  all. This causes a runtime exception to be thrown when something is
       //  thrown from inside a deferred statement.
-      return _statement.execute();
+      return _statement!.execute();
     });
 
     return SideEffect.nothing();
@@ -26,7 +26,7 @@ class FinallyStatement extends DynamicStatement
 }
 
 class Finally implements Statable {
-  FinallyStatement _statement;
+  FinallyStatement? _statement;
 
   Finally(TokenStream tokens) {
     tokens.requireNext('Expected "finally".', 1,
@@ -34,11 +34,11 @@ class Finally implements Statable {
 
     tokens.skip();
 
-    _statement = FinallyStatement(Parse.statement(tokens));
+    _statement = FinallyStatement(Parse.statement(tokens) as DynamicStatement?);
   }
 
   @override
-  Statement createStatement() {
+  Statement? createStatement() {
     return _statement;
   }
 }

@@ -11,19 +11,19 @@ import 'util.dart';
 class LoopStatement extends DynamicStatement
     implements FunctionChild, LoopChild {
   /// For specifying a loop to do something with, such as "break outer".
-  String name;
+  String? name;
 
-  Statement setup;
-  Expression check;
-  Expression change;
-  List<Statement> body;
+  Statement? setup;
+  late Expression check;
+  late Expression change;
+  late List<Statement> body;
 
   @override
   SideEffect execute() {
     var sideEffect = SideEffect.nothing();
 
     Scope.current().branch((_) {
-      var setupEffect = setup.execute();
+      var setupEffect = setup!.execute()!;
 
       // Handle interrupts in the setup (probably exceptions).
       if (setupEffect.isInterrupt) {
@@ -32,14 +32,14 @@ class LoopStatement extends DynamicStatement
       }
 
       while (true) {
-        var checkResult = check.evaluate();
+        var checkResult = check.evaluate()!;
 
         if (checkResult.value.equals(BooleanValue(false))) {
           break;
         }
 
         for (var statement in body) {
-          var statementEffect = statement.execute();
+          var statementEffect = statement.execute()!;
 
           if (!statementEffect.isInterrupt) {
             continue;

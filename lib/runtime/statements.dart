@@ -7,19 +7,19 @@ abstract class Statement {
 
   Statement(this.isStatic);
 
-  SideEffect execute();
+  SideEffect? execute();
 }
 
 class DartDynamicStatement implements DynamicStatement {
   @override
   bool isStatic;
 
-  final SideEffect Function() _action;
+  final SideEffect? Function() _action;
 
   DartDynamicStatement(this._action, this.isStatic);
 
   @override
-  SideEffect execute() {
+  SideEffect? execute() {
     return _action();
   }
 }

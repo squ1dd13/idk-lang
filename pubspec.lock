@@ -5,8 +5,9 @@ packages:
     dependency: "direct dev"
     description:
       name: pedantic
-      url: "https://pub.dartlang.org"
+      sha256: "207f9260c7a46946d09619b5ba1caf1fd50faf10fe3bae0176c626dceac5193d"
+      url: "https://pub.dev"
     source: hosted
     version: "1.10.0"
 sdks:
-  dart: ">=2.12.0-0 <3.0.0"
+  dart: ">=2.12.0 <4.0.0"

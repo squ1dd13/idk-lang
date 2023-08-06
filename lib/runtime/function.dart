@@ -7,12 +7,12 @@ import 'type.dart';
 import 'value.dart';
 
 class FunctionType extends ValueType {
-  ValueType returnType;
-  var parameterTypes = <ValueType>[];
+  ValueType? returnType;
+  List<ValueType?> parameterTypes = <ValueType>[];
 
   FunctionType(FunctionValue function) {
     returnType = function.returnType;
-    parameterTypes = function.parameters.values.toList();
+    parameterTypes = function.parameters!.values.toList();
   }
 
   FunctionType.build(this.returnType, this.parameterTypes);
@@ -20,18 +20,18 @@ class FunctionType extends ValueType {
   @override
   Value copyValue() {
     return FunctionType.build(
-        returnType.copyValue(), parameterTypes.map((type) => type.copyValue()));
+        returnType!.copyValue() as ValueType?, parameterTypes.map((type) => type!.copyValue()) as List<ValueType?>);
   }
 
   @override
-  bool equals(Value other) {
+  bool equals(Value? other) {
     if (!(other is FunctionType)) {
       return false;
     }
 
-    var otherFunction = other as FunctionType;
+    var otherFunction = other;
 
-    if (!returnType.equals(otherFunction.returnType)) {
+    if (!returnType!.equals(otherFunction.returnType)) {
       return false;
     }
 
@@ -41,7 +41,7 @@ class FunctionType extends ValueType {
 
     // Check if all the parameters match.
     for (var i = 0; i < parameterTypes.length; ++i) {
-      if (!otherFunction.parameterTypes[i].equals(parameterTypes[i])) {
+      if (!otherFunction.parameterTypes[i]!.equals(parameterTypes[i])) {
         return false;
       }
     }
@@ -61,41 +61,41 @@ class FunctionType extends ValueType {
 }
 
 abstract class Callable extends Value {
-  Map<String, ValueType> parameters;
-  ValueType returnType;
+  Map<String?, ValueType?>? parameters;
+  ValueType? returnType;
 
   Callable([this.parameters, this.returnType]);
 
-  SideEffect call(Map<String, Handle> arguments);
+  SideEffect? call(Map<String?, Handle?> arguments);
 }
 
 class FunctionValue extends Callable {
-  String name;
-  List<Statement> _statements;
+  String? name;
+  List<Statement>? _statements;
   Scope Function() _getExecutionScope = () => Scope.current();
 
   var isOverride = false;
 
   FunctionValue.empty();
 
-  FunctionValue(this.name, ValueType returnType, this._statements,
+  FunctionValue(this.name, ValueType? returnType, this._statements,
       [this.isOverride = false])
       : super(<String, ValueType>{}, returnType);
 
   FunctionValue.implemented(
-      int parameterCount, SideEffect Function(List<Handle>) implementation,
-      {String named, ValueType returns}) {
+      int parameterCount, SideEffect Function(List<Handle?>) implementation,
+      {String? named, ValueType? returns}) {
     name = named ?? 'closure_${implementation.hashCode}';
     returnType = returns ?? AnyType();
 
-    parameters = <String, ValueType>{};
+    parameters = <String?, ValueType?>{};
     for (var i = 0; i < parameterCount; ++i) {
-      parameters['arg$i'] = AnyType();
+      parameters!['arg$i'] = AnyType();
     }
 
     _statements = [
       DartDynamicStatement(() {
-        var arguments = List<Handle>.filled(parameterCount, null);
+        var arguments = List<Handle?>.filled(parameterCount, null);
 
         for (var i = 0; i < parameterCount; ++i) {
           arguments[i] = Scope.current().get('arg$i');
@@ -108,8 +108,8 @@ class FunctionValue extends Callable {
     applyType();
   }
 
-  void addParameter(String name, ValueType type) {
-    parameters[name] = type;
+  void addParameter(String? name, ValueType? type) {
+    parameters![name] = type;
   }
 
   /// Sets the function's type. Should be done after all changes
@@ -158,7 +158,7 @@ class FunctionValue extends Callable {
   }
 
   @override
-  SideEffect call(Map<String, Handle> arguments) {
+  SideEffect call(Map<String?, Handle?> arguments) {
     // var returnedHandle = NullType.nullHandle();
     var returnEffect = SideEffect.nothing();
 
@@ -167,12 +167,12 @@ class FunctionValue extends Callable {
     // Open a new scope for the function body to run inside.
     executionParentScope.branch((scope) {
       for (var name in arguments.keys) {
-        var copied = arguments[name].copyHandle();
-        scope.add(name, copied.convertHandleTo(parameters[name]));
+        var copied = arguments[name]!.copyHandle();
+        scope.add(name, copied.convertHandleTo(parameters![name]));
       }
 
       // Execute the body.
-      for (var statement in _statements) {
+      for (var statement in _statements!) {
         var result = runStatement(statement);
 
         if (result.isInterrupt) {
@@ -204,12 +204,12 @@ class FunctionValue extends Callable {
   }
 
   @override
-  bool equals(Value other) {
+  bool equals(Value? other) {
     if (!(other is FunctionValue)) {
       return false;
     }
 
-    var function = other as FunctionValue;
+    var function = other;
     return name == function.name &&
         returnType == function.returnType &&
         parameters == function.parameters &&

@@ -6,7 +6,7 @@ import 'package:language/runtime/handle.dart';
 import 'parser.dart';
 
 class OperatorExpression implements Expression {
-  List<Token> _tokens;
+  late List<Token> _tokens;
 
   OperatorExpression(TokenStream tokens) {
     // Infix expressions can't have two operands next to each other,
@@ -96,7 +96,7 @@ class OperatorExpression implements Expression {
   }
 
   @override
-  Handle evaluate() {
+  Handle? evaluate() {
     return ShuntingYard.evaluate(_tokens);
   }
 }

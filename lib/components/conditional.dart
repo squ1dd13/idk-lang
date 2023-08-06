@@ -10,34 +10,34 @@ import 'package:language/runtime/statements.dart';
 class ConditionalStatement extends DynamicStatement
     implements FunctionChild, LoopChild {
   /// null if there is no condition (for 'else').
-  Expression condition;
-  List<Statement> body;
-  ConditionalClause nextClause;
+  Expression? condition;
+  late List<Statement> body;
+  ConditionalClause? nextClause;
 
   @override
   SideEffect execute() {
     var sideEffect = SideEffect.nothing();
 
     Scope.current().branch((_) {
-      var conditionValue = true;
+      bool? conditionValue = true;
 
       if (condition != null) {
-        var evaluated = condition.evaluate();
+        var evaluated = condition!.evaluate()!;
         var conditionBool = evaluated.convertValueTo(PrimitiveType.boolean);
 
         conditionValue = (conditionBool.value as BooleanValue).value;
       }
 
-      if (!conditionValue) {
+      if (!conditionValue!) {
         // Run the subsequent clause, or return an empty side effect if there
         //  isn't another clause to run.
         sideEffect =
-            nextClause?.createStatement()?.execute() ?? SideEffect.nothing();
+            nextClause?.createStatement().execute() ?? SideEffect.nothing();
         return;
       }
 
       for (var bodyStatement in body) {
-        var statementEffect = bodyStatement.execute();
+        var statementEffect = bodyStatement.execute()!;
 
         if (statementEffect.isInterrupt) {
           sideEffect = statementEffect;

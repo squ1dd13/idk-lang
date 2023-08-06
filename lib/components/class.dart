@@ -9,10 +9,10 @@ import 'package:language/runtime/statements.dart';
 import 'util.dart';
 
 class ClassStatement extends StaticStatement implements ClassChild {
-  String className;
-  bool abstract;
-  Expression parentExpression;
-  List<ClassChild> body;
+  String? className;
+  bool? abstract;
+  Expression? parentExpression;
+  late List<ClassChild> body;
 
   @override
   SideEffect execute() {

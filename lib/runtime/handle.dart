@@ -19,7 +19,7 @@ abstract class Handle {
   }
 
   /// Returns a reference to [handle].
-  factory Handle.reference(Handle handle) {
+  factory Handle.reference(Handle? handle) {
     return Reference(handle);
   }
 
@@ -31,11 +31,11 @@ abstract class Handle {
   // This is to make it clear what the user is working with - handles or values.
 
   /// The type of the underlying value of this handle.
-  ValueType get valueType;
+  ValueType? get valueType;
 
   /// The type of this handle itself. This should be the same as the [valueType]
   /// in most cases, although [Reference]s will return their reference type.
-  ValueType get handleType;
+  ValueType? get handleType;
 
   /// Returns a copy of this handle. This method may or may not
   /// also copy the underlying value.
@@ -43,11 +43,11 @@ abstract class Handle {
 
   /// Returns a [Handle] created from converting this handle's value to
   /// [endType]. The handle returned may be the same as the original.
-  Handle convertValueTo(ValueType endType);
+  Handle convertValueTo(ValueType? endType);
 
   /// Returns a [Handle] created from converting this handle such that the
   /// new [Handle]'s [handleType] is equal to [endType].
-  Handle convertHandleTo(ValueType endType);
+  Handle convertHandleTo(ValueType? endType);
 
   // We define basic comparisons to pass through to the underlying values.
 
@@ -83,7 +83,7 @@ class Variable extends Handle {
 
   @override
   set value(Value newValue) {
-    if (newValue.type.notEquals(valueType)) {
+    if (newValue.type!.notEquals(valueType)) {
       throw RuntimeError('Cannot set value of "${valueType}" variable to '
           '"${newValue.type}"');
     }
@@ -92,12 +92,12 @@ class Variable extends Handle {
   }
 
   @override
-  Handle convertValueTo(ValueType endType) {
+  Handle convertValueTo(ValueType? endType) {
     return value.mustConvertTo(endType).createHandle();
   }
 
   @override
-  Handle convertHandleTo(ValueType endType) => convertValueTo(endType);
+  Handle convertHandleTo(ValueType? endType) => convertValueTo(endType);
 
   @override
   Handle copyHandle() {
@@ -107,10 +107,10 @@ class Variable extends Handle {
   }
 
   @override
-  ValueType get valueType => _value.type;
+  ValueType? get valueType => _value.type;
 
   @override
-  ValueType get handleType => valueType;
+  ValueType? get handleType => valueType;
 }
 
 /// Almost exactly the same as [Variable], except that the value may not be
@@ -126,16 +126,16 @@ class Constant extends Variable {
 
 class Reference extends Handle {
   // Variable, Constant etc.
-  Handle _valueHandle;
+  Handle? _valueHandle;
 
   Reference(this._valueHandle);
 
   @override
-  Value get value => _valueHandle.value;
+  Value get value => _valueHandle!.value;
 
   @override
   set value(Value newValue) {
-    _valueHandle.value = newValue.mustConvertTo(value.type);
+    _valueHandle!.value = newValue.mustConvertTo(value.type);
   }
 
   @override
@@ -146,13 +146,13 @@ class Reference extends Handle {
   }
 
   @override
-  ValueType get valueType => _valueHandle.valueType;
+  ValueType? get valueType => _valueHandle!.valueType;
 
   @override
   ValueType get handleType => ReferenceType.to(valueType);
 
   void redirect(Handle newTarget) {
-    if (newTarget.valueType.notEquals(valueType)) {
+    if (newTarget.valueType!.notEquals(valueType)) {
       throw RuntimeError('Cannot change target from "${valueType}" to '
           '"${newTarget.valueType}"');
     }
@@ -161,8 +161,8 @@ class Reference extends Handle {
   }
 
   @override
-  Handle convertValueTo(ValueType endType) {
-    if (valueType.equals(endType)) {
+  Handle convertValueTo(ValueType? endType) {
+    if (valueType!.equals(endType)) {
       // We can just return this reference, because there is no conversion
       //  involved.
       return this;
@@ -170,22 +170,22 @@ class Reference extends Handle {
 
     // Return a reference to the converted handle, or throw an exception if
     //  we couldn't convert (this happens in mustConvertTo).
-    return Handle.reference(_valueHandle.convertValueTo(endType));
+    return Handle.reference(_valueHandle!.convertValueTo(endType));
   }
 
   @override
-  Handle convertHandleTo(ValueType endType) {
+  Handle convertHandleTo(ValueType? endType) {
     if (!(endType is ReferenceType)) {
       // The caller wants a non-reference handle, so we need to convert the
       //  underlying handle.
-      return _valueHandle.convertHandleTo(endType);
+      return _valueHandle!.convertHandleTo(endType);
     }
 
     if (handleType.equals(endType)) {
       return this;
     }
 
-    var newValueType = (endType as ReferenceType).referencedType;
-    return Handle.reference(_valueHandle.convertValueTo(newValueType));
+    var newValueType = endType.referencedType;
+    return Handle.reference(_valueHandle!.convertValueTo(newValueType));
   }
 }

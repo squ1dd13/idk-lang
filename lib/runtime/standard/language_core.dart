@@ -12,7 +12,7 @@ import '../type.dart';
 void registerCore() {
   var printFunction = FunctionValue('print', NullType(), <Statement>[
     DartDynamicStatement(() {
-      var argument = Scope.current().get('value').value;
+      var argument = Scope.current().get('value')!.value;
       print(argument);
 
       return null;
@@ -23,7 +23,7 @@ void registerCore() {
 
   var fatalError = FunctionValue('fatal', NullType(), <Statement>[
     DartDynamicStatement(() {
-      var argument = Scope.current().get('message').value;
+      var argument = Scope.current().get('message')!.value;
       throw RuntimeError(argument.toString());
     }, false)
   ])

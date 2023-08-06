@@ -22,7 +22,7 @@ import 'runtime/primitive.dart';
 import 'runtime/statements.dart';
 
 class Parse {
-  static final statementPasses = <Statement Function(TokenStream)>[
+  static final statementPasses = <Statement? Function(TokenStream)>[
     (stream) => CustomClassType(stream).createStatement(),
     (stream) => ConditionalClause(stream).createStatement(),
     (stream) => Loop(stream).createStatement(),
@@ -47,7 +47,7 @@ class Parse {
         scope.enter();
 
         for (var statement in body) {
-          var effect = statement.execute();
+          var effect = statement.execute()!;
 
           // Any interrupting effects go directly through to the parent scope.
           if (effect.isInterrupt) {
@@ -118,13 +118,13 @@ class Parse {
   }
 
   static List<StatementType> statements<StatementType>(List<Token> tokens,
-      {int limit = -1, List<Statement Function(TokenStream)> passes}) {
+      {int limit = -1, List<Statement? Function(TokenStream)>? passes}) {
     return _parseRepeated(
             TokenStream(tokens, 0), passes ?? statementPasses, limit)
         .cast();
   }
 
-  static Statement statement(TokenStream tokens) {
+  static Statement? statement(TokenStream tokens) {
     return _parseRepeated(tokens, statementPasses, 1)[0];
   }
 

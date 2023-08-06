@@ -28,7 +28,7 @@ class PrimitiveType extends ValueType {
   }
 
   @override
-  bool equals(Value other) {
+  bool equals(Value? other) {
     return other is PrimitiveType && primitive == other.primitive;
   }
 }
@@ -37,7 +37,7 @@ abstract class PrimitiveValue extends Value {
   dynamic get rawValue;
 
   @override
-  bool equals(Value other) {
+  bool equals(Value? other) {
     return (other is PrimitiveValue) && rawValue == other.rawValue;
   }
 
@@ -53,7 +53,7 @@ abstract class PrimitiveValue extends Value {
 }
 
 class IntegerValue extends PrimitiveValue {
-  int value;
+  int? value;
 
   IntegerValue.raw(this.value) {
     type = PrimitiveType(Primitive.Int);
@@ -72,7 +72,7 @@ class IntegerValue extends PrimitiveValue {
   }
 
   @override
-  int get rawValue => value;
+  int? get rawValue => value;
 
   @override
   bool operator ==(Object other) =>
@@ -85,7 +85,7 @@ class IntegerValue extends PrimitiveValue {
   int get hashCode => value.hashCode;
 
   @override
-  Handle instanceMember(String name) {
+  Handle? instanceMember(String name) {
     if (name == 'getPrint') {
       return Scope.current().get('print');
     }
@@ -95,14 +95,14 @@ class IntegerValue extends PrimitiveValue {
 }
 
 class StringValue extends PrimitiveValue {
-  String value;
+  String? value;
 
   StringValue(this.value) {
     type = PrimitiveType(Primitive.String);
   }
 
   @override
-  String toString() => value;
+  String toString() => value!;
 
   @override
   Value copyValue() {
@@ -110,7 +110,7 @@ class StringValue extends PrimitiveValue {
   }
 
   @override
-  String get rawValue => value;
+  String? get rawValue => value;
 
   @override
   bool operator ==(Object other) =>
@@ -128,7 +128,7 @@ class StringValue extends PrimitiveValue {
       var func = FunctionValue('length', PrimitiveType.integer, <Statement>[
         DartDynamicStatement(() {
           return SideEffect.returns(
-              IntegerValue.raw(value.length).createHandle());
+              IntegerValue.raw(value!.length).createHandle());
         }, false)
       ])
         ..applyType();
@@ -141,15 +141,15 @@ class StringValue extends PrimitiveValue {
 
   @override
   Handle at(Value key) {
-    return StringValue(value[(key as IntegerValue).value]).createHandle();
+    return StringValue(value![(key as IntegerValue).value!]).createHandle();
   }
 }
 
 class BooleanValue extends PrimitiveValue {
-  bool value;
+  bool? value;
 
   @override
-  bool get rawValue => value;
+  bool? get rawValue => value;
 
   BooleanValue(this.value) {
     type = PrimitiveType.boolean;
@@ -161,7 +161,7 @@ class BooleanValue extends PrimitiveValue {
   }
 
   @override
-  bool equals(Value other) {
+  bool equals(Value? other) {
     return other is BooleanValue && other.value == value;
   }
 

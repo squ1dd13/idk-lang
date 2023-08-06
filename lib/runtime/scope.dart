@@ -4,10 +4,10 @@ import 'exception.dart';
 import 'handle.dart';
 
 class Scope {
-  final _contents = <String, Handle>{};
+  final _contents = <String?, Handle?>{};
   final _deferred = <dynamic Function()>[];
   var _open = false;
-  final Scope parent;
+  final Scope? parent;
 
   static final _stack = <Scope>[Scope(null)];
 
@@ -17,7 +17,7 @@ class Scope {
 
   static Scope global() => _stack.first;
 
-  void add(String name, Handle item) {
+  void add(String? name, Handle? item) {
     if (has(name)) {
       throw RuntimeError('$name already exists in this scope.');
     }
@@ -25,10 +25,10 @@ class Scope {
     _contents[name] = item;
   }
 
-  Handle get(String name) {
+  Handle? get(String? name) {
     if (!has(name)) {
       if (parent != null) {
-        return parent.get(name);
+        return parent!.get(name);
       }
 
       throw RuntimeError('Undeclared identifier "$name".');
@@ -37,7 +37,7 @@ class Scope {
     return _contents[name];
   }
 
-  Handle getOwn(String name) {
+  Handle? getOwn(String name) {
     if (!has(name)) {
       throw RuntimeError('Undeclared identifier "$name".');
     }
@@ -45,16 +45,16 @@ class Scope {
     return _contents[name];
   }
 
-  void set(String name, Handle handle) {
-    get(name).value = handle.value;
+  void set(String? name, Handle handle) {
+    get(name)!.value = handle.value;
   }
 
-  bool has(String name) {
+  bool has(String? name) {
     return _contents.containsKey(name);
   }
 
-  List<Handle> matching(bool Function(Handle) predicate) {
-    var matches = <Handle>[];
+  List<Handle?> matching(bool Function(Handle?) predicate) {
+    var matches = <Handle?>[];
 
     for (var handle in _contents.values) {
       if (predicate(handle)) {

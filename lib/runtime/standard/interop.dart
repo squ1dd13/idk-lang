@@ -21,7 +21,7 @@ class DartType extends ValueType {
   }
 
   @override
-  bool equals(Value other) {
+  bool equals(Value? other) {
     return other is DartType && _dartObject.equals(other._dartObject);
   }
 }
@@ -42,14 +42,14 @@ ValueType _dartToLanguageType(Type type) {
   return DartType(type);
 }
 
-Handle _dartToLanguageHandle(Handle handle, ValueType endType) {
-  var handleType = handle.handleType;
+Handle _dartToLanguageHandle(Handle handle, ValueType? endType) {
+  var handleType = handle.handleType!;
 
   if (handleType.equals(endType)) {
     return handle;
   }
 
-  if (endType.equals(AnyType.any)) {
+  if (endType!.equals(AnyType.any)) {
     return handle;
   }
 
@@ -62,7 +62,7 @@ Handle _dartToLanguageHandle(Handle handle, ValueType endType) {
       case Primitive.String:
         return StringValue(instance.toString()).createHandle();
       case Primitive.Bool:
-        return BooleanValue(instance as bool).createHandle();
+        return BooleanValue(instance as bool?).createHandle();
     }
 
     throw Exception('wtf');
@@ -73,7 +73,7 @@ Handle _dartToLanguageHandle(Handle handle, ValueType endType) {
       throw RuntimeError('Type mismatch: not of integer type.');
     }
 
-    var instance = (handle.value as DartObject)._dartInstance as int;
+    var instance = (handle.value as DartObject)._dartInstance as int?;
     return DartObject(instance).createHandle();
   }
 
@@ -82,7 +82,7 @@ Handle _dartToLanguageHandle(Handle handle, ValueType endType) {
       throw RuntimeError('Type mismatch: not of Boolean type.');
     }
 
-    var instance = (handle.value as DartObject)._dartInstance as bool;
+    var instance = (handle.value as DartObject)._dartInstance as bool?;
     return DartObject(instance).createHandle();
   }
 
@@ -108,12 +108,12 @@ class FieldHandle extends Handle {
   }
 
   @override
-  Handle convertHandleTo(ValueType endType) {
+  Handle convertHandleTo(ValueType? endType) {
     return _dartToLanguageHandle(this, endType);
   }
 
   @override
-  Handle convertValueTo(ValueType endType) {
+  Handle convertValueTo(ValueType? endType) {
     return convertHandleTo(endType);
   }
 
@@ -140,7 +140,7 @@ Value _dartToLanguageValue(dynamic dartThing, [dynamic parent]) {
     var name = function.simpleName;
     var returnType = _dartToLanguageType(function.returnType.reflectedType);
 
-    var parameters = <String, ValueType>{};
+    var parameters = <String?, ValueType?>{};
 
     for (var i = 0; i < function.parameters.length; ++i) {
       var type = _dartToLanguageType(function.parameters[i].type.reflectedType);
@@ -152,7 +152,7 @@ Value _dartToLanguageValue(dynamic dartThing, [dynamic parent]) {
       var arguments = List<dynamic>.filled(parameters.length, null);
 
       for (var i = 0; i < parameters.length; ++i) {
-        var handle = argHandles[i];
+        var handle = argHandles[i]!;
 
         var dartValue = DartObject.from(handle)._dartInstance;
 
@@ -211,7 +211,7 @@ class DartObject extends Value {
   }
 
   @override
-  Value mustConvertTo(ValueType endType) {
+  Value mustConvertTo(ValueType? endType) {
     return _dartToLanguageHandle(createHandle(), endType).value;
   }
 
@@ -226,7 +226,7 @@ class DartObject extends Value {
   }
 
   @override
-  bool equals(Value other) {
+  bool equals(Value? other) {
     return other is DartObject && _dartInstance == other._dartInstance;
   }
 
@@ -249,7 +249,7 @@ void registerInteropFunctions() {
       'makeDart',
       FunctionValue.implemented(1, (arguments) {
         return SideEffect.returns(
-            _dartToLanguageValue(DartObject.from(arguments[0])._dartInstance)
+            _dartToLanguageValue(DartObject.from(arguments[0]!)._dartInstance)
                 .createHandle());
       }, named: 'makeDart')
           .createHandle());

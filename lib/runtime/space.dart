@@ -16,15 +16,15 @@ class Space extends Value {
   }
 
   @override
-  Handle staticMember(String name) {
+  Handle? staticMember(String name) {
     return _scope.getOwn(name);
   }
 
   @override
-  ValueType get type => NullType.untypedNull();
+  ValueType get type => NullType.untypedNull() as ValueType;
 
   @override
-  set type(ValueType value) {
+  set type(ValueType? value) {
     throw RuntimeError('Cannot set space type.');
   }
 
@@ -34,7 +34,7 @@ class Space extends Value {
   }
 
   @override
-  bool equals(Value other) {
+  bool equals(Value? other) {
     throw RuntimeError('Cannot compare spaces.');
   }
 

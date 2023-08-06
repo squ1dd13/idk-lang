@@ -22,7 +22,7 @@ class SpaceStatement extends StaticStatement implements ClassChild {
 }
 
 class SpaceDeclaration implements Statable {
-  SpaceStatement _statement;
+  SpaceStatement? _statement;
 
   SpaceDeclaration(TokenStream tokens) {
     tokens.requireNext('Expected "space".', 1,
@@ -45,7 +45,7 @@ class SpaceDeclaration implements Statable {
   }
 
   @override
-  Statement createStatement() {
+  Statement? createStatement() {
     return _statement;
   }
 }

@@ -5,7 +5,7 @@ import '../lexer.dart';
 
 /// Something that can be converted to a statement.
 abstract class Statable {
-  Statement createStatement();
+  Statement? createStatement();
 }
 
 abstract class Expressible {
@@ -16,8 +16,8 @@ class InvalidSyntaxException extends FormatException {
   /// How far through the parsing the error was found.
   /// Used to determine which syntax error to show.
   final int stage;
-  final int line;
-  final int column;
+  final int? line;
+  final int? column;
 
   const InvalidSyntaxException(
       String message, this.stage, this.line, this.column)
@@ -101,10 +101,10 @@ class TokenStream {
 }
 
 class TokenPattern {
-  final String _stringMatch;
-  final TokenType _typeMatch;
+  final String? _stringMatch;
+  final TokenType? _typeMatch;
 
-  const TokenPattern({String string, TokenType type})
+  const TokenPattern({String? string, TokenType? type})
       : _stringMatch = string,
         _typeMatch = type;
 
@@ -150,7 +150,7 @@ class GroupPattern extends TokenPattern {
       return true;
     }
 
-    var children = (token as GroupToken).children;
+    var children = token.children;
     return _open.notMatch(children.first) || _close.notMatch(children.last);
   }
 }

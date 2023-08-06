@@ -27,7 +27,7 @@ class TokenOperator implements Function {
   }
 
   void issueWarningIfAny(int line, int column) {
-    if (warning?.isEmpty ?? true) {
+    if (warning.isEmpty ?? true) {
       return;
     }
 
@@ -48,7 +48,7 @@ class _Operator {
   final double precedence;
   final int operandCount;
   final Fix fixity;
-  final Handle Function(Iterable<Handle> operands) operation;
+  final Handle? Function(Iterable<Handle?> operands)? operation;
 
   _Operator(this.associativity, this.precedence, this.operandCount, this.fixity,
       this.operation);
@@ -138,7 +138,7 @@ class ShuntingYard {
         operators.containsKey(token.toString());
   }
 
-  static _Operator getOperator(Token token) {
+  static _Operator? getOperator(Token token) {
     if (isOperator(token)) {
       return operators[token.toString()];
     }
@@ -176,7 +176,7 @@ class ShuntingYard {
       }
 
       // Prefix operators go on the stack.
-      if (operator.fixity == Fix.Pre) {
+      if (operator!.fixity == Fix.Pre) {
         stack.add(token);
         continue;
       }
@@ -221,8 +221,8 @@ class ShuntingYard {
     return output;
   }
 
-  static Handle evaluate(List<Token> tokens) {
-    var numberStack = <Handle>[];
+  static Handle? evaluate(List<Token> tokens) {
+    var numberStack = <Handle?>[];
 
     for (var token in tokens) {
       var operator = getOperator(token);
@@ -243,7 +243,7 @@ class ShuntingYard {
       //  it can take either 1 or 2 operands.
       var minOperands = min(operator.operandCount, numberStack.length);
 
-      var operands = List<Handle>.filled(minOperands, null);
+      var operands = List<Handle?>.filled(minOperands, null);
 
       // Pop each operand off the number stack.
       for (var i = minOperands; i >= 1; --i) {
@@ -251,7 +251,7 @@ class ShuntingYard {
       }
 
       // Carry out the operation and push the result onto the stack.
-      numberStack.add(Operations.getOperation(token)(operands));
+      numberStack.add(Operations.getOperation(token)!(operands));
 
       continue;
     }

@@ -28,7 +28,7 @@ class TypeOfType extends ValueType {
   static TypeOfType shared = TypeOfType();
 
   @override
-  bool equals(Value other) {
+  bool equals(Value? other) {
     return other is TypeOfType;
   }
 
@@ -45,7 +45,7 @@ class AnyType extends ValueType {
   }
 
   @override
-  bool equals(Value other) {
+  bool equals(Value? other) {
     return other is AnyType;
   }
 }
@@ -60,7 +60,7 @@ class NullType extends ValueType {
   /// doesn't make sense in all errors (e.g. you can't return
   /// 'proc' from a function), so we can specify a different
   /// name to use.
-  String _name;
+  late String _name;
 
   NullType({String name = 'proc'}) {
     _name = name;
@@ -80,19 +80,19 @@ class NullType extends ValueType {
   }
 
   @override
-  bool equals(Value other) {
+  bool equals(Value? other) {
     return other is NullType;
   }
 }
 
 class ReferenceType extends ValueType {
-  final ValueType referencedType;
+  final ValueType? referencedType;
 
   ReferenceType.to(this.referencedType);
 
   @override
   Value copyValue() {
-    return ReferenceType.to(referencedType.copyValue());
+    return ReferenceType.to(referencedType!.copyValue() as ValueType?);
   }
 
   @override
@@ -101,9 +101,9 @@ class ReferenceType extends ValueType {
   }
 
   @override
-  bool equals(Value other) {
+  bool equals(Value? other) {
     return other is ReferenceType &&
-        referencedType.equals(other.referencedType);
+        referencedType!.equals(other.referencedType);
   }
 }
 
@@ -123,7 +123,7 @@ class ElementType extends AnyType {
   }
 
   @override
-  bool equals(Value other) {
+  bool equals(Value? other) {
     return other is ElementType;
   }
 }
@@ -135,7 +135,7 @@ class ArrayType extends ValueType {
 
   @override
   Value copyValue() {
-    return ArrayType(elementType.copyValue());
+    return ArrayType(elementType.copyValue() as ValueType);
   }
 
   @override
@@ -144,12 +144,12 @@ class ArrayType extends ValueType {
   }
 
   @override
-  bool equals(Value other) {
+  bool equals(Value? other) {
     if (!(other is ArrayType)) {
       return false;
     }
 
-    var array = other as ArrayType;
+    var array = other;
     return elementType.equals(array.elementType);
   }
 }

@@ -8,7 +8,7 @@ import 'util.dart';
 /// A `type` block. Used to implement templates and other complex type
 /// behaviour within a class definition.
 class CustomClassType implements Statable {
-  List<Statement> _body;
+  List<Statement>? _body;
 
   CustomClassType(TokenStream tokens) {
     tokens.requireNext('Expected "type" at start of type block.', 1,
@@ -23,7 +23,7 @@ class CustomClassType implements Statable {
         ConstructorDeclaration(stream, anonymous: true).createStatement();
 
     // Parse the body, but with a pass for an anonymous constructor as well.
-    var passes = [anonymousConstructor] + Parse.statementPasses;
+    List<Statement? Function(TokenStream)> passes = [anonymousConstructor] + (Parse.statementPasses as List<Statement Function(TokenStream)>);
 
     _body = Parse.statements(tokens.take().allTokens(), passes: passes);
   }

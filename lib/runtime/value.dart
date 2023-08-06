@@ -8,18 +8,18 @@ import 'type.dart';
 /// Something with a type. Avoid using this directly; prefer [Handle]s,
 /// especially when passing values around.
 abstract class Value {
-  ValueType type;
+  ValueType? type;
 
   Value copyValue();
 
-  Value mustConvertTo(ValueType endType) {
-    var sourceType = type;
+  Value mustConvertTo(ValueType? endType) {
+    var sourceType = type!;
 
     if (sourceType.equals(endType)) {
       return this;
     }
 
-    if (endType.equals(ReferenceType.to(type))) {
+    if (endType!.equals(ReferenceType.to(type))) {
       return Reference(createHandle()).value;
     }
 
@@ -48,7 +48,7 @@ abstract class Value {
   }
 
   // TODO: Remove this and generalise.
-  Handle at(Value key) {
+  Handle? at(Value key) {
     throw RuntimeError('$type does not support "[]".');
   }
 
@@ -57,9 +57,9 @@ abstract class Value {
 
   Handle createConstant() => Handle.constant(this);
 
-  bool equals(Value other);
+  bool equals(Value? other);
 
-  bool notEquals(Value other) => !equals(other);
+  bool notEquals(Value? other) => !equals(other);
 
   bool greaterThan(Value other);
 
@@ -74,11 +74,11 @@ abstract class Value {
     throw Exception("Don't compare Values with ==.");
   }
 
-  Handle instanceMember(String name) {
+  Handle? instanceMember(String name) {
     throw RuntimeError('Cannot use "." with "$type".');
   }
 
-  Handle staticMember(String name) {
+  Handle? staticMember(String name) {
     throw RuntimeError('Cannot use ":" with "$type".');
   }
 }
@@ -94,8 +94,8 @@ class NulledValue extends Value {
   }
 
   @override
-  bool equals(Value other) {
-    return other is NulledValue && type.equals(other.type);
+  bool equals(Value? other) {
+    return other is NulledValue && type!.equals(other.type);
   }
 
   @override

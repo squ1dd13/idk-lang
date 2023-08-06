@@ -8,7 +8,7 @@ import 'util.dart';
 
 class LoopFlowStatement extends DynamicStatement
     implements FunctionChild, LoopChild {
-  String keyword;
+  String? keyword;
   String targetName = '';
 
   @override
@@ -27,7 +27,7 @@ class LoopFlowStatement extends DynamicStatement
 
 class ReturnStatement extends DynamicStatement
     implements FunctionChild, LoopChild {
-  Expression expression;
+  late Expression expression;
 
   @override
   SideEffect execute() {
@@ -37,7 +37,7 @@ class ReturnStatement extends DynamicStatement
 
 class ThrowStatement extends DynamicStatement
     implements FunctionChild, LoopChild {
-  Expression expression;
+  late Expression expression;
 
   @override
   SideEffect execute() {
@@ -46,7 +46,7 @@ class ThrowStatement extends DynamicStatement
 }
 
 class FlowStatement implements Statable {
-  DynamicStatement _statement;
+  DynamicStatement? _statement;
 
   FlowStatement(TokenStream tokens) {
     tokens.requireNext(
@@ -108,7 +108,7 @@ class FlowStatement implements Statable {
   }
 
   @override
-  Statement createStatement() {
+  Statement? createStatement() {
     return _statement;
   }
 }

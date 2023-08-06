@@ -11,16 +11,16 @@ import 'util.dart';
 
 class DeclarationStatement extends Statement
     implements ClassChild, FunctionChild, LoopChild {
-  TypeName typeName;
-  String name;
-  Expression valueExpression;
+  late TypeName typeName;
+  String? name;
+  late Expression valueExpression;
 
   DeclarationStatement(bool isStatic) : super(isStatic);
 
   @override
   SideEffect execute() {
     // Evaluate the expression and then create a variable with the type.
-    var sourceValue = valueExpression.evaluate();
+    var sourceValue = valueExpression.evaluate()!;
 
     // If typeName evaluates to 'null', this is a 'let' declaration.
     // We take the type from the value.

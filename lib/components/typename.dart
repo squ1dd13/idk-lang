@@ -5,7 +5,7 @@ import 'operations/expression.dart';
 import 'util.dart';
 
 class TypeName {
-  Expression _typeExpression;
+  Expression? _typeExpression;
 
   TypeName(TokenStream tokens) {
     const letPattern = TokenPattern(string: 'let', type: TokenType.Name);

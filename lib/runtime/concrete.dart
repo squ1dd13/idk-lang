@@ -4,10 +4,10 @@ import 'expression.dart';
 import 'handle.dart';
 
 class SideEffect {
-  String breakName;
-  String continueName;
-  Handle returned;
-  Handle thrown;
+  String? breakName;
+  String? continueName;
+  Handle? returned;
+  Handle? thrown;
 
   SideEffect.nothing();
 
@@ -23,15 +23,15 @@ class SideEffect {
 
   SideEffect.returns(this.returned);
 
-  bool continuesLoopName(String name) {
+  bool continuesLoopName(String? name) {
     // If the name is empty, we match any loop (the first loop that handles
     //  the effect). If the name is null, the effect is not present.
     return continueName != null &&
-        (continueName.isEmpty || continueName == name);
+        (continueName!.isEmpty || continueName == name);
   }
 
-  bool breaksLoopName(String name) {
-    return breakName != null && (breakName.isEmpty || breakName == name);
+  bool breaksLoopName(String? name) {
+    return breakName != null && (breakName!.isEmpty || breakName == name);
   }
 
   bool get isLoopInterrupt => breakName != null || continueName != null;

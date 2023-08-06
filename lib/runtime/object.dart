@@ -10,12 +10,12 @@ import 'value.dart';
 
 /// A class type. Equality is determined by name.
 class ClassType extends ValueType implements Callable {
-  final String name;
+  final String? name;
   final List<Statement> _setupStatements;
-  final Handle superclass;
-  final bool abstract;
+  final Handle? superclass;
+  final bool? abstract;
   final Scope statics;
-  ClassType _complex;
+  ClassType? _complex;
 
   static var classTypeStack = <ClassType>[];
 
@@ -39,21 +39,21 @@ class ClassType extends ValueType implements Callable {
   }
 
   @override
-  Handle staticMember(String name) {
+  Handle? staticMember(String name) {
     return statics.getOwn(name);
   }
 
   @override
-  bool equals(Value other) {
+  bool equals(Value? other) {
     // TODO: Prevent classes with same names being equal unless they are actually the same class.
     return other is ClassType && name == other.name;
   }
 
   Scope createObjectScope(ClassObject object, {bool asSuper = false}) {
-    Scope scope;
+    Scope? scope;
 
     if (superclass != null) {
-      var superInstance = ClassObject(superclass.value as ClassType);
+      var superInstance = ClassObject(superclass!.value as ClassType);
 
       scope = Scope(superInstance.scope);
       scope.add('super', superInstance.createHandle());
@@ -78,8 +78,8 @@ class ClassType extends ValueType implements Callable {
     var functions = scope.matching(functionPredicate);
 
     for (var i = 0; i < functions.length; ++i) {
-      var functionValue = functions[i].value as FunctionValue;
-      functions[i].value = functionValue.wrappedForScope(scope);
+      var functionValue = functions[i]!.value as FunctionValue;
+      functions[i]!.value = functionValue.wrappedForScope(scope);
 
       var functionName = functionValue.name;
       var current = scope.parent;
@@ -97,7 +97,7 @@ class ClassType extends ValueType implements Callable {
         }
 
         // Override the parent's implementation for the function.
-        current.set(functionName, functions[i]);
+        current.set(functionName, functions[i]!);
 
         current = current.parent;
       }
@@ -113,7 +113,7 @@ class ClassType extends ValueType implements Callable {
 
   @override
   String toString() {
-    return name;
+    return name!;
   }
 
   bool inheritsFrom(ClassType other) {
@@ -132,25 +132,25 @@ class ClassType extends ValueType implements Callable {
   }
 
   @override
-  Map<String, ValueType> get parameters =>
-      (staticMember('').value as Callable).parameters;
+  Map<String?, ValueType?>? get parameters =>
+      (staticMember('')!.value as Callable).parameters;
 
   @override
   ValueType get returnType => this;
 
   @override
-  SideEffect call(Map<String, Handle> arguments) {
-    return (staticMember('').value as Callable)(arguments);
+  SideEffect? call(Map<String?, Handle?> arguments) {
+    return (staticMember('')!.value as Callable)(arguments);
   }
 
   @override
-  set parameters(Map<String, ValueType> _parameters) {
+  set parameters(Map<String?, ValueType?>? _parameters) {
     // TODO: implement parameters
     throw UnimplementedError();
   }
 
   @override
-  set returnType(ValueType _returnType) {
+  set returnType(ValueType? _returnType) {
     // TODO: implement returnType
     throw UnimplementedError();
   }
@@ -170,8 +170,8 @@ class ClassType extends ValueType implements Callable {
 
 class ClassObject extends Value {
   // Manages fields and methods.
-  Scope scope;
-  Handle complexType;
+  Scope? scope;
+  Handle? complexType;
 
   ClassObject(ClassType classType) {
     complexType = classType.createHandle();
@@ -188,8 +188,8 @@ class ClassObject extends Value {
   }
 
   @override
-  Handle instanceMember(String name) {
-    return scope.get(name);
+  Handle? instanceMember(String name) {
+    return scope!.get(name);
   }
 
   @override
@@ -198,7 +198,7 @@ class ClassObject extends Value {
   }
 
   @override
-  bool equals(Value other) {
+  bool equals(Value? other) {
     // TODO: implement equals
     throw UnimplementedError();
   }

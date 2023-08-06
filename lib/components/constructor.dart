@@ -16,9 +16,9 @@ import 'util.dart';
 /// function parameters (just named values which are set when the constructor
 /// is called).
 class _ConstructorParameter {
-  Expression valueExpression;
-  TypeName type;
-  String name;
+  Expression? valueExpression;
+  TypeName? type;
+  String? name;
 
   _ConstructorParameter(TokenStream tokens) {
     const comma = TokenPattern(string: ',', type: TokenType.Symbol);
@@ -51,7 +51,7 @@ class _ConstructorParameter {
 }
 
 class ConstructorStatement extends StaticStatement implements ClassChild {
-  String name;
+  String? name;
   var parameters = <_ConstructorParameter>[];
   final body = <FunctionChild>[];
 
@@ -63,12 +63,12 @@ class ConstructorStatement extends StaticStatement implements ClassChild {
       var createdObject = ClassObject(classType);
 
       var returnEffect = SideEffect.nothing();
-      createdObject.scope.branch((constructorLocal) {
+      createdObject.scope!.branch((constructorLocal) {
         for (var i = 0; i < parameters.length; ++i) {
           if (parameters[i].valueExpression != null) {
             // "super.x" or "self.x" to assign to here.
-            var assignmentHandle = parameters[i].valueExpression.evaluate();
-            assignmentHandle.value = arguments[i].value;
+            var assignmentHandle = parameters[i].valueExpression!.evaluate()!;
+            assignmentHandle.value = arguments[i]!.value;
           } else {
             constructorLocal.add(parameters[i].name, arguments[i]);
           }

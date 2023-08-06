@@ -11,13 +11,13 @@ class InitializerListType extends ValueType {
   }
 
   @override
-  bool equals(Value other) {
+  bool equals(Value? other) {
     return other is InitializerListType;
   }
 }
 
 class InitializerList extends Value {
-  final contents = <Handle>[];
+  final contents = <Handle?>[];
 
   @override
   Value copyValue() {
@@ -25,7 +25,7 @@ class InitializerList extends Value {
   }
 
   @override
-  bool equals(Value other) {
+  bool equals(Value? other) {
     throw RuntimeError('Cannot compare initialiser lists.');
   }
 
@@ -40,42 +40,42 @@ class InitializerList extends Value {
   }
 
   Value convertToArray(ValueType elementType) {
-    var values = contents.map((e) => e.convertHandleTo(elementType)).toList();
+    var values = contents.map((e) => e!.convertHandleTo(elementType)).toList();
     return ArrayValue(ArrayType(elementType), values);
   }
 
   @override
-  Value mustConvertTo(ValueType endType) {
+  Value mustConvertTo(ValueType? endType) {
     if (!(endType is ArrayType)) {
       throw RuntimeError('Initialiser lists may only be converted to arrays.');
     }
 
-    return convertToArray((endType as ArrayType).elementType);
+    return convertToArray(endType.elementType);
   }
 }
 
 class ArrayValue extends Value {
-  List<Handle> elements;
+  late List<Handle?> elements;
 
-  ArrayValue(ArrayType arrayType, List<Handle> handles) {
+  ArrayValue(ArrayType arrayType, List<Handle?> handles) {
     type = arrayType;
 
-    elements = List<Handle>.filled(handles.length, null);
+    elements = List<Handle?>.filled(handles.length, null);
 
     for (var i = 0; i < handles.length; ++i) {
-      elements[i] = handles[i].copyHandle();
+      elements[i] = handles[i]!.copyHandle();
     }
   }
 
   @override
   Value copyValue() {
     // The element handles will be copied by the constructor.
-    return ArrayValue(type.copyValue() as ArrayType, elements);
+    return ArrayValue(type!.copyValue() as ArrayType, elements);
   }
 
   @override
-  bool equals(Value other) {
-    if (other.type.notEquals(type)) {
+  bool equals(Value? other) {
+    if (other!.type!.notEquals(type)) {
       return false;
     }
 
@@ -85,7 +85,7 @@ class ArrayValue extends Value {
     }
 
     for (var i = 0; i < elements.length; ++i) {
-      if (elements[i].notEquals(otherArray.elements[i])) {
+      if (elements[i]!.notEquals(otherArray.elements[i]!)) {
         return false;
       }
     }
@@ -94,8 +94,8 @@ class ArrayValue extends Value {
   }
 
   @override
-  bool notEquals(Value other) {
-    if (other.type.notEquals(type)) {
+  bool notEquals(Value? other) {
+    if (other!.type!.notEquals(type)) {
       return true;
     }
 
@@ -105,7 +105,7 @@ class ArrayValue extends Value {
     }
 
     for (var i = 0; i < elements.length; ++i) {
-      if (elements[i].notEquals(otherArray.elements[i])) {
+      if (elements[i]!.notEquals(otherArray.elements[i]!)) {
         return true;
       }
     }
@@ -125,8 +125,8 @@ class ArrayValue extends Value {
   }
 
   @override
-  Handle at(Value key) {
-    return elements[(key as IntegerValue).rawValue];
+  Handle? at(Value key) {
+    return elements[(key as IntegerValue).rawValue!];
   }
 
   @override
@@ -139,8 +139,8 @@ class ArrayValue extends Value {
   }
 
   @override
-  Value mustConvertTo(ValueType endType) {
-    if (endType is AnyType || type.equals(endType)) {
+  Value mustConvertTo(ValueType? endType) {
+    if (endType is AnyType || type!.equals(endType)) {
       return this;
     }
 

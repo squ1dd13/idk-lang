@@ -7,7 +7,7 @@ enum TokenType { Name, Symbol, Number, String, Group, None }
 
 abstract class Token {
   TokenType type = TokenType.None;
-  int line, column;
+  int? line, column;
 
   Token();
 
@@ -213,7 +213,7 @@ class Lexer {
     return [line, column];
   }
 
-  static Set<String> _operatorStarters;
+  static Set<String>? _operatorStarters;
 
   bool _generateOperator() {
     // Fill operatorStarters on the first call so only the operators set has to be
@@ -221,11 +221,11 @@ class Lexer {
     if (_operatorStarters == null) {
       _operatorStarters = <String>{};
       for (var key in ShuntingYard.operators.keys) {
-        _operatorStarters.add(key.substring(0, 1));
+        _operatorStarters!.add(key.substring(0, 1));
       }
     }
 
-    if (!_operatorStarters.contains(_getCharacter())) return false;
+    if (!_operatorStarters!.contains(_getCharacter())) return false;
 
     var operatorString = '';
 
